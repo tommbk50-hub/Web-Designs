@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Knight Dental Design — London's Leading Cosmetic Dental Laboratory</title>
+  <meta name="description" content="Smile Designers for the Ten Years Younger TV series and 6x UK Dental Laboratory of the Year. Providing stunning smiles with the UK's leading dentists." />
+
+  <!-- Google Fonts: Plus Jakarta Sans & Instrument Serif -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', ' -apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            serif: ['"Instrument Serif"', 'Georgia', 'serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            canvas: '#EAE5DD',
+            surface: '#F4F1EA',
+            ink: '#1C1917',
+            muted: '#6E675F',
+            gold: '#C59B47',
+            ochre: '#D99B26',
+            borderWarm: '#D8D2C7',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lenis Smooth Scroll & GSAP + ScrollTrigger -->
+  <link rel="stylesheet" href="https://unpkg.com/lenis@1.1.20/dist/lenis.css">
+  <script src="https://unpkg.com/lenis@1.1.20/dist/lenis.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <style>
+    :root {
+      --bg-canvas: #EAE5DD;
+      --ink: #1C1917;
+    }
+
+    body {
+      background-color: var(--bg-canvas);
+      color: var(--ink);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Sculpted Frosted Glass Cards matching the reference UI */
+    .glass-card-left {
+      background: linear-gradient(165deg, rgba(255, 255, 255, 0.16) 0%, rgba(30, 22, 16, 0.42) 100%);
+      backdrop-filter: blur(22px) saturate(140%);
+      -webkit-backdrop-filter: blur(22px) saturate(140%);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      box-shadow: 0 24px 60px -15px rgba(0, 0, 0, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.35);
+      position: relative;
+    }
+
+    /* Subtle concave top curve accent inspired by the left glass card in reference */
+    .glass-card-left::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: 18%;
+      right: 18%;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.28);
+      border-bottom-left-radius: 999px;
+      border-bottom-right-radius: 999px;
+      pointer-events: none;
+    }
+
+    .glass-card-right {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.10) 0%, rgba(28, 20, 15, 0.38) 100%);
+      backdrop-filter: blur(18px) saturate(130%);
+      -webkit-backdrop-filter: blur(18px) saturate(130%);
+      border: 1px solid rgba(255, 255, 255, 0.32);
+      box-shadow: 0 28px 70px -15px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+      position: relative;
+    }
+
+    /* Interactive Cursor Glare on Cards */
+    .spotlight-card {
+      position: relative;
+      overflow: hidden;
+    }
+    .spotlight-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(
+        480px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+        rgba(255, 255, 255, 0.16),
+        transparent 45%
+      );
+      opacity: 0;
+      transition: opacity 0.35s ease;
+      pointer-events: none;
+    }
+    .spotlight-card:hover::after {
+      opacity: 1;
+    }
+
+    /* Hero Portrait Warm Editorial Grading */
+    .hero-portrait-bg {
+      background-image:
+        radial-gradient(circle at 48% 42%, rgba(28, 20, 14, 0.08) 0%, rgba(22, 16, 12, 0.58) 78%),
+        linear-gradient(180deg, rgba(20, 15, 11, 0.42) 0%, rgba(20, 15, 11, 0.12) 45%, rgba(18, 13, 9, 0.72) 100%),
+        url('https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=2000&q=85');
+      background-size: cover;
+      background-position: center 28%;
+    }
+
+    /* Slow Asterisk Spin */
+    @keyframes spinSlow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .asterisk-spin {
+      animation: spinSlow 18s linear infinite;
+    }
+
+    /* Seamless Marquee */
+    @keyframes marqueeScroll {
+      0% { transform: translateX(0%); }
+      100% { transform: translateX(-50%); }
+    }
+    .marquee-track {
+      display: flex;
+      width: max-content;
+      animation: marqueeScroll 34s linear infinite;
+    }
+    .marquee-track:hover {
+      animation-play-state: paused;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #EAE5DD;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #B8B0A4;
+      border-radius: 999px;
+    }
+  </style>
+</head>
+<body class="selection:bg-ink selection:text-canvas">
+
+  <!-- ===================================================================== -->
+  <!-- 1. FRAMED EDITORIAL HERO (DIRECT INSPIRATION FROM REFERENCE DESIGN)   -->
+  <!-- ===================================================================== -->
+  <div class="p-3 sm:p-5 lg:p-7">
+    <header class="relative min-h-[92vh] w-full rounded-[28px] sm:rounded-[36px] overflow-hidden shadow-2xl flex flex-col justify-between text-white">
+
+      <!-- Parallax Background Layer -->
+      <div id="hero-bg" class="hero-portrait-bg absolute inset-0 scale-105 transition-transform duration-700 ease-out pointer-events-none"></div>
+
+      <!-- Top Navigation Bar inside Hero -->
+      <nav class="relative z-30 flex items-center justify-between px-6 sm:px-10 lg:px-14 pt-6 sm:pt-9">
+        <!-- Brand Mark (4-Petal Geometric Diamond Emblem + 2-Line Title) -->
+        <a href="#" class="flex items-center gap-3.5 group">
+          <div class="relative w-10 h-10 flex items-center justify-center">
+            <svg viewBox="0 0 40 40" class="w-9 h-9 text-white transition-transform duration-500 group-hover:rotate-90" fill="currentColor">
+              <!-- Four sculpted dental/diamond petals matching the reference logo -->
+              <path d="M20 2C16.5 9 16.5 13 20 18C23.5 13 23.5 9 20 2Z" />
+              <path d="M20 38C16.5 31 16.5 27 20 22C23.5 27 23.5 31 20 38Z" />
+              <path d="M2 20C9 16.5 13 16.5 18 20C13 23.5 9 23.5 2 20Z" />
+              <path d="M38 20C31 16.5 27 16.5 22 20C27 23.5 31 23.5 38 20Z" />
+            </svg>
+          </div>
+          <div class="leading-[1.12] tracking-tight">
+            <span class="block text-base sm:text-lg font-semibold">Knight</span>
+            <span class="block text-sm sm:text-base font-normal text-white/85">Dental Design</span>
+          </div>
+        </a>
+
+        <!-- Center Navigation Links -->
+        <ul class="hidden lg:flex items-center gap-9 text-sm font-normal text-white/85">
+          <li><a href="#what-we-do" class="hover:text-white transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-white hover:after:w-full after:transition-all">What We Do</a></li>
+          <li><a href="#for-patients" class="hover:text-white transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-white hover:after:w-full after:transition-all">For Patients</a></li>
+          <li><a href="#lifetime-lingual" class="hover:text-white transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-white hover:after:w-full after:transition-all">LifeTime Lingual™</a></li>
+          <li><a href="#for-dentists" class="hover:text-white transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-white hover:after:w-full after:transition-all">For Dentists</a></li>
+          <li><a href="#case-studies" class="hover:text-white transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-white hover:after:w-full after:transition-all">Case Studies</a></li>
+          <li><a href="#find-dentist" class="hover:text-white transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-white hover:after:w-full after:transition-all">Contact</a></li>
+        </ul>
+
+        <!-- Right Pill Action Button -->
+        <div class="flex items-center gap-3">
+          <button
+            onclick="openModal('dentist')"
+            data-magnetic
+            class="group inline-flex items-center gap-3 rounded-full border border-white/65 bg-white/5 px-5 sm:px-6 py-2.5 text-xs sm:text-sm font-medium text-white backdrop-blur-md transition-all hover:bg-white hover:text-ink"
+          >
+            <span>Send a Case</span>
+            <span class="transition-transform duration-300 group-hover:translate-x-1">→</span>
+          </button>
+        </div>
+      </nav>
+
+      <!-- Center Headline Block (With Editorial Smile Window Gap) -->
+      <div class="relative z-20 px-6 sm:px-10 lg:px-14 my-auto pt-12 pb-6">
+        <!-- 8-Spoke Asterisk + Two-Line Subtitle -->
+        <div class="flex items-center gap-4 mb-5 hero-reveal">
+          <svg class="w-8 h-8 text-white/90 asterisk-spin shrink-0" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.75">
+            <line x1="16" y1="2" x2="16" y2="30" />
+            <line x1="2" y1="16" x2="30" y2="16" />
+            <line x1="6.1" y1="6.1" x2="25.9" y2="25.9" />
+            <line x1="25.9" y1="6.1" x2="6.1" y2="25.9" />
+          </svg>
+          <p class="text-xs sm:text-sm leading-snug text-white/90 max-w-xs">
+            Smile Designers for the <span class="underline decoration-white/50 underline-offset-2">Ten Years Younger</span> TV series<br />
+            &amp; 6× UK Dental Laboratory of the Year
+          </p>
+        </div>
+
+        <!-- Giant Split Display Headline mirroring the reference typography -->
+        <h1 class="hero-reveal text-4xl sm:text-6xl lg:text-[4.65rem] xl:text-[5.25rem] font-medium tracking-[-0.03em] leading-[1.04] max-w-6xl">
+          <span class="inline-flex flex-wrap items-center gap-x-4 gap-y-2">
+            <span>Providing stunning</span>
+            <!-- Interactive Framing Pill Window over the portrait's smile -->
+            <button
+              onclick="document.getElementById('case-studies').scrollIntoView({behavior: 'smooth'})"
+              title="Explore Smile Makeovers"
+              class="hidden md:inline-flex items-center justify-center w-28 lg:w-40 h-12 lg:h-16 rounded-full border border-white/45 bg-white/10 backdrop-blur-[2px] shadow-inner group hover:border-white transition-all cursor-pointer mx-1"
+            >
+              <span class="text-[11px] font-mono uppercase tracking-widest text-white/90 opacity-80 group-hover:opacity-100 flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse"></span>
+                6× Winner
+              </span>
+            </button>
+            <span>smiles with</span>
+          </span>
+          <span class="block mt-1">the UK’s leading dentists!</span>
+        </h1>
+      </div>
+
+      <!-- Bottom Grid: Left Service Pills + Mission Text | Right Overlapping Frosted Glass Cards -->
+      <div class="relative z-20 px-6 sm:px-10 lg:px-14 pb-8 sm:pb-11 grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
+
+        <!-- Bottom-Left Column: 5 Interactive Service Pills + Verbatim Paragraph -->
+        <div class="lg:col-span-6 space-y-6 hero-reveal">
+          <div class="flex flex-wrap items-center gap-2.5" id="hero-service-pills" role="tablist" aria-label="Laboratory Services">
+            <button
+              onclick="selectHeroService('veneers')"
+              data-pill="veneers"
+              class="hero-pill active-pill rounded-full border border-white bg-white text-ink px-5 py-2 text-xs sm:text-sm font-medium transition-all"
+            >
+              Veneers
+            </button>
+            <button
+              onclick="selectHeroService('implants')"
+              data-pill="implants"
+              class="hero-pill rounded-full border border-white/50 bg-black/15 text-white/90 hover:border-white hover:bg-white/15 px-5 py-2 text-xs sm:text-sm font-normal backdrop-blur-sm transition-all"
+            >
+              Implants
+            </button>
+            <button
+              onclick="selectHeroService('crowns')"
+              data-pill="crowns"
+              class="hero-pill rounded-full border border-white/50 bg-black/15 text-white/90 hover:border-white hover:bg-white/15 px-5 py-2 text-xs sm:text-sm font-normal backdrop-blur-sm transition-all"
+            >
+              Crowns
+            </button>
+            <button
+              onclick="selectHeroService('bridges')"
+              data-pill="bridges"
+              class="hero-pill rounded-full border border-white/50 bg-black/15 text-white/90 hover:border-white hover:bg-white/15 px-5 py-2 text-xs sm:text-sm font-normal backdrop-blur-sm transition-all"
+            >
+              Bridges
+            </button>
+            <button
+              onclick="selectHeroService('digital')"
+              data-pill="digital"
+              class="hero-pill rounded-full border border-white/50 bg-black/15 text-white/90 hover:border-white hover:bg-white/15 px-5 py-2 text-xs sm:text-sm font-normal backdrop-blur-sm transition-all"
+            >
+              Digital Dentistry
+            </button>
+          </div>
+
+          <p class="text-xs sm:text-sm leading-relaxed text-white/85 max-w-lg font-normal">
+            London’s Leading Cosmetic Dental Laboratory. Based in Plumstead Common, London, our specialist team of registered dental technicians combines traditional ceramic artistry with Sirona, 3Shape, iTero, and Carestream digital workflows to deliver life-changing aesthetic and implant restorations across the UK.
+          </p>
+        </div>
+
+        <!-- Bottom-Right Column: Two Asymmetrical Frosted Glass Cards -->
+        <div class="lg:col-span-6 flex flex-col sm:flex-row items-stretch sm:items-end justify-end gap-4 sm:gap-5 hero-reveal">
+
+          <!-- Glass Card 1 (Shorter, Sculpted Top Edge, Dynamic Service Details) -->
+          <div id="hero-left-glass" class="glass-card-left spotlight-card w-full sm:w-[265px] rounded-[26px] p-6 flex flex-col justify-between min-h-[250px] transition-transform duration-300 hover:-translate-y-1">
+            <div class="pt-3">
+              <span id="glass-service-tag" class="inline-block text-[10px] font-mono uppercase tracking-widest text-amber-200/90 mb-2">
+                01 / COSMETIC DENTISTRY
+              </span>
+              <p id="glass-service-text" class="text-xs sm:text-[13px] leading-relaxed text-white/90 font-normal">
+                Hand-layered porcelain &amp; IPS e.max veneers crafted with digital smile simulation and in-studio colour matching for natural translucency.
+              </p>
+            </div>
+
+            <div class="pt-6 flex items-center justify-center">
+              <a
+                href="#what-we-do"
+                data-magnetic
+                class="w-full text-center rounded-full bg-white text-ink py-2.5 px-6 text-xs font-semibold shadow-md hover:bg-canvas transition-colors"
+              >
+                Learn more
+              </a>
+            </div>
+          </div>
+
+          <!-- Glass Card 2 (Taller, Circular Mustard Avatar, White Pill Switcher & Key Spotlight) -->
+          <div id="hero-right-glass" class="glass-card-right spotlight-card w-full sm:w-[265px] rounded-[26px] p-6 flex flex-col items-center text-center justify-between min-h-[330px] transition-transform duration-300 hover:-translate-y-1">
+
+            <!-- Circular Portrait with Warm Ochre Backdrop (Matching Reference Image) -->
+            <div class="relative mt-1">
+              <div class="w-20 h-20 rounded-full bg-ochre overflow-hidden border-2 border-white/40 shadow-lg mx-auto">
+                <img
+                  id="spotlight-avatar"
+                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80"
+                  alt="Knight Dental Case Spotlight"
+                  class="w-full h-full object-cover object-center transition-all duration-500"
+                />
+              </div>
+
+              <!-- Interactive White Pill Dropdown Switcher -->
+              <div class="mt-3 relative inline-block">
+                <button
+                  onclick="cycleHeroSpotlight()"
+                  class="inline-flex items-center gap-1.5 rounded-full bg-white text-ink px-4 py-1 text-xs font-semibold shadow-sm hover:bg-canvas transition-colors"
+                  title="Click to cycle stories & offers"
+                >
+                  <span id="spotlight-pill-label">Intro Offer</span>
+                  <svg class="w-3 h-3 text-ink/70" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Center Metric / Price / Accolade Readout -->
+            <div class="my-3">
+              <span id="spotlight-overline" class="block text-[10px] font-mono uppercase tracking-widest text-white/75">
+                FOR NEW CLIENT DENTISTS
+              </span>
+              <div id="spotlight-metric" class="text-3xl font-semibold tracking-tight text-white mt-0.5">
+                Up to £500
+              </div>
+            </div>
+
+            <!-- Bottom Description -->
+            <p id="spotlight-desc" class="text-[12px] leading-relaxed text-white/80 font-normal">
+              Claim a 15% introductory discount (up to £500) on your first aesthetic, implant, or digital restorations with Knight Dental Design.
+            </p>
+          </div>
+
+        </div>
+      </div>
+
+    </header>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- 2. SEAMLESS CREDENTIALS & DIGITAL SCANNER MARQUEE                     -->
+  <!-- ===================================================================== -->
+  <section class="py-5 border-y border-borderWarm bg-surface/60 overflow-hidden">
+    <div class="marquee-track flex items-center gap-12 text-xs font-mono uppercase tracking-widest text-muted">
+      <span class="flex items-center gap-3"><strong class="text-ink">6× WINNER</strong> UK Dental Laboratory of the Year (2004 · 2008 · 2013)</span>
+      <span>•</span>
+      <span class="flex items-center gap-3"><strong class="text-ink">CHANNEL 4</strong> Smile Designers for Ten Years Younger</span>
+      <span>•</span>
+      <span class="flex items-center gap-3"><strong class="text-ink">DIGITAL SCANS</strong> 3Shape Communicate · Sirona Connect · iTero · Carestream</span>
+      <span>•</span>
+      <span class="flex items-center gap-3"><strong class="text-ink">PATENT PENDING</strong> LifeTime Lingual™ CAD-CAM Ceramic Retainer</span>
+      <span>•</span>
+      <span class="flex items-center gap-3"><strong class="text-ink">FREEPOST SE6546</strong> Royal Mail White Box &amp; Free UPS Next-Day Brown Box</span>
+      <span>•</span>
+      <span class="flex items-center gap-3"><strong class="text-ink">MHRA REGISTERED</strong> Reg. No. CA 003175 · 92 Swingate Lane, London SE18</span>
+      <span>•</span>
+      <!-- Duplicate for seamless loop -->
+      <span class="flex items-center gap-3"><strong class="text-ink">6× WINNER</strong> UK Dental Laboratory of the Year (2004 · 2008 · 2013)</span>
+      <span>•</span>
+      <span class="flex items-center gap-3"><strong class="text-ink">CHANNEL 4</strong> Smile Designers for Ten Years Younger</span>
+      <span>•</span>
+      <span class="flex items-center gap-3"><strong class="text-ink">DIGITAL SCANS</strong> 3Shape Communicate · Sirona Connect · iTero · Carestream</span>
+      <span>•</span>
+      <span class="flex items-center gap-3"><strong class="text-ink">PATENT PENDING</strong> LifeTime Lingual™ CAD-CAM Ceramic Retainer</span>
+      <span>•</span>
+      <span class="flex items-center gap-3"><strong class="text-ink">FREEPOST SE6546</strong> Royal Mail White Box &amp; Free UPS Next-Day Brown Box</span>
+      <span>•</span>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- 3. WHAT WE DO — FOUR CORE DISCIPLINES & SIX REASONS TO CHOOSE US      -->
+  <!-- ===================================================================== -->
+  <section id="what-we-do" class="max-w-7xl mx-auto px-6 sm:px-10 py-20 sm:py-28">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-end mb-14 reveal-up">
+      <div class="lg:col-span-7">
+        <div class="inline-flex items-center gap-2 rounded-full border border-borderWarm bg-surface px-4 py-1.5 text-xs font-mono uppercase tracking-widest text-muted mb-4">
+          <span>✳ What We Do</span>
+        </div>
+        <h2 class="text-3xl sm:text-5xl font-medium tracking-tight leading-[1.08]">
+          Combining traditional <span class="font-serif italic font-normal text-gold">ceramic artistry</span> with precision digital dentistry.
+        </h2>
+      </div>
+      <div class="lg:col-span-5 text-sm text-muted leading-relaxed">
+        Founded by Tony Knight in 1981, Knight Dental Design is a family-run boutique laboratory in South London. Every restoration is custom-engineered for discerning private practices and patients across the UK.
+      </div>
+    </div>
+
+    <!-- 4 Pillars Grid from knightdentaldesign.co.uk -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+      <!-- Card 1: Cosmetic Dentistry -->
+      <article class="group rounded-[28px] bg-surface border border-borderWarm p-7 flex flex-col justify-between min-h-[340px] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:border-ink/30 reveal-up">
+        <div>
+          <div class="flex items-center justify-between text-xs font-mono text-muted mb-6">
+            <span>01 / DISCIPLINE</span>
+            <span class="w-8 h-8 rounded-full border border-borderWarm flex items-center justify-center group-hover:bg-ink group-hover:text-white transition-colors">↗</span>
+          </div>
+          <h3 class="text-2xl font-medium tracking-tight mb-3">Cosmetic Dentistry</h3>
+          <p class="text-xs sm:text-sm text-muted leading-relaxed">
+            Bespoke porcelain veneers, IPS e.max crowns, diagnostic wax-ups, and digital smile design crafted to harmonise with facial proportions.
+          </p>
+        </div>
+        <div class="pt-6 border-t border-borderWarm/80 flex flex-wrap gap-1.5">
+          <span class="text-[11px] rounded-full bg-canvas px-3 py-1 text-ink/80">Veneers</span>
+          <span class="text-[11px] rounded-full bg-canvas px-3 py-1 text-ink/80">IPS e.max</span>
+          <span class="text-[11px] rounded-full bg-canvas px-3 py-1 text-ink/80">Trial Smiles</span>
+        </div>
+      </article>
+
+      <!-- Card 2: Implant Dentistry -->
+      <article class="group rounded-[28px] bg-surface border border-borderWarm p-7 flex flex-col justify-between min-h-[340px] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:border-ink/30 reveal-up">
+        <div>
+          <div class="flex items-center justify-between text-xs font-mono text-muted mb-6">
+            <span>02 / DISCIPLINE</span>
+            <span class="w-8 h-8 rounded-full border border-borderWarm flex items-center justify-center group-hover:bg-ink group-hover:text-white transition-colors">↗</span>
+          </div>
+          <h3 class="text-2xl font-medium tracking-tight mb-3">Implant Dentistry</h3>
+          <p class="text-xs sm:text-sm text-muted leading-relaxed">
+            Working across nine leading implant systems, from single custom zirconia abutments to full-arch screw-retained implant bridges.
+          </p>
+        </div>
+        <div class="pt-6 border-t border-borderWarm/80 flex flex-wrap gap-1.5">
+          <span class="text-[11px] rounded-full bg-canvas px-3 py-1 text-ink/80">9 Implant Systems</span>
+          <span class="text-[11px] rounded-full bg-canvas px-3 py-1 text-ink/80">Custom Abutments</span>
+        </div>
+      </article>
+
+      <!-- Card 3: Reconstructive Dentistry -->
+      <article class="group rounded-[28px] bg-surface border border-borderWarm p-7 flex flex-col justify-between min-h-[340px] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:border-ink/30 reveal-up">
+        <div>
+          <div class="flex items-center justify-between text-xs font-mono text-muted mb-6">
+            <span>03 / DISCIPLINE</span>
+            <span class="w-8 h-8 rounded-full border border-borderWarm flex items-center justify-center group-hover:bg-ink group-hover:text-white transition-colors">↗</span>
+          </div>
+          <h3 class="text-2xl font-medium tracking-tight mb-3">Reconstructive Dentistry</h3>
+          <p class="text-xs sm:text-sm text-muted leading-relaxed">
+            Comprehensive treatment planning for severe tooth wear, occlusal rehabilitation, precision CrCo dentures, telescopic dentures, and splints.
+          </p>
+        </div>
+        <div class="pt-6 border-t border-borderWarm/80 flex flex-wrap gap-1.5">
+          <span class="text-[11px] rounded-full bg-canvas px-3 py-1 text-ink/80">Occlusal Rehab</span>
+          <span class="text-[11px] rounded-full bg-canvas px-3 py-1 text-ink/80">Wear Cases</span>
+        </div>
+      </article>
+
+      <!-- Card 4: Digital Dentistry -->
+      <article class="group rounded-[28px] bg-ink text-white p-7 flex flex-col justify-between min-h-[340px] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl reveal-up">
+        <div>
+          <div class="flex items-center justify-between text-xs font-mono text-white/60 mb-6">
+            <span>04 / DIGITAL LAB</span>
+            <span class="w-8 h-8 rounded-full border border-white/25 flex items-center justify-center group-hover:bg-white group-hover:text-ink transition-colors">↗</span>
+          </div>
+          <h3 class="text-2xl font-medium tracking-tight mb-3">Digital Dentistry</h3>
+          <p class="text-xs sm:text-sm text-white/75 leading-relaxed">
+            Virtually chairside via Sirona Connect &amp; 3Shape Communicate to view and advise on preparations and scans from iTero and Carestream in real time.
+          </p>
+        </div>
+        <div class="pt-6 border-t border-white/15 flex flex-wrap gap-1.5">
+          <span class="text-[11px] rounded-full bg-white/10 px-3 py-1 text-white/90">3Shape</span>
+          <span class="text-[11px] rounded-full bg-white/10 px-3 py-1 text-white/90">Sirona</span>
+          <span class="text-[11px] rounded-full bg-white/10 px-3 py-1 text-white/90">iTero</span>
+          <span class="text-[11px] rounded-full bg-white/10 px-3 py-1 text-white/90">Carestream</span>
+        </div>
+      </article>
+    </div>
+
+    <!-- Six Reasons to Choose Knight Dental Design (Award Banner Strip) -->
+    <div class="mt-8 rounded-[28px] border border-borderWarm bg-surface p-6 sm:p-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 reveal-up">
+      <div>
+        <span class="text-xs font-mono uppercase tracking-widest text-gold block mb-1">Six Reasons to Choose Knight Dental Design</span>
+        <h3 class="text-xl sm:text-2xl font-medium">6× UK Dental Laboratory of the Year</h3>
+      </div>
+      <div class="flex flex-wrap gap-2.5">
+        <span class="rounded-full border border-borderWarm bg-canvas px-4 py-2 text-xs font-medium">🏆 UK Lab of the Year 2013</span>
+        <span class="rounded-full border border-borderWarm bg-canvas px-4 py-2 text-xs font-medium">🏆 UK Lab of the Year 2008</span>
+        <span class="rounded-full border border-borderWarm bg-canvas px-4 py-2 text-xs font-medium">🏆 UK Lab of the Year 2004</span>
+        <span class="rounded-full border border-borderWarm bg-canvas px-4 py-2 text-xs font-medium">🏆 3× Best UK Dental Laboratory</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- 4. LATEST NEWS & INNOVATION: LIFETIME LINGUAL™ (INTERACTIVE STUDIO)   -->
+  <!-- ===================================================================== -->
+  <section id="lifetime-lingual" class="px-3 sm:px-5 lg:px-7 pb-20">
+    <div class="rounded-[28px] sm:rounded-[36px] bg-ink text-white p-8 sm:p-12 lg:p-16 max-w-[1400px] mx-auto overflow-hidden relative">
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <!-- Left Copy: Verbatim from Knight Dental Design Latest News & LTL Brochure -->
+        <div class="lg:col-span-6 space-y-6 reveal-up">
+          <div class="inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/5 px-4 py-1.5 text-xs font-mono uppercase tracking-widest text-amber-300">
+            <span>Patent Pending · In Association with Inman Orthodontics</span>
+          </div>
+
+          <h2 class="text-3xl sm:text-5xl font-medium tracking-tight leading-[1.08]">
+            Introducing the <span class="font-serif italic font-normal text-amber-200">LifeTime Lingual™</span> ceramic hybrid retainer.
+          </h2>
+
+          <p class="text-sm sm:text-base text-white/80 leading-relaxed">
+            The LifeTime Lingual™ is a completely new concept in final orthodontic retention. Unlike traditional lingual retainers, there are <strong class="text-white font-medium">no stainless steel wires, metal bonding pads, or fibres</strong> to fracture or debond.
+          </p>
+
+          <p class="text-xs sm:text-sm text-white/70 leading-relaxed">
+            CAD-CAM designed and precision milled in high-strength ceramic hybrid (only 1.0mm thick) to hold lower 3–3 teeth securely, comfortably, and hygienically. Delivered diamond-polished and pre-etched with a custom <strong class="text-white">Essix-type location jig</strong> for predictable chairside bonding in under 30 minutes.
+          </p>
+
+          <!-- Key Clinical Highlights -->
+          <div class="grid grid-cols-3 gap-4 pt-4 border-t border-white/15">
+            <div>
+              <div class="text-2xl sm:text-3xl font-semibold text-amber-200">1.0mm</div>
+              <div class="text-xs text-white/65 mt-1">Ultra-thin ceramic hybrid profile</div>
+            </div>
+            <div>
+              <div class="text-2xl sm:text-3xl font-semibold text-amber-200">&lt;30 min</div>
+              <div class="text-xs text-white/65 mt-1">Chairside fit with Essix location jig</div>
+            </div>
+            <div>
+              <div class="text-2xl sm:text-3xl font-semibold text-amber-200">5 Shades</div>
+              <div class="text-xs text-white/65 mt-1">Vita shades with TePe access</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Interactive Shade & Retainer Visualizer Card -->
+        <div class="lg:col-span-6 reveal-up">
+          <div class="rounded-[28px] border border-white/20 bg-white/5 backdrop-blur-xl p-6 sm:p-8">
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-5 border-b border-white/15">
+              <div>
+                <span class="text-[11px] font-mono uppercase tracking-widest text-white/60 block">INTERACTIVE SPEC VIEWER</span>
+                <h3 id="ltl-shade-title" class="text-lg font-medium mt-0.5">Vita Shade A1 — Warm Ivory Pearl</h3>
+              </div>
+              <button
+                onclick="toggleEssixJig()"
+                id="jig-toggle-btn"
+                class="rounded-full border border-amber-300/50 bg-amber-300/15 px-4 py-1.5 text-xs font-mono text-amber-200 hover:bg-amber-300/25 transition-colors"
+              >
+                Essix Location Jig: ON
+              </button>
+            </div>
+
+            <!-- Interactive SVG Lingual Arch Diagram (Lower 3-3) -->
+            <div class="my-6 py-8 px-4 rounded-2xl bg-black/35 border border-white/10 flex flex-col items-center justify-center relative">
+              <svg viewBox="0 0 500 210" class="w-full max-w-md h-auto overflow-visible">
+                <!-- Translucent Essix Location Jig Overlay -->
+                <g id="svg-essix-jig" class="transition-opacity duration-500" opacity="1">
+                  <path d="M55,145 C95,25 405,25 445,145 C420,175 385,180 350,145 C290,90 210,90 150,145 C115,180 80,175 55,145 Z"
+                        fill="rgba(186, 230, 253, 0.14)" stroke="rgba(186, 230, 253, 0.55)" stroke-width="1.5" stroke-dasharray="4 3" />
+                  <text x="250" y="34" text-anchor="middle" fill="#BAE6FD" font-family="JetBrains Mono" font-size="10" letter-spacing="1">
+                    ESSIX LOCATION JIG (SEATS LL3–LR3 IN ONE CURE)
+                  </text>
+                </g>
+
+                <!-- 6 Lower Anterior Teeth (LR3, LR2, LR1, LL1, LL2, LL3) -->
+                <g stroke="#292524" stroke-width="1.5" fill="#EDE9E0">
+                  <!-- LR3 Canine -->
+                  <rect x="72" y="96" width="50" height="58" rx="18" />
+                  <!-- LR2 Lateral -->
+                  <rect x="130" y="76" width="46" height="56" rx="14" />
+                  <!-- LR1 Central -->
+                  <rect x="184" y="66" width="44" height="54" rx="12" />
+                  <!-- LL1 Central -->
+                  <rect x="236" y="66" width="44" height="54" rx="12" />
+                  <!-- LL2 Lateral -->
+                  <rect x="288" y="76" width="46" height="56" rx="14" />
+                  <!-- LL3 Canine -->
+                  <rect x="342" y="96" width="50" height="58" rx="18" />
+                </g>
+
+                <!-- Pink TePe Interdental Embrasure Access Indicators -->
+                <g fill="#F472B6" opacity="0.85">
+                  <circle cx="126" cy="126" r="3.5" />
+                  <circle cx="180" cy="114" r="3.5" />
+                  <circle cx="232" cy="110" r="3.5" />
+                  <circle cx="284" cy="114" r="3.5" />
+                  <circle cx="338" cy="126" r="3.5" />
+                </g>
+
+                <!-- Precision Milled 1.0mm LifeTime Lingual Ceramic Hybrid Bar -->
+                <path id="ltl-ceramic-bar"
+                      d="M92,126 C145,92 190,88 232,88 C274,88 319,92 372,126"
+                      fill="none"
+                      stroke="#EFECE4"
+                      stroke-width="14"
+                      stroke-linecap="round"
+                      class="transition-all duration-300 drop-shadow-[0_4px_12px_rgba(255,255,255,0.25)]" />
+                <path d="M92,126 C145,92 190,88 232,88 C274,88 319,92 372,126"
+                      fill="none"
+                      stroke="#B5945B"
+                      stroke-width="1.2"
+                      stroke-dasharray="2 3"
+                      stroke-linecap="round" />
+
+                <text x="232" y="185" text-anchor="middle" fill="rgba(255,255,255,0.65)" font-family="JetBrains Mono" font-size="10">
+                  ● PINK DOTS = OPEN CERVICAL EMBRASURES FOR TEPE BRUSH ACCESS
+                </text>
+              </svg>
+            </div>
+
+            <!-- 5 Vita Shade Selector Buttons -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <span class="text-xs font-mono uppercase tracking-wider text-white/70">Select Vita Shade:</span>
+              <div class="flex items-center gap-2">
+                <button onclick="setLtlShade('BL2', '#F7F7F4', 'Vita Shade BL2 — Natural Bleach')" class="ltl-shade-btn rounded-full px-3.5 py-1.5 text-xs font-mono border border-white/25 bg-[#F7F7F4] text-ink font-medium">BL2</button>
+                <button onclick="setLtlShade('A1', '#EFECE4', 'Vita Shade A1 — Warm Ivory Pearl')" class="ltl-shade-btn rounded-full px-3.5 py-1.5 text-xs font-mono border-2 border-amber-300 bg-[#EFECE4] text-ink font-semibold scale-105">A1</button>
+                <button onclick="setLtlShade('B1', '#EBE7DC', 'Vita Shade B1 — Translucent Enamel')" class="ltl-shade-btn rounded-full px-3.5 py-1.5 text-xs font-mono border border-white/25 bg-[#EBE7DC] text-ink font-medium">B1</button>
+                <button onclick="setLtlShade('A2', '#E5DEC9', 'Vita Shade A2 — Classic Natural')" class="ltl-shade-btn rounded-full px-3.5 py-1.5 text-xs font-mono border border-white/25 bg-[#E5DEC9] text-ink font-medium">A2</button>
+                <button onclick="setLtlShade('A3', '#DCD1B8', 'Vita Shade A3 — Warm Dentine')" class="ltl-shade-btn rounded-full px-3.5 py-1.5 text-xs font-mono border border-white/25 bg-[#DCD1B8] text-ink font-medium">A3</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- 5. FOR PATIENTS & REAL SMILE STORIES (JADE, PAULA HAMILTON, ELLIOT)   -->
+  <!-- ===================================================================== -->
+  <section id="case-studies" class="max-w-7xl mx-auto px-6 sm:px-10 py-16 sm:py-24">
+    <div id="for-patients" class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6 reveal-up">
+      <div>
+        <div class="inline-flex items-center gap-2 rounded-full border border-borderWarm bg-surface px-4 py-1.5 text-xs font-mono uppercase tracking-widest text-muted mb-4">
+          <span>✳ Patient Info &amp; Case Studies</span>
+        </div>
+        <h2 class="text-3xl sm:text-5xl font-medium tracking-tight">
+          Real patients. <span class="font-serif italic font-normal text-gold">Documented studio artistry.</span>
+        </h2>
+      </div>
+      <p class="text-xs sm:text-sm text-muted max-w-md leading-relaxed">
+        Patients visit our London SE18 photographic studio from across the UK for macro portrait photography, digital and manual shade measurement, and digital cosmetic simulations.
+      </p>
+    </div>
+
+    <!-- 3 Patient Story Cards from knightdentaldesign.co.uk -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Story 1: Paula Hamilton -->
+      <article class="group rounded-[28px] overflow-hidden border border-borderWarm bg-surface flex flex-col justify-between reveal-up">
+        <div class="relative h-72 overflow-hidden">
+          <img
+            src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=900&q=80"
+            alt="Paula Hamilton Case Study"
+            class="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
+          />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent"></div>
+          <span class="absolute top-4 left-4 rounded-full bg-white/20 backdrop-blur-md border border-white/30 px-3.5 py-1 text-[11px] font-mono uppercase text-white">
+            Smile Makeover &amp; Implants
+          </span>
+          <div class="absolute bottom-4 left-5 right-5 text-white">
+            <h3 class="text-2xl font-medium">Paula Hamilton</h3>
+            <p class="text-xs text-white/80">Model &amp; TV Personality · Full Aesthetic Rehabilitation</p>
+          </div>
+        </div>
+        <div class="p-6 flex-1 flex flex-col justify-between space-y-5">
+          <p class="text-xs sm:text-sm text-muted leading-relaxed">
+            Featured in our clinical portfolio and media transformations, combining hand-layered ceramic veneers and precision implant restorations calibrated in our photographic studio.
+          </p>
+          <button
+            onclick="openCaseModal('paula')"
+            class="w-full rounded-full border border-ink/20 py-2.5 text-xs font-semibold text-ink hover:bg-ink hover:text-white transition-colors"
+          >
+            Read Paula’s Story →
+          </button>
+        </div>
+      </article>
+
+      <!-- Story 2: Jade -->
+      <article class="group rounded-[28px] overflow-hidden border border-borderWarm bg-surface flex flex-col justify-between reveal-up">
+        <div class="relative h-72 overflow-hidden">
+          <img
+            src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=900&q=80"
+            alt="Jade Case Study"
+            class="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
+          />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent"></div>
+          <span class="absolute top-4 left-4 rounded-full bg-white/20 backdrop-blur-md border border-white/30 px-3.5 py-1 text-[11px] font-mono uppercase text-white">
+            Porcelain Veneers
+          </span>
+          <div class="absolute bottom-4 left-5 right-5 text-white">
+            <h3 class="text-2xl font-medium">Jade</h3>
+            <p class="text-xs text-white/80">Digital Smile Analysis &amp; Minimal-Prep Ceramic Veneers</p>
+          </div>
+        </div>
+        <div class="p-6 flex-1 flex flex-col justify-between space-y-5">
+          <p class="text-xs sm:text-sm text-muted leading-relaxed">
+            Designed using golden proportion analysis and trial smile verification to restore natural tooth length, midline symmetry, and warm enamel translucency.
+          </p>
+          <button
+            onclick="openCaseModal('jade')"
+            class="w-full rounded-full border border-ink/20 py-2.5 text-xs font-semibold text-ink hover:bg-ink hover:text-white transition-colors"
+          >
+            Read Jade’s Story →
+          </button>
+        </div>
+      </article>
+
+      <!-- Story 3: Elliot -->
+      <article class="group rounded-[28px] overflow-hidden border border-borderWarm bg-surface flex flex-col justify-between reveal-up">
+        <div class="relative h-72 overflow-hidden">
+          <img
+            src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=900&q=80"
+            alt="Elliot Case Study"
+            class="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
+          />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent"></div>
+          <span class="absolute top-4 left-4 rounded-full bg-white/20 backdrop-blur-md border border-white/30 px-3.5 py-1 text-[11px] font-mono uppercase text-white">
+            Reconstructive &amp; Crowns
+          </span>
+          <div class="absolute bottom-4 left-5 right-5 text-white">
+            <h3 class="text-2xl font-medium">Elliot</h3>
+            <p class="text-xs text-white/80">Restorative Crowns &amp; Functional Smile Design</p>
+          </div>
+        </div>
+        <div class="p-6 flex-1 flex flex-col justify-between space-y-5">
+          <p class="text-xs sm:text-sm text-muted leading-relaxed">
+            Restored worn and uneven anterior dentition with high-strength all-ceramic crowns, custom gingival emergence profiles, and natural surface characterization.
+          </p>
+          <button
+            onclick="openCaseModal('elliot')"
+            class="w-full rounded-full border border-ink/20 py-2.5 text-xs font-semibold text-ink hover:bg-ink hover:text-white transition-colors"
+          >
+            Read Elliot’s Story →
+          </button>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- 6. FOR DENTISTS: WORKING TIMES CALCULATOR, LOGISTICS & DOWNLOADS      -->
+  <!-- ===================================================================== -->
+  <section id="for-dentists" class="max-w-7xl mx-auto px-6 sm:px-10 py-16 sm:py-24 border-t border-borderWarm">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+
+      <!-- Left Column: Working Times Interactive Calculator (From Docket Section 10) -->
+      <div class="lg:col-span-7 space-y-6 reveal-up">
+        <div class="inline-flex items-center gap-2 rounded-full border border-borderWarm bg-surface px-4 py-1.5 text-xs font-mono uppercase tracking-widest text-muted">
+          <span>✳ For Dentists · Digital &amp; Dispatch Hub</span>
+        </div>
+
+        <h2 class="text-3xl sm:text-4xl font-medium tracking-tight">
+          Laboratory working times, <span class="font-serif italic font-normal text-gold">express tiers</span> &amp; nationwide collection.
+        </h2>
+
+        <p class="text-xs sm:text-sm text-muted leading-relaxed">
+          We are one of the UK’s most experienced Digital Laboratories—receiving scans directly from <strong class="text-ink">Carestream, iTero, Sirona, and 3Shape</strong> scanners, or physical impressions via our Freepost White Box and Free UPS Next-Day Brown Box service.
+        </p>
+
+        <!-- Interactive Turnaround Calculator Card -->
+        <div class="rounded-[28px] border border-borderWarm bg-surface p-6 sm:p-8 space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <span class="text-xs font-mono uppercase tracking-widest text-muted">Section 10 · Working Times Calculator</span>
+            <span class="text-xs font-mono text-gold">MHRA Reg. No. CA 003175</span>
+          </div>
+
+          <!-- Case Size Selector Pills -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <button
+              onclick="setTurnaround('small')"
+              id="turn-btn-small"
+              class="turn-btn rounded-2xl border border-ink bg-ink text-white p-3.5 text-left transition-all"
+            >
+              <div class="text-xs font-mono opacity-75">STANDARD CASE</div>
+              <div class="text-sm font-semibold mt-0.5">6 Units or Less</div>
+            </button>
+            <button
+              onclick="setTurnaround('large')"
+              id="turn-btn-large"
+              class="turn-btn rounded-2xl border border-borderWarm bg-canvas text-ink p-3.5 text-left hover:border-ink transition-all"
+            >
+              <div class="text-xs font-mono text-muted">LARGE CASE</div>
+              <div class="text-sm font-semibold mt-0.5">7 Units or More</div>
+            </button>
+            <button
+              onclick="setTurnaround('implant')"
+              id="turn-btn-implant"
+              class="turn-btn rounded-2xl border border-borderWarm bg-canvas text-ink p-3.5 text-left hover:border-ink transition-all"
+            >
+              <div class="text-xs font-mono text-muted">COMPLEX REHAB</div>
+              <div class="text-sm font-semibold mt-0.5">Implant / Occlusal</div>
+            </button>
+          </div>
+
+          <!-- Express Service Pre-Booked Toggle -->
+          <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+            <span class="text-xs text-muted">Pre-Booked Express Service (≤6 units by arrangement):</span>
+            <div class="inline-flex rounded-full border border-borderWarm bg-canvas p-1 text-xs">
+              <button onclick="setExpressTier('standard')" id="exp-standard" class="exp-btn rounded-full bg-ink text-white px-3.5 py-1 font-medium transition-all">Standard</button>
+              <button onclick="setExpressTier('5day')" id="exp-5day" class="exp-btn rounded-full text-muted px-3.5 py-1 font-medium transition-all">5-Day (+25%)</button>
+              <button onclick="setExpressTier('3day')" id="exp-3day" class="exp-btn rounded-full text-muted px-3.5 py-1 font-medium transition-all">3-Day (+50%)</button>
+            </div>
+          </div>
+
+          <!-- Output Metrics -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 rounded-2xl bg-canvas border border-borderWarm p-5">
+            <div>
+              <span class="text-[11px] font-mono uppercase text-muted block">Time in Lab</span>
+              <span id="calc-days" class="text-2xl sm:text-3xl font-semibold text-ink mt-1 block">7 Working Days</span>
+            </div>
+            <div>
+              <span class="text-[11px] font-mono uppercase text-muted block">Dispatch Schedule</span>
+              <span id="calc-dispatch" class="text-2xl sm:text-3xl font-semibold text-gold mt-1 block">Day 8</span>
+            </div>
+            <div class="col-span-2 sm:col-span-1 border-t sm:border-t-0 sm:border-l border-borderWarm pt-3 sm:pt-0 sm:pl-4">
+              <span class="text-[11px] font-mono uppercase text-muted block">Est. Dispatch Date</span>
+              <span id="calc-date" class="text-lg font-mono font-semibold text-ink mt-1.5 block">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: White Box / Brown Box Collection & Downloads -->
+      <div class="lg:col-span-5 flex flex-col justify-between space-y-6 reveal-up">
+        <div class="rounded-[28px] border border-borderWarm bg-surface p-7 space-y-5">
+          <span class="text-xs font-mono uppercase tracking-widest text-gold block">Collection &amp; Delivery Service</span>
+          <h3 class="text-2xl font-medium tracking-tight">Send Us a Case</h3>
+
+          <!-- White Box -->
+          <div class="rounded-2xl bg-canvas border border-borderWarm p-5">
+            <div class="flex items-center justify-between mb-1.5">
+              <strong class="text-sm font-semibold text-ink">01. The White Box (Royal Mail FREEPOST)</strong>
+              <span class="text-[11px] font-mono rounded-full bg-white px-2.5 py-0.5 border border-borderWarm">Letterbox Size</span>
+            </div>
+            <p class="text-xs text-muted leading-relaxed">
+              Our WHITE BOX has been designed to fit directly into a Royal Mail red letterbox and holds an upper and lower impression.
+            </p>
+          </div>
+
+          <!-- Brown Box -->
+          <div class="rounded-2xl bg-canvas border border-borderWarm p-5">
+            <div class="flex items-center justify-between mb-1.5">
+              <strong class="text-sm font-semibold text-ink">02. The Brown Box (Free UPS Courier)</strong>
+              <span class="text-[11px] font-mono rounded-full bg-white px-2.5 py-0.5 border border-borderWarm">Next-Day Collection</span>
+            </div>
+            <p class="text-xs text-muted leading-relaxed">
+              For larger cases or cases with a facebow, call <strong class="text-ink">020 8316 6248</strong> for a FREE standard UPS Next-Day collection using our supplied Brown Box.
+            </p>
+          </div>
+
+          <!-- Official Downloads from knightdentaldesign.co.uk/what-we-do/dentist-information/downloads/ -->
+          <div class="pt-2 space-y-2.5">
+            <a
+              href="https://www.knightdentaldesign.co.uk/wp-content/uploads/2014/11/knight-docket-v2.pdf"
+              target="_blank"
+              rel="noopener"
+              class="flex items-center justify-between w-full rounded-full bg-ink text-white px-6 py-3.5 text-xs font-semibold hover:bg-ink/90 transition-all"
+            >
+              <span>Download Laboratory Prescription (Knight Chit PDF)</span>
+              <span>↓</span>
+            </a>
+            <button
+              onclick="openModal('dentist')"
+              class="flex items-center justify-between w-full rounded-full border border-ink/25 bg-canvas text-ink px-6 py-3.5 text-xs font-semibold hover:bg-ink hover:text-white transition-all"
+            >
+              <span>Download FREEPOST Label &amp; Book UPS Collection</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- 7. FIND A DENTIST (PATIENT POSTCODE MATCHER) & FOOTER                 -->
+  <!-- ===================================================================== -->
+  <section id="find-dentist" class="px-3 sm:px-5 lg:px-7 pb-10">
+    <div class="rounded-[28px] sm:rounded-[36px] border border-borderWarm bg-surface p-8 sm:p-12 lg:p-16 max-w-[1400px] mx-auto">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+
+        <!-- Left Text: Verbatim from /what-we-do/for-patients/find-dentist/ -->
+        <div class="lg:col-span-6 space-y-5">
+          <div class="inline-flex items-center gap-2 rounded-full border border-borderWarm bg-canvas px-4 py-1.5 text-xs font-mono uppercase tracking-widest text-muted">
+            <span>✳ Find a Client Dentist</span>
+          </div>
+          <h2 class="text-3xl sm:text-5xl font-medium tracking-tight leading-[1.08]">
+            Find the right UK dentist for <span class="font-serif italic font-normal text-gold">the smile you’re after.</span>
+          </h2>
+          <p class="text-xs sm:text-sm text-muted leading-relaxed">
+            Knight Dental Design client dentists show their commitment to high-quality dentistry by using the UK’s most awarded laboratory for their aesthetic and implant cases.
+          </p>
+          <p class="text-xs sm:text-sm text-muted leading-relaxed">
+            While we can only ever work for a small percentage of the country’s most discerning dentists, it is probable that we have a client practice within a reasonable distance of you. Send us your postcode and area of interest and we will put you in touch with our nearest client practice.
+          </p>
+        </div>
+
+        <!-- Right Form -->
+        <div class="lg:col-span-6">
+          <form onsubmit="handleDentistFinder(event)" class="rounded-[26px] border border-borderWarm bg-canvas p-6 sm:p-8 space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-mono uppercase text-muted mb-1.5">Name*</label>
+                <input type="text" required placeholder="Your full name" class="w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
+              </div>
+              <div>
+                <label class="block text-xs font-mono uppercase text-muted mb-1.5">Email*</label>
+                <input type="email" required placeholder="you@example.co.uk" class="w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-mono uppercase text-muted mb-1.5">UK Postcode*</label>
+                <input id="finder-postcode" type="text" required placeholder="e.g. SE18 2HL" class="w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm uppercase focus:outline-none focus:border-ink" />
+              </div>
+              <div>
+                <label class="block text-xs font-mono uppercase text-muted mb-1.5">Phone</label>
+                <input type="tel" placeholder="07700 900000" class="w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-mono uppercase text-muted mb-1.5">Area of Interest*</label>
+              <select class="w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink">
+                <option>Smile Makeover / Porcelain Veneers</option>
+                <option>Dental Implants &amp; Bridges</option>
+                <option>LifeTime Lingual™ Ceramic Retainer</option>
+                <option>Crowns &amp; Reconstructive Dentistry</option>
+                <option>In-Lab Digital Smile Analysis Consultation</option>
+              </select>
+            </div>
+            <button
+              type="submit"
+              class="w-full rounded-full bg-ink text-white py-3.5 text-xs sm:text-sm font-semibold hover:bg-ink/90 transition-colors"
+            >
+              Match Me With a Nearest Client Practice →
+            </button>
+            <p id="finder-feedback" class="hidden text-xs font-mono text-emerald-700 text-center pt-2"></p>
+          </form>
+        </div>
+
+      </div>
+
+      <!-- Footer Info -->
+      <footer class="mt-14 pt-8 border-t border-borderWarm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-muted">
+        <div>
+          <strong class="text-ink">Knight Dental Design Ltd</strong> · 92 Swingate Lane, Plumstead Common, London SE18 2HL · Tel: <a href="tel:02083166248" class="underline hover:text-ink">020 8316 6248</a> · <a href="mailto:info@kdduk.net" class="underline hover:text-ink">info@kdduk.net</a>
+        </div>
+        <div class="font-mono text-[11px]">
+          © Knight Dental Design · MHRA Reg. No. CA 003175 · Privacy &amp; GDPR Data Processing Policy
+        </div>
+      </footer>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- INTERACTIVE MODAL (CASE SUBMISSION & PATIENT STORY READER)            -->
+  <!-- ===================================================================== -->
+  <div id="kdd-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div class="relative w-full max-w-lg rounded-[28px] bg-surface border border-borderWarm p-7 sm:p-9 shadow-2xl">
+      <button onclick="closeModal()" class="absolute top-5 right-5 w-9 h-9 rounded-full border border-borderWarm flex items-center justify-center text-muted hover:text-ink">✕</button>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- INTERACTIVE SCRIPTS (LENIS, GSAP, HERO PILLS, SPOTLIGHT & CALCULATOR) -->
+  <!-- ===================================================================== -->
+  <script>
+    // 1. Initialize Lenis Smooth Scroll + GSAP ScrollTrigger
+    const lenis = new Lenis({
+      duration: 1.15,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+    });
+
+    gsap.registerPlugin(ScrollTrigger);
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add((time) => lenis.raf(time * 1000));
+    gsap.ticker.lagSmoothing(0);
+
+    // 2. Hero Entrance & Parallax Scroll Animations
+    window.addEventListener('DOMContentLoaded', () => {
+      gsap.from('.hero-reveal', {
+        y: 32,
+        opacity: 0,
+        duration: 1,
+        stagger: 0.14,
+        ease: 'power3.out',
+      });
+
+      gsap.to('#hero-bg', {
+        scale: 1.14,
+        yPercent: 6,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: 'header',
+          start: 'top top',
+          end: 'bottom top',
+          scrub: true,
+        }
+      });
+
+      gsap.utils.toArray('.reveal-up').forEach((el) => {
+        gsap.from(el, {
+          y: 36,
+          opacity: 0,
+          duration: 0.85,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: el,
+            start: 'top 86%',
+          }
+        });
+      });
+
+      updateDispatchDate(7);
+    });
+
+    // 3. Mouse Spotlight Glare & Subtle Magnetic Buttons
+    document.querySelectorAll('.spotlight-card').forEach((card) => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        card.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+        card.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+      });
+    });
+
+    document.querySelectorAll('[data-magnetic]').forEach((btn) => {
+      btn.addEventListener('mousemove', (e) => {
+        const rect = btn.getBoundingClientRect();
+        const x = (e.clientX - rect.left - rect.width / 2) * 0.22;
+        const y = (e.clientY - rect.top - rect.height / 2) * 0.22;
+        btn.style.transform = `translate(${x}px, ${y}px)`;
+      });
+      btn.addEventListener('mouseleave', () => {
+        btn.style.transform = 'translate(0px, 0px)';
+      });
+    });
+
+    // 4. Hero Service Pills Data & Switcher (Updates Left Frosted Glass Card)
+    const HERO_SERVICES = {
+      veneers: {
+        tag: '01 / PORCELAIN VENEERS',
+        text: 'Hand-layered porcelain & IPS e.max veneers crafted with digital smile simulation and in-studio colour matching for natural translucency.'
+      },
+      implants: {
+        tag: '02 / IMPLANT DENTISTRY',
+        text: 'Dental implants are surgically placed in your jawbone as the roots of missing teeth—restored by our lab across 9 major implant systems.'
+      },
+      crowns: {
+        tag: '03 / ALL-CERAMIC CROWNS',
+        text: 'High-strength Zirconia, IPS e.max, and precious metal-ceramic crowns engineered for optimal marginal fit and lifelike emergence profiles.'
+      },
+      bridges: {
+        tag: '04 / RESTORATIVE BRIDGES',
+        text: 'Precision tooth-borne and implant-supported bridgework designed with CAD-CAM frameworks and master ceramist aesthetics.'
+      },
+      digital: {
+        tag: '05 / DIGITAL DENTISTRY',
+        text: 'Direct chairside connection via 3Shape Communicate, Sirona Connect, iTero, and Carestream to advise on preps and digital impressions.'
+      }
+    };
+
+    function selectHeroService(key) {
+      const data = HERO_SERVICES[key];
+      if (!data) return;
+
+      document.querySelectorAll('.hero-pill').forEach((btn) => {
+        const isMatch = btn.getAttribute('data-pill') === key;
+        btn.className = isMatch
+          ? 'hero-pill rounded-full border border-white bg-white text-ink px-5 py-2 text-xs sm:text-sm font-medium transition-all'
+          : 'hero-pill rounded-full border border-white/50 bg-black/15 text-white/90 hover:border-white hover:bg-white/15 px-5 py-2 text-xs sm:text-sm font-normal backdrop-blur-sm transition-all';
+      });
+
+      const leftGlass = document.getElementById('hero-left-glass');
+      gsap.fromTo(leftGlass, { opacity: 0.6, y: 4 }, { opacity: 1, y: 0, duration: 0.3 });
+      document.getElementById('glass-service-tag').textContent = data.tag;
+      document.getElementById('glass-service-text').textContent = data.text;
+    }
+
+    // 5. Right Glass Card Spotlight Switcher (Cycles Intro Offer, LifeTime Lingual, & Patient Stories)
+    const HERO_SPOTLIGHTS = [
+      {
+        label: 'Intro Offer',
+        overline: 'FOR NEW CLIENT DENTISTS',
+        metric: 'Up to £500',
+        desc: 'Claim a 15% introductory discount (up to £500) on your first aesthetic, implant, or digital restorations with Knight Dental Design.',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80'
+      },
+      {
+        label: 'LifeTime Lingual™',
+        overline: 'CAD-CAM CERAMIC RETAINER',
+        metric: '1.0mm Thin',
+        desc: 'Developed with Inman Orthodontics. No wires or metal pads—precision milled in high-strength ceramic hybrid with Essix location jig.',
+        avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80'
+      },
+      {
+        label: 'Paula Hamilton',
+        overline: 'PATIENT CASE STUDY',
+        metric: '6× Lab Winner',
+        desc: 'Full smile rejuvenation combining studio macro shade photography, trial smile planning, and bespoke hand-layered porcelain.',
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80'
+      }
+    ];
+    let spotlightIdx = 0;
+
+    function cycleHeroSpotlight() {
+      spotlightIdx = (spotlightIdx + 1) % HERO_SPOTLIGHTS.length;
+      const item = HERO_SPOTLIGHTS[spotlightIdx];
+      const rightGlass = document.getElementById('hero-right-glass');
+      gsap.fromTo(rightGlass, { opacity: 0.65, scale: 0.98 }, { opacity: 1, scale: 1, duration: 0.3 });
+
+      document.getElementById('spotlight-pill-label').textContent = item.label;
+      document.getElementById('spotlight-overline').textContent = item.overline;
+      document.getElementById('spotlight-metric').textContent = item.metric;
+      document.getElementById('spotlight-desc').textContent = item.desc;
+      document.getElementById('spotlight-avatar').src = item.avatar;
+    }
+
+    // 6. LifeTime Lingual Shade & Essix Jig Controls
+    let essixVisible = true;
+    function setLtlShade(code, hex, title) {
+      document.getElementById('ltl-ceramic-bar').setAttribute('stroke', hex);
+      document.getElementById('ltl-shade-title').textContent = title;
+    }
+
+    function toggleEssixJig() {
+      essixVisible = !essixVisible;
+      const jig = document.getElementById('svg-essix-jig');
+      const btn = document.getElementById('jig-toggle-btn');
+      jig.style.opacity = essixVisible ? '1' : '0.12';
+      btn.textContent = `Essix Location Jig: ${essixVisible ? 'ON' : 'OFF'}`;
+    }
+
+    // 7. Section 10 Working Times & Express Calculator
+    let currentCaseSize = 'small';
+    let currentExpress = 'standard';
+
+    function setTurnaround(size) {
+      currentCaseSize = size;
+      ['small', 'large', 'implant'].forEach((k) => {
+        const btn = document.getElementById(`turn-btn-${k}`);
+        btn.className = k === size
+          ? 'turn-btn rounded-2xl border border-ink bg-ink text-white p-3.5 text-left transition-all'
+          : 'turn-btn rounded-2xl border border-borderWarm bg-canvas text-ink p-3.5 text-left hover:border-ink transition-all';
+      });
+      if (size !== 'small') setExpressTier('standard');
+      else recalculateTurnaround();
+    }
+
+    function setExpressTier(tier) {
+      currentExpress = tier;
+      ['standard', '5day', '3day'].forEach((k) => {
+        const btn = document.getElementById(`exp-${k}`);
+        btn.className = k === tier
+          ? 'exp-btn rounded-full bg-ink text-white px-3.5 py-1 font-medium transition-all'
+          : 'exp-btn rounded-full text-muted px-3.5 py-1 font-medium transition-all';
+      });
+      recalculateTurnaround();
+    }
+
+    function recalculateTurnaround() {
+      let days = 7;
+      let dispatchLabel = 'Day 8';
+
+      if (currentCaseSize === 'small') {
+        if (currentExpress === '5day') { days = 5; dispatchLabel = 'Day 6 (+25%)'; }
+        else if (currentExpress === '3day') { days = 3; dispatchLabel = 'Day 4 (+50%)'; }
+        else { days = 7; dispatchLabel = 'Day 8'; }
+      } else if (currentCaseSize === 'large') {
+        days = 9;
+        dispatchLabel = 'Day 10';
+      } else {
+        days = 10;
+        dispatchLabel = 'Day 11';
+      }
+
+      document.getElementById('calc-days').textContent = `${days} Working Days`;
+      document.getElementById('calc-dispatch').textContent = dispatchLabel;
+      updateDispatchDate(days + 1);
+    }
+
+    function updateDispatchDate(workingDaysToAdd) {
+      const date = new Date();
+      let added = 0;
+      while (added < workingDaysToAdd) {
+        date.setDate(date.getDate() + 1);
+        const day = date.getDay();
+        if (day !== 0 && day !== 6) added++;
+      }
+      const formatted = date.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+      document.getElementById('calc-date').textContent = formatted;
+    }
+
+    // 8. Modals & Form Feedback
+    function handleDentistFinder(e) {
+      e.preventDefault();
+      const pc = document.getElementById('finder-postcode').value.trim().toUpperCase();
+      const msg = document.getElementById('finder-feedback');
+      msg.textContent = `✓ Thank you. Our team at 92 Swingate Lane (SE18) will match your postcode (${pc}) with our nearest client dental practice.`;
+      msg.classList.remove('hidden');
+    }
+
+    function openModal(type) {
+      const modal = document.getElementById('kdd-modal');
+      const body = document.getElementById('modal-body');
+      if (type === 'dentist') {
+        body.innerHTML = `
+          <span class="text-xs font-mono uppercase tracking-widest text-gold block">Clinician Dispatch Portal</span>
+          <h3 class="text-2xl font-medium mt-1">Send a Digital Scan or Impression</h3>
+          <p class="text-xs text-muted mt-2 leading-relaxed">
+            Connect directly via <strong>3Shape Communicate</strong> or <strong>Sirona Connect</strong> (search <em>Knight Dental Design / info@kdduk.net</em>), or download our Freepost White Box label below.
+          </p>
+          <div class="mt-5 space-y-2.5 text-xs">
+            <a href="https://www.knightdentaldesign.co.uk/wp-content/uploads/2014/11/knight-docket-v2.pdf" target="_blank" class="flex justify-between rounded-xl border border-borderWarm bg-canvas p-3.5 font-semibold hover:border-ink">
+              <span>1. Download Knight Chit Prescription (PDF)</span><span>↓</span>
+            </a>
+            <a href="https://www.knightdentaldesign.co.uk/what-we-do/dentist-information/downloads/" target="_blank" class="flex justify-between rounded-xl border border-borderWarm bg-canvas p-3.5 font-semibold hover:border-ink">
+              <span>2. Download Royal Mail FREEPOST White Box Label</span><span>↓</span>
+            </a>
+            <div class="rounded-xl border border-borderWarm bg-canvas p-3.5">
+              <strong>3. Book Free UPS Next-Day Brown Box Courier:</strong>
+              <p class="text-muted mt-1">Call Dorothy &amp; the Lab Admin Team on <strong>020 8316 6248</strong> for facebow or multi-unit collections.</p>
+            </div>
+          </div>
+        `;
+      }
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function openCaseModal(person) {
+      const stories = {
+        paula: {
+          name: 'Paula Hamilton — Smile Makeover',
+          detail: 'Paula visited Knight Dental Design’s London studio for portrait & macro shade photography, diagnostic trial smile planning, and hand-layered ceramic restorations crafted to restore natural facial support.'
+        },
+        jade: {
+          name: 'Jade — Porcelain Veneers & Digital Smile Design',
+          detail: 'Using Digital Smile Analysis and Golden Proportion calibration, Jade’s smile was transformed with minimal-prep translucent porcelain veneers matched in our in-house studio.'
+        },
+        elliot: {
+          name: 'Elliot — Reconstructive Crowns',
+          detail: 'Elliot’s worn anterior teeth were rehabilitated using high-strength all-ceramic crowns, restoring occlusal harmony, incisal length, and natural enamel characterization.'
+        }
+      };
+      const item = stories[person];
+      const modal = document.getElementById('kdd-modal');
+      const body = document.getElementById('modal-body');
+      body.innerHTML = `
+        <span class="text-xs font-mono uppercase tracking-widest text-gold block">Knight Dental Case Study</span>
+        <h3 class="text-2xl font-medium mt-1">${item.name}</h3>
+        <p class="text-sm text-muted mt-3 leading-relaxed">${item.detail}</p>
+        <div class="mt-6 flex justify-end">
+          <button onclick="closeModal(); document.getElementById('find-dentist').scrollIntoView({behavior:'smooth'});" class="rounded-full bg-ink text-white px-6 py-2.5 text-xs font-semibold">
+            Enquire About a Similar Smile →
+          </button>
+        </div>
+      `;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('kdd-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+  </script>
+</body>
+</html>
