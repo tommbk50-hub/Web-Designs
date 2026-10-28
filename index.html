@@ -2029,3 +2029,754 @@
           tObj.veneerMesh.visible = false;
           tObj.crownMesh.visible = true;
           tObj.marginRing.visible = true;
+          tObj.marginRing.material = toolToApply === 'Crown' ? crownRingMat : bridgeRingMat;
+
+          // Animate prosthetic crown/bridge unit seating onto the prepared tooth stump
+          gsap.fromTo(
+            tObj.crownMesh.position,
+            { y: dir * 0.52 },
+            { y: targetOffset, duration: 0.55, ease: 'back.out(1.4)' }
+          );
+        } else if (toolToApply === 'Veneer') {
+          tObj.naturalMesh.visible = true;
+          tObj.stumpMesh.visible = false;
+          tObj.crownMesh.visible = false;
+          tObj.veneerMesh.visible = true;
+          tObj.marginRing.visible = true;
+          tObj.marginRing.material = veneerRingMat;
+
+          gsap.fromTo(
+            tObj.veneerMesh.position,
+            { z: 0.42, y: 0 },
+            { z: isExplodedSeating ? 0.32 : 0, y: 0, duration: 0.5, ease: 'power3.out' }
+          );
+        }
+      }
+
+      rebuildBridgeConnectors();
+      rebuildFloatingPalmerDOMPins();
+      updateToothSummaryUI();
+      autoSyncRestorationCheckboxes();
+      validatePrescriptionForm();
+    }
+
+    // Build 3D interproximal ceramic connectors between Bridge units on the same arch
+    function rebuildBridgeConnectors() {
+      while (bridgeConnectorGroup.children.length > 0) {
+        bridgeConnectorGroup.remove(bridgeConnectorGroup.children[0]);
+      }
+
+      ['upper', 'lower'].forEach((arch) => {
+        const isUpper = arch === 'upper';
+        const bridgeUnits = Array.from(selectedTeeth.values())
+          .filter((item) => item.product === 'Bridge')
+          .map((item) => toothObjectsMap.get(item.code))
+          .filter((tObj) => tObj.isUpper === isUpper)
+          .sort((a, b) => a.archIdx - b.archIdx);
+
+        for (let i = 0; i < bridgeUnits.length - 1; i++) {
+          const unitA = bridgeUnits[i];
+          const unitB = bridgeUnits[i + 1];
+          // Connect adjacent or 1-tooth-span bridge units
+          if (unitB.archIdx - unitA.archIdx <= 2) {
+            const worldA = new THREE.Vector3();
+            const worldB = new THREE.Vector3();
+            unitA.crownMesh.getWorldPosition(worldA);
+            unitB.crownMesh.getWorldPosition(worldB);
+
+            const distance = worldA.distanceTo(worldB);
+            const connectorGeo = new THREE.CylinderGeometry(0.16, 0.16, distance, 16);
+            connectorGeo.rotateX(Math.PI / 2);
+
+            const connectorMesh = new THREE.Mesh(connectorGeo, prostheticCeramicMaterial);
+            connectorMesh.position.copy(worldA).lerp(worldB, 0.5);
+            connectorMesh.lookAt(worldB);
+            bridgeConnectorGroup.add(connectorMesh);
+          }
+        }
+      });
+    }
+
+    // Rebuild Floating Palmer Notation DOM Pins above selected teeth
+    function rebuildFloatingPalmerDOMPins() {
+      const container = document.getElementById('palmer-floating-labels');
+      container.innerHTML = '';
+
+      selectedTeeth.forEach((info, code) => {
+        const pin = document.createElement('div');
+        pin.id = `palmer-pin-${code}`;
+        pin.className = 'palmer-pin rounded-lg bg-ink/95 text-white border border-white/25 px-2 py-1 text-[10px] font-mono whitespace-nowrap flex items-center gap-1.5';
+
+        const badgeColor =
+          info.product === 'Crown'
+            ? 'bg-amber-400 text-ink'
+            : info.product === 'Veneer'
+            ? 'bg-teal-400 text-ink'
+            : 'bg-sky-400 text-ink';
+
+        pin.innerHTML = `
+          <span class="palmer-q-${info.quadrant} font-bold text-white">${info.num}</span>
+          <span class="text-white/75">${code}</span>
+          <span class="rounded px-1 py-0.2 text-[9px] font-bold uppercase ${badgeColor}">${info.product}</span>
+        `;
+        container.appendChild(pin);
+      });
+    }
+
+    function updateFloatingPalmerPinPositions() {
+      if (!renderer || selectedTeeth.size === 0) return;
+      const width = renderer.domElement.clientWidth;
+      const height = renderer.domElement.clientHeight;
+      const tempV = new THREE.Vector3();
+
+      selectedTeeth.forEach((info, code) => {
+        const pin = document.getElementById(`palmer-pin-${code}`);
+        const tObj = toothObjectsMap.get(code);
+        if (!pin || !tObj) return;
+
+        tObj.labelAnchor.getWorldPosition(tempV);
+        tempV.project(camera);
+
+        if (tempV.z > 1) {
+          pin.style.opacity = '0';
+          return;
+        }
+
+        const x = (tempV.x * 0.5 + 0.5) * width;
+        const y = (-(tempV.y * 0.5) + 0.5) * height;
+
+        pin.style.opacity = '1';
+        pin.style.left = `${x}px`;
+        pin.style.top = `${y}px`;
+      });
+    }
+
+    function animateMouth3D() {
+      requestAnimationFrame(animateMouth3D);
+      if (controls) controls.update();
+      if (renderer && scene && camera) {
+        renderer.render(scene, camera);
+        updateFloatingPalmerPinPositions();
+      }
+    }
+
+    function onMouthResize() {
+      const container = document.getElementById('mouth-3d-canvas');
+      if (!container || !renderer || !camera) return;
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+
+    // ---------------------------------------------------------------------
+    // 3. 3D VIEWER CONTROLS (PRODUCTS, CAMERA PRESETS, SHADE & EXPLODE)
+    // ---------------------------------------------------------------------
+    function setActiveProductTool(tool) {
+      activeProductTool = tool;
+      ['Crown', 'Veneer', 'Bridge', 'Remove'].forEach((t) => {
+        const btn = document.getElementById(`tool-btn-${t}`);
+        if (!btn) return;
+        if (t === tool) {
+          btn.className = 'product-tool-btn rounded-full border-2 border-amber-400 bg-amber-400 text-ink px-4 py-2 text-xs font-semibold flex items-center gap-2 transition-all shadow-md';
+        } else {
+          btn.className = 'product-tool-btn rounded-full border border-white/25 bg-white/5 hover:bg-white/15 text-white px-4 py-2 text-xs font-medium flex items-center gap-2 transition-all';
+        }
+      });
+    }
+
+    function setJawOpeningAngle(val) {
+      if (!upperJawGroup || !lowerJawGroup) return;
+      const deg = Number(val);
+      const spread = (deg / 48) * 0.88;
+      upperJawGroup.position.y = 0.35 + spread;
+      lowerJawGroup.position.y = -0.35 - spread;
+      upperJawGroup.rotation.x = -(deg * 0.0045);
+      lowerJawGroup.rotation.x = deg * 0.0065;
+      setTimeout(rebuildBridgeConnectors, 20);
+    }
+
+    function setMouthCamera(view) {
+      if (!camera || !controls) return;
+      const presets = {
+        anterior: { pos: [0, 0.5, 11.2], target: [0, 0, 0.8] },
+        upper:    { pos: [0, 9.2, 3.2],  target: [0, 0.5, 0] },
+        lower:    { pos: [0, -9.2, 3.2], target: [0, -0.5, 0] },
+        buccal:   { pos: [9.8, 0.6, 4.2], target: [0, 0, 0.4] }
+      };
+      const p = presets[view] || presets.anterior;
+      gsap.to(camera.position, { x: p.pos[0], y: p.pos[1], z: p.pos[2], duration: 0.75, ease: 'power2.out' });
+      gsap.to(controls.target, { x: p.target[0], y: p.target[1], z: p.target[2], duration: 0.75, ease: 'power2.out' });
+    }
+
+    function toggleProsthesisSeating() {
+      isExplodedSeating = !isExplodedSeating;
+      const btn = document.getElementById('explode-prosthesis-btn');
+      btn.textContent = isExplodedSeating ? '⇅ Seat Prosthetics on Abutments' : '⇅ Lift / Seat Prosthetics';
+
+      selectedTeeth.forEach((info, code) => {
+        const tObj = toothObjectsMap.get(code);
+        if (!tObj) return;
+        const dir = tObj.isUpper ? -1 : 1;
+        if (info.product === 'Crown' || info.product === 'Bridge') {
+          gsap.to(tObj.crownMesh.position, {
+            y: isExplodedSeating ? dir * 0.45 : 0,
+            duration: 0.5,
+            ease: 'power2.inOut',
+            onUpdate: rebuildBridgeConnectors
+          });
+        } else if (info.product === 'Veneer') {
+          gsap.to(tObj.veneerMesh.position, {
+            z: isExplodedSeating ? 0.34 : 0,
+            duration: 0.5,
+            ease: 'power2.inOut'
+          });
+        }
+      });
+    }
+
+    function loadDemoBridgeAndCrown() {
+      clearAllTeeth();
+      // Mirrors the reference video: a 3-unit Posterior Bridge (LR5-LR6-LR7) + Single Anterior/Premolar Crown (UL1 & UR4)
+      toggleToothAssignment('LR5', 'Bridge');
+      toggleToothAssignment('LR6', 'Bridge');
+      toggleToothAssignment('LR7', 'Bridge');
+      toggleToothAssignment('UR1', 'Crown');
+      toggleToothAssignment('UL1', 'Veneer');
+      setMouthCamera('buccal');
+    }
+
+    function syncFinalShadeFromForm(shadeCode) {
+      if (!shadeCode) {
+        validatePrescriptionForm();
+        return;
+      }
+      currentFinalShade = shadeCode;
+      const hex = VITA_SHADE_HEX[shadeCode] || '#EFECE4';
+      document.getElementById('3d-shade-select').value = shadeCode;
+      document.getElementById('rx-shade-swatch').style.backgroundColor = hex;
+      document.getElementById('3d-shade-swatch').style.backgroundColor = hex;
+      document.getElementById('rx-selected-shade-readout').textContent = `Final Shade: Vita ${shadeCode}`;
+      if (prostheticCeramicMaterial) {
+        prostheticCeramicMaterial.color.set(hex);
+      }
+      validatePrescriptionForm();
+    }
+
+    function syncFinalShadeFrom3D(shadeCode) {
+      document.getElementById('rx-shade').value = shadeCode;
+      syncFinalShadeFromForm(shadeCode);
+    }
+
+    function syncStumpShade(stumpCode) {
+      if (!stumpCode) {
+        validatePrescriptionForm();
+        return;
+      }
+      currentStumpShade = stumpCode;
+      const hex = STUMP_SHADE_HEX[stumpCode] || '#EFE8D5';
+      if (preparedStumpMaterial) {
+        preparedStumpMaterial.color.set(hex);
+      }
+      validatePrescriptionForm();
+    }
+
+    function clearAllTeeth() {
+      Array.from(selectedTeeth.keys()).forEach((code) => {
+        toggleToothAssignment(code, 'Remove');
+      });
+    }
+
+    function updateToothSummaryUI() {
+      const count = selectedTeeth.size;
+      const badge = document.getElementById('rx-selected-teeth-badge');
+      const pillsContainer = document.getElementById('rx-selected-teeth-pills');
+
+      badge.textContent = `${count} Unit${count === 1 ? '' : 's'} Selected`;
+
+      if (count === 0) {
+        pillsContainer.innerHTML = `<span class="text-xs text-white/50 italic">No teeth selected yet. Click any tooth on the 3D mouth model above to prescribe a Crown, Veneer, or Bridge.</span>`;
+        return;
+      }
+
+      pillsContainer.innerHTML = '';
+      selectedTeeth.forEach((info, code) => {
+        const pill = document.createElement('span');
+        pill.className = 'inline-flex items-center gap-1.5 rounded-full bg-white/10 border border-white/20 px-3 py-1 text-xs font-mono text-white';
+        pill.innerHTML = `
+          <strong class="text-amber-300">${info.palmerText}</strong>
+          <span>(${code})</span>
+          <span class="text-white/70">· ${info.product}</span>
+          <button type="button" onclick="toggleToothAssignment('${code}', 'Remove')" class="ml-1 text-white/50 hover:text-rose-300" title="Remove ${code}">✕</button>
+        `;
+        pillsContainer.appendChild(pill);
+      });
+    }
+
+    function autoSyncRestorationCheckboxes() {
+      if (selectedTeeth.size > 0) {
+        const anyChecked = document.querySelectorAll('input[name="rx_restoration"]:checked').length > 0;
+        if (!anyChecked) {
+          document.getElementById('rx-rest-emax').checked = true;
+        }
+      }
+    }
+
+    // ---------------------------------------------------------------------
+    // 4. STRICT 100% FORM VALIDATION GATE
+    // ---------------------------------------------------------------------
+    function validatePrescriptionForm() {
+      const dentist = document.getElementById('rx-dentist').value.trim();
+      const practice = document.getElementById('rx-practice').value.trim();
+      const email = document.getElementById('rx-email').value.trim();
+      const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      const phone = document.getElementById('rx-phone').value.trim();
+      const surname = document.getElementById('rx-patient-surname').value.trim();
+      const forename = document.getElementById('rx-patient-forename').value.trim();
+      const gender = document.querySelector('input[name="rx_gender"]:checked');
+      const prepDate = document.getElementById('rx-prep-date').value;
+      const returnDate = document.getElementById('rx-return-date').value;
+      const datesLogical = Boolean(prepDate && returnDate && returnDate >= prepDate);
+      const shade = document.getElementById('rx-shade').value.trim();
+      const stumpShade = document.getElementById('rx-stump-shade').value.trim();
+      const shadeLoc = document.querySelector('input[name="rx_shade_location"]:checked');
+
+      const restorations = document.querySelectorAll('input[name="rx_restoration"]:checked');
+      const otherCeramicChecked = document.getElementById('rx-rest-ceramic-other').checked;
+      const otherRestChecked = document.getElementById('rx-rest-other').checked;
+      const otherSpecifyWrap = document.getElementById('rx-other-specify-wrap');
+      const otherSpecifyInput = document.getElementById('rx-other-specify');
+
+      const needsOtherSpecify = otherCeramicChecked || otherRestChecked;
+      otherSpecifyWrap.classList.toggle('hidden', !needsOtherSpecify);
+      const otherSpecifyValid = !needsOtherSpecify || otherSpecifyInput.value.trim().length > 0;
+
+      const workingTime = document.querySelector('input[name="rx_working_time"]:checked');
+      const teethSelected = selectedTeeth.size > 0;
+      const enclosures = document.querySelectorAll('input[name="rx_enclosure"]:checked');
+      const instructions = document.getElementById('rx-instructions').value.trim();
+      const coshh = document.getElementById('rx-coshh-confirm').checked;
+
+      const checks = [
+        { ok: dentist.length > 0, label: 'Dentist Name' },
+        { ok: practice.length > 0, label: 'Practice Name' },
+        { ok: emailValid, label: 'Valid Practice Email' },
+        { ok: phone.length > 0, label: 'Practice Phone' },
+        { ok: surname.length > 0, label: 'Patient Surname' },
+        { ok: forename.length > 0, label: 'Patient Forename' },
+        { ok: Boolean(gender), label: 'Patient Gender' },
+        { ok: datesLogical, label: 'Prep & Return Dates' },
+        { ok: shade.length > 0, label: 'Final Shade Dropdown' },
+        { ok: stumpShade.length > 0, label: 'Stump Shade Dropdown' },
+        { ok: Boolean(shadeLoc), label: 'Shade Location' },
+        { ok: restorations.length > 0 && otherSpecifyValid, label: 'Material System (Sec 7)' },
+        { ok: Boolean(workingTime), label: 'Working Time (Sec 10)' },
+        { ok: teethSelected, label: '3D Mouth Tooth Selection (Sec 9)' },
+        { ok: enclosures.length > 0, label: 'Enclosures (Sec 11)' },
+        { ok: instructions.length > 0, label: 'Special Instructions' },
+        { ok: coshh, label: 'COSHH Declaration' }
+      ];
+
+      const completedCount = checks.filter((c) => c.ok).length;
+      const pct = Math.round((completedCount / checks.length) * 100);
+      const missing = checks.filter((c) => !c.ok).map((c) => c.label);
+
+      document.getElementById('rx-progress-pct').textContent = `${pct}%`;
+      document.getElementById('rx-progress-bar').style.width = `${pct}%`;
+
+      const submitBtn = document.getElementById('rx-submit-btn');
+      const banner = document.getElementById('rx-validation-banner');
+      const hint = document.getElementById('rx-missing-hint');
+
+      if (missing.length === 0) {
+        submitBtn.disabled = false;
+        banner.className = 'text-xs font-mono text-emerald-800 bg-emerald-500/15 border border-emerald-600/30 rounded-xl px-4 py-3';
+        banner.textContent = '✓ All 17 prescription requirements verified (including 3D Palmer Notation). Ready to submit.';
+        hint.textContent = '100% Complete — Ready to submit.';
+      } else {
+        submitBtn.disabled = true;
+        banner.className = 'text-xs font-mono text-amber-800 bg-amber-500/10 border border-amber-600/25 rounded-xl px-4 py-3';
+        banner.textContent = `⚠ Incomplete (${missing.length} remaining): ${missing.slice(0, 4).join(', ')}${missing.length > 4 ? '...' : ''}`;
+        hint.textContent = `Missing: ${missing.slice(0, 3).join(', ')}${missing.length > 3 ? ` +${missing.length - 3} more` : ''}`;
+      }
+
+      return missing.length === 0;
+    }
+
+    // Submit Digital Prescription & Open M.D.D. Compliant Printable Docket Modal
+    function submitDigitalPrescription(e) {
+      e.preventDefault();
+      if (!validatePrescriptionForm()) return;
+
+      const rxId = 'KDD-' + Date.now().toString().slice(-6);
+      const dentist = document.getElementById('rx-dentist').value.trim();
+      const practice = document.getElementById('rx-practice').value.trim();
+      const email = document.getElementById('rx-email').value.trim();
+      const phone = document.getElementById('rx-phone').value.trim();
+      const patient = `${document.getElementById('rx-patient-forename').value.trim()} ${document.getElementById('rx-patient-surname').value.trim()}`;
+      const gender = document.querySelector('input[name="rx_gender"]:checked').value;
+      const prepDate = document.getElementById('rx-prep-date').value;
+      const returnDate = document.getElementById('rx-return-date').value;
+      const shade = document.getElementById('rx-shade').value.trim();
+      const stumpShade = document.getElementById('rx-stump-shade').value.trim();
+      const shadeLoc = document.querySelector('input[name="rx_shade_location"]:checked').value;
+
+      const restList = Array.from(document.querySelectorAll('input[name="rx_restoration"]:checked')).map((el) => el.value);
+      const otherSpec = document.getElementById('rx-other-specify').value.trim();
+      if (otherSpec) restList.push(`Spec: ${otherSpec}`);
+
+      const workingTime = document.querySelector('input[name="rx_working_time"]:checked').value;
+      const teethDetailedList = Array.from(selectedTeeth.values())
+        .map((info) => `${info.palmerText} (${info.code}: ${info.product})`)
+        .join(' · ');
+
+      const enclosureList = Array.from(document.querySelectorAll('input[name="rx_enclosure"]:checked')).map((el) => el.value).join(', ');
+      const instructions = document.getElementById('rx-instructions').value.trim();
+
+      const modal = document.getElementById('kdd-modal');
+      const body = document.getElementById('modal-body');
+
+      body.innerHTML = `
+        <div class="border-b border-borderWarm pb-4 flex items-center justify-between">
+          <div>
+            <span class="text-xs font-mono uppercase tracking-widest text-emerald-700 font-semibold block">✓ 3D Digital Prescription Logged · Ref ${rxId}</span>
+            <h3 class="text-2xl font-medium mt-0.5">Knight Dental Design — Digital Prescription Summary</h3>
+          </div>
+          <span class="text-xs font-mono text-muted">MHRA Reg. CA 003175</span>
+        </div>
+
+        <div class="my-5 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-canvas rounded-2xl p-5 border border-borderWarm">
+          <div><span class="text-muted block font-mono uppercase text-[10px]">1. Dentist &amp; 2. Practice</span><strong class="text-ink">${dentist} — ${practice}</strong><br/><span class="text-muted">${email} · ${phone}</span></div>
+          <div><span class="text-muted block font-mono uppercase text-[10px]">3. Patient</span><strong class="text-ink">${patient} (${gender})</strong></div>
+          <div><span class="text-muted block font-mono uppercase text-[10px]">4. Prep Date &amp; 5. Return Date</span><strong class="text-ink">Prep: ${prepDate} → Return: ${returnDate}</strong></div>
+          <div><span class="text-muted block font-mono uppercase text-[10px]">6. Final Shade &amp; Stump Shade</span><strong class="text-ink">Final: Vita ${shade} | Stump: ${stumpShade}</strong><br/><span class="text-muted">${shadeLoc}</span></div>
+          <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">9. 3D Palmer Notation &amp; Product Schedule (${selectedTeeth.size} Units)</span><strong class="text-ink font-mono">${teethDetailedList}</strong></div>
+          <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">7. Alloy / Ceramic System</span><strong class="text-ink">${restList.join(' · ')}</strong></div>
+          <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">10. Working Times</span><strong class="text-ink">${workingTime}</strong></div>
+          <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">11. Enclosures</span><strong class="text-ink">${enclosureList}</strong></div>
+          <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">Special Instructions</span><p class="text-ink mt-0.5">${instructions}</p></div>
+        </div>
+
+        <p class="text-[11px] text-muted leading-relaxed mb-5">
+          A copy of this document may be offered to the patient to comply with the M.D.D. Patient Statement Regulations 2007. Knight Dental Design Ltd, 92 Swingate Lane, Plumstead Common, London SE18 2HL (Tel: 020 8316 6248 · info@kdduk.net).
+        </p>
+
+        <div class="no-print flex flex-wrap items-center justify-end gap-3">
+          <button onclick="window.print()" class="rounded-full border border-ink px-5 py-2.5 text-xs font-semibold text-ink hover:bg-canvas transition-colors">
+            Print / Save M.D.D. Statement PDF
+          </button>
+          <button onclick="closeModal()" class="rounded-full bg-ink text-white px-6 py-2.5 text-xs font-semibold hover:bg-ink/90 transition-colors">
+            Done
+          </button>
+        </div>
+      `;
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    // ---------------------------------------------------------------------
+    // 5. PAGE ANIMATIONS, HERO PILLS & WORKING TIMES CALCULATOR
+    // ---------------------------------------------------------------------
+    const lenis = new Lenis({
+      duration: 1.15,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+    });
+
+    gsap.registerPlugin(ScrollTrigger);
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add((time) => lenis.raf(time * 1000));
+    gsap.ticker.lagSmoothing(0);
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initMouth3DViewer();
+
+      document.querySelectorAll('#kdd-rx-form .rx-input').forEach((input) => {
+        input.addEventListener('input', validatePrescriptionForm);
+        input.addEventListener('change', validatePrescriptionForm);
+      });
+      validatePrescriptionForm();
+
+      gsap.from('.hero-reveal', {
+        y: 32,
+        opacity: 0,
+        duration: 1,
+        stagger: 0.14,
+        ease: 'power3.out',
+      });
+
+      gsap.to('#hero-bg', {
+        scale: 1.14,
+        yPercent: 6,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: 'header',
+          start: 'top top',
+          end: 'bottom top',
+          scrub: true,
+        }
+      });
+
+      gsap.utils.toArray('.reveal-up').forEach((el) => {
+        gsap.from(el, {
+          y: 36,
+          opacity: 0,
+          duration: 0.85,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: el,
+            start: 'top 86%',
+          }
+        });
+      });
+
+      updateDispatchDate(7);
+    });
+
+    document.querySelectorAll('.spotlight-card').forEach((card) => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        card.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+        card.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+      });
+    });
+
+    document.querySelectorAll('[data-magnetic]').forEach((btn) => {
+      btn.addEventListener('mousemove', (e) => {
+        const rect = btn.getBoundingClientRect();
+        const x = (e.clientX - rect.left - rect.width / 2) * 0.22;
+        const y = (e.clientY - rect.top - rect.height / 2) * 0.22;
+        btn.style.transform = `translate(${x}px, ${y}px)`;
+      });
+      btn.addEventListener('mouseleave', () => {
+        btn.style.transform = 'translate(0px, 0px)';
+      });
+    });
+
+    const HERO_SERVICES = {
+      veneers: {
+        tag: '01 / PORCELAIN VENEERS',
+        text: 'Hand-layered porcelain & IPS e.max veneers crafted with digital smile simulation and in-studio colour matching for natural translucency.'
+      },
+      implants: {
+        tag: '02 / IMPLANT DENTISTRY',
+        text: 'Dental implants are surgically placed in your jawbone as the roots of missing teeth—restored by our lab across 9 major implant systems.'
+      },
+      crowns: {
+        tag: '03 / ALL-CERAMIC CROWNS',
+        text: 'High-strength Zirconia, IPS e.max, and precious metal-ceramic crowns engineered for optimal marginal fit and lifelike emergence profiles.'
+      },
+      bridges: {
+        tag: '04 / RESTORATIVE BRIDGES',
+        text: 'Precision tooth-borne and implant-supported bridgework designed with CAD-CAM frameworks and master ceramist aesthetics.'
+      },
+      digital: {
+        tag: '05 / DIGITAL DENTISTRY',
+        text: 'Direct chairside connection via 3Shape Communicate, Sirona Connect, iTero, and Carestream to advise on preps and digital impressions.'
+      }
+    };
+
+    function selectHeroService(key) {
+      const data = HERO_SERVICES[key];
+      if (!data) return;
+
+      document.querySelectorAll('.hero-pill').forEach((btn) => {
+        const isMatch = btn.getAttribute('data-pill') === key;
+        btn.className = isMatch
+          ? 'hero-pill rounded-full border border-white bg-white text-ink px-5 py-2 text-xs sm:text-sm font-medium transition-all'
+          : 'hero-pill rounded-full border border-white/50 bg-black/15 text-white/90 hover:border-white hover:bg-white/15 px-5 py-2 text-xs sm:text-sm font-normal backdrop-blur-sm transition-all';
+      });
+
+      const leftGlass = document.getElementById('hero-left-glass');
+      gsap.fromTo(leftGlass, { opacity: 0.6, y: 4 }, { opacity: 1, y: 0, duration: 0.3 });
+      document.getElementById('glass-service-tag').textContent = data.tag;
+      document.getElementById('glass-service-text').textContent = data.text;
+    }
+
+    const HERO_SPOTLIGHTS = [
+      {
+        label: 'Intro Offer',
+        overline: 'FOR NEW CLIENT DENTISTS',
+        metric: 'Up to £500',
+        desc: 'Claim a 15% introductory discount (up to £500) on your first aesthetic, implant, or digital restorations with Knight Dental Design.',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80'
+      },
+      {
+        label: 'LifeTime Lingual™',
+        overline: 'CAD-CAM CERAMIC RETAINER',
+        metric: '1.0mm Thin',
+        desc: 'Developed with Inman Orthodontics. No wires or metal pads—precision milled in high-strength ceramic hybrid with Essix location jig.',
+        avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80'
+      },
+      {
+        label: 'Paula Hamilton',
+        overline: 'PATIENT CASE STUDY',
+        metric: '6× Lab Winner',
+        desc: 'Full smile rejuvenation combining studio macro shade photography, trial smile planning, and bespoke hand-layered porcelain.',
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80'
+      }
+    ];
+    let spotlightIdx = 0;
+
+    function cycleHeroSpotlight() {
+      spotlightIdx = (spotlightIdx + 1) % HERO_SPOTLIGHTS.length;
+      const item = HERO_SPOTLIGHTS[spotlightIdx];
+      const rightGlass = document.getElementById('hero-right-glass');
+      gsap.fromTo(rightGlass, { opacity: 0.65, scale: 0.98 }, { opacity: 1, scale: 1, duration: 0.3 });
+
+      document.getElementById('spotlight-pill-label').textContent = item.label;
+      document.getElementById('spotlight-overline').textContent = item.overline;
+      document.getElementById('spotlight-metric').textContent = item.metric;
+      document.getElementById('spotlight-desc').textContent = item.desc;
+      document.getElementById('spotlight-avatar').src = item.avatar;
+    }
+
+    let essixVisible = true;
+    function setLtlShade(code, hex, title) {
+      document.getElementById('ltl-ceramic-bar').setAttribute('stroke', hex);
+      document.getElementById('ltl-shade-title').textContent = title;
+    }
+
+    function toggleEssixJig() {
+      essixVisible = !essixVisible;
+      const jig = document.getElementById('svg-essix-jig');
+      const btn = document.getElementById('jig-toggle-btn');
+      jig.style.opacity = essixVisible ? '1' : '0.12';
+      btn.textContent = `Essix Location Jig: ${essixVisible ? 'ON' : 'OFF'}`;
+    }
+
+    let currentCaseSize = 'small';
+    let currentExpress = 'standard';
+
+    function setTurnaround(size) {
+      currentCaseSize = size;
+      ['small', 'large', 'implant'].forEach((k) => {
+        const btn = document.getElementById(`turn-btn-${k}`);
+        btn.className = k === size
+          ? 'turn-btn rounded-2xl border border-ink bg-ink text-white p-3.5 text-left transition-all'
+          : 'turn-btn rounded-2xl border border-borderWarm bg-canvas text-ink p-3.5 text-left hover:border-ink transition-all';
+      });
+      if (size !== 'small') setExpressTier('standard');
+      else recalculateTurnaround();
+    }
+
+    function setExpressTier(tier) {
+      currentExpress = tier;
+      ['standard', '5day', '3day'].forEach((k) => {
+        const btn = document.getElementById(`exp-${k}`);
+        btn.className = k === tier
+          ? 'exp-btn rounded-full bg-ink text-white px-3.5 py-1 font-medium transition-all'
+          : 'exp-btn rounded-full text-muted px-3.5 py-1 font-medium transition-all';
+      });
+      recalculateTurnaround();
+    }
+
+    function recalculateTurnaround() {
+      let days = 7;
+      let dispatchLabel = 'Day 8';
+
+      if (currentCaseSize === 'small') {
+        if (currentExpress === '5day') { days = 5; dispatchLabel = 'Day 6 (+25%)'; }
+        else if (currentExpress === '3day') { days = 3; dispatchLabel = 'Day 4 (+50%)'; }
+        else { days = 7; dispatchLabel = 'Day 8'; }
+      } else if (currentCaseSize === 'large') {
+        days = 9;
+        dispatchLabel = 'Day 10';
+      } else {
+        days = 10;
+        dispatchLabel = 'Day 11';
+      }
+
+      document.getElementById('calc-days').textContent = `${days} Working Days`;
+      document.getElementById('calc-dispatch').textContent = dispatchLabel;
+      updateDispatchDate(days + 1);
+    }
+
+    function updateDispatchDate(workingDaysToAdd) {
+      const date = new Date();
+      let added = 0;
+      while (added < workingDaysToAdd) {
+        date.setDate(date.getDate() + 1);
+        const day = date.getDay();
+        if (day !== 0 && day !== 6) added++;
+      }
+      const formatted = date.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+      document.getElementById('calc-date').textContent = formatted;
+    }
+
+    function handleDentistFinder(e) {
+      e.preventDefault();
+      const pc = document.getElementById('finder-postcode').value.trim().toUpperCase();
+      const msg = document.getElementById('finder-feedback');
+      msg.textContent = `✓ Thank you. Our team at 92 Swingate Lane (SE18) will match your postcode (${pc}) with our nearest client dental practice.`;
+      msg.classList.remove('hidden');
+    }
+
+    function openModal(type) {
+      const modal = document.getElementById('kdd-modal');
+      const body = document.getElementById('modal-body');
+      if (type === 'dentist') {
+        body.innerHTML = `
+          <span class="text-xs font-mono uppercase tracking-widest text-gold block">Clinician Dispatch &amp; Logistics</span>
+          <h3 class="text-2xl font-medium mt-1">Send a Digital Scan or Impression</h3>
+          <p class="text-xs text-muted mt-2 leading-relaxed">
+            Connect directly via <strong>3Shape Communicate</strong> or <strong>Sirona Connect</strong> (search <em>Knight Dental Design / info@kdduk.net</em>), complete our 3D online prescription form, or download our Freepost White Box label below.
+          </p>
+          <div class="mt-5 space-y-2.5 text-xs">
+            <a href="#digital-prescription" onclick="closeModal()" class="flex justify-between rounded-xl border border-ink bg-ink text-white p-3.5 font-semibold hover:bg-ink/90">
+              <span>1. Complete 3D Online Digital Prescription Form</span><span>→</span>
+            </a>
+            <a href="https://www.knightdentaldesign.co.uk/what-we-do/dentist-information/downloads/" target="_blank" class="flex justify-between rounded-xl border border-borderWarm bg-canvas p-3.5 font-semibold hover:border-ink">
+              <span>2. Download Royal Mail FREEPOST White Box Label</span><span>↓</span>
+            </a>
+            <div class="rounded-xl border border-borderWarm bg-canvas p-3.5">
+              <strong>3. Book Free UPS Next-Day Brown Box Courier:</strong>
+              <p class="text-muted mt-1">Call the Lab Admin Team on <strong>020 8316 6248</strong> for facebow or multi-unit collections.</p>
+            </div>
+          </div>
+        `;
+      }
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function openCaseModal(person) {
+      const stories = {
+        paula: {
+          name: 'Paula Hamilton — Smile Makeover',
+          detail: 'Paula visited Knight Dental Design’s London studio for portrait & macro shade photography, diagnostic trial smile planning, and hand-layered ceramic restorations crafted to restore natural facial support.'
+        },
+        jade: {
+          name: 'Jade — Porcelain Veneers & Digital Smile Design',
+          detail: 'Using Digital Smile Analysis and Golden Proportion calibration, Jade’s smile was transformed with minimal-prep translucent porcelain veneers matched in our in-house studio.'
+        },
+        elliot: {
+          name: 'Elliot — Reconstructive Crowns',
+          detail: 'Elliot’s worn anterior teeth were rehabilitated using high-strength all-ceramic crowns, restoring occlusal harmony, incisal length, and natural enamel characterization.'
+        }
+      };
+      const item = stories[person];
+      const modal = document.getElementById('kdd-modal');
+      const body = document.getElementById('modal-body');
+      body.innerHTML = `
+        <span class="text-xs font-mono uppercase tracking-widest text-gold block">Knight Dental Case Study</span>
+        <h3 class="text-2xl font-medium mt-1">${item.name}</h3>
+        <p class="text-sm text-muted mt-3 leading-relaxed">${item.detail}</p>
+        <div class="mt-6 flex justify-end">
+          <button onclick="closeModal(); document.getElementById('find-dentist').scrollIntoView({behavior:'smooth'});" class="rounded-full bg-ink text-white px-6 py-2.5 text-xs font-semibold">
+            Enquire About a Similar Smile →
+          </button>
+        </div>
+      `;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('kdd-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+  </script>
+</body>
+</html>
