@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Knight Dental Design — London's Leading Cosmetic Dental Laboratory</title>
-  <meta name="description" content="Smile Designers for the Ten Years Younger TV series and 6x UK Dental Laboratory of the Year. Providing stunning smiles with the UK's leading dentists." />
+  <title>Knight Dental Design — The UK's Leading Cosmetic Dental Laboratory</title>
+  <meta name="description" content="Smile Designers for the Ten Years Younger TV series and 6x UK Dental Laboratory of the Year. Complete your digital laboratory prescription online." />
 
-  <!-- Google Fonts: Plus Jakarta Sans & Instrument Serif -->
+  <!-- Google Fonts: Plus Jakarta Sans, Instrument Serif & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -18,7 +18,7 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['"Plus Jakarta Sans"', ' -apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
             serif: ['"Instrument Serif"', 'Georgia', 'serif'],
             mono: ['"JetBrains Mono"', 'monospace'],
           },
@@ -65,7 +65,6 @@
       position: relative;
     }
 
-    /* Subtle concave top curve accent inspired by the left glass card in reference */
     .glass-card-left::before {
       content: '';
       position: absolute;
@@ -121,7 +120,6 @@
       background-position: center 28%;
     }
 
-    /* Slow Asterisk Spin */
     @keyframes spinSlow {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
@@ -130,7 +128,6 @@
       animation: spinSlow 18s linear infinite;
     }
 
-    /* Seamless Marquee */
     @keyframes marqueeScroll {
       0% { transform: translateX(0%); }
       100% { transform: translateX(-50%); }
@@ -144,7 +141,37 @@
       animation-play-state: paused;
     }
 
-    /* Custom Scrollbar */
+    /* Palmer Notation Tooth Button Styling */
+    .tooth-btn {
+      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .tooth-btn.selected {
+      background-color: #1C1917;
+      color: #FFFFFF;
+      border-color: #1C1917;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px -3px rgba(28, 25, 23, 0.3);
+    }
+
+    /* Print Docket Styling */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #kdd-modal, #kdd-modal * {
+        visibility: visible;
+      }
+      #kdd-modal {
+        position: absolute;
+        inset: 0;
+        background: white !important;
+        padding: 0 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+
     ::-webkit-scrollbar {
       width: 8px;
     }
@@ -170,11 +197,10 @@
 
       <!-- Top Navigation Bar inside Hero -->
       <nav class="relative z-30 flex items-center justify-between px-6 sm:px-10 lg:px-14 pt-6 sm:pt-9">
-        <!-- Brand Mark (4-Petal Geometric Diamond Emblem + 2-Line Title) -->
+        <!-- Brand Mark -->
         <a href="#" class="flex items-center gap-3.5 group">
           <div class="relative w-10 h-10 flex items-center justify-center">
             <svg viewBox="0 0 40 40" class="w-9 h-9 text-white transition-transform duration-500 group-hover:rotate-90" fill="currentColor">
-              <!-- Four sculpted dental/diamond petals matching the reference logo -->
               <path d="M20 2C16.5 9 16.5 13 20 18C23.5 13 23.5 9 20 2Z" />
               <path d="M20 38C16.5 31 16.5 27 20 22C23.5 27 23.5 31 20 38Z" />
               <path d="M2 20C9 16.5 13 16.5 18 20C13 23.5 9 23.5 2 20Z" />
@@ -188,31 +214,30 @@
         </a>
 
         <!-- Center Navigation Links -->
-        <ul class="hidden lg:flex items-center gap-9 text-sm font-normal text-white/85">
+        <ul class="hidden lg:flex items-center gap-8 text-sm font-normal text-white/85">
           <li><a href="#what-we-do" class="hover:text-white transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-white hover:after:w-full after:transition-all">What We Do</a></li>
           <li><a href="#for-patients" class="hover:text-white transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-white hover:after:w-full after:transition-all">For Patients</a></li>
           <li><a href="#lifetime-lingual" class="hover:text-white transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-white hover:after:w-full after:transition-all">LifeTime Lingual™</a></li>
           <li><a href="#for-dentists" class="hover:text-white transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-white hover:after:w-full after:transition-all">For Dentists</a></li>
-          <li><a href="#case-studies" class="hover:text-white transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-white hover:after:w-full after:transition-all">Case Studies</a></li>
+          <li><a href="#digital-prescription" class="text-amber-200 hover:text-white font-medium transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-amber-200 hover:after:w-full after:transition-all">Online Prescription</a></li>
           <li><a href="#find-dentist" class="hover:text-white transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-white hover:after:w-full after:transition-all">Contact</a></li>
         </ul>
 
-        <!-- Right Pill Action Button -->
+        <!-- Right Pill Action Button: Links directly to Digital Prescription Form -->
         <div class="flex items-center gap-3">
-          <button
-            onclick="openModal('dentist')"
+          <a
+            href="#digital-prescription"
             data-magnetic
-            class="group inline-flex items-center gap-3 rounded-full border border-white/65 bg-white/5 px-5 sm:px-6 py-2.5 text-xs sm:text-sm font-medium text-white backdrop-blur-md transition-all hover:bg-white hover:text-ink"
+            class="group inline-flex items-center gap-3 rounded-full border border-white/65 bg-white/10 px-5 sm:px-6 py-2.5 text-xs sm:text-sm font-medium text-white backdrop-blur-md transition-all hover:bg-white hover:text-ink"
           >
-            <span>Send a Case</span>
+            <span>Online Prescription</span>
             <span class="transition-transform duration-300 group-hover:translate-x-1">→</span>
-          </button>
+          </a>
         </div>
       </nav>
 
       <!-- Center Headline Block (With Editorial Smile Window Gap) -->
       <div class="relative z-20 px-6 sm:px-10 lg:px-14 my-auto pt-12 pb-6">
-        <!-- 8-Spoke Asterisk + Two-Line Subtitle -->
         <div class="flex items-center gap-4 mb-5 hero-reveal">
           <svg class="w-8 h-8 text-white/90 asterisk-spin shrink-0" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.75">
             <line x1="16" y1="2" x2="16" y2="30" />
@@ -226,11 +251,9 @@
           </p>
         </div>
 
-        <!-- Giant Split Display Headline mirroring the reference typography -->
         <h1 class="hero-reveal text-4xl sm:text-6xl lg:text-[4.65rem] xl:text-[5.25rem] font-medium tracking-[-0.03em] leading-[1.04] max-w-6xl">
           <span class="inline-flex flex-wrap items-center gap-x-4 gap-y-2">
             <span>Providing stunning</span>
-            <!-- Interactive Framing Pill Window over the portrait's smile -->
             <button
               onclick="document.getElementById('case-studies').scrollIntoView({behavior: 'smooth'})"
               title="Explore Smile Makeovers"
@@ -298,7 +321,7 @@
         <!-- Bottom-Right Column: Two Asymmetrical Frosted Glass Cards -->
         <div class="lg:col-span-6 flex flex-col sm:flex-row items-stretch sm:items-end justify-end gap-4 sm:gap-5 hero-reveal">
 
-          <!-- Glass Card 1 (Shorter, Sculpted Top Edge, Dynamic Service Details) -->
+          <!-- Glass Card 1 -->
           <div id="hero-left-glass" class="glass-card-left spotlight-card w-full sm:w-[265px] rounded-[26px] p-6 flex flex-col justify-between min-h-[250px] transition-transform duration-300 hover:-translate-y-1">
             <div class="pt-3">
               <span id="glass-service-tag" class="inline-block text-[10px] font-mono uppercase tracking-widest text-amber-200/90 mb-2">
@@ -311,19 +334,17 @@
 
             <div class="pt-6 flex items-center justify-center">
               <a
-                href="#what-we-do"
+                href="#digital-prescription"
                 data-magnetic
                 class="w-full text-center rounded-full bg-white text-ink py-2.5 px-6 text-xs font-semibold shadow-md hover:bg-canvas transition-colors"
               >
-                Learn more
+                Prescribe Online →
               </a>
             </div>
           </div>
 
-          <!-- Glass Card 2 (Taller, Circular Mustard Avatar, White Pill Switcher & Key Spotlight) -->
+          <!-- Glass Card 2 -->
           <div id="hero-right-glass" class="glass-card-right spotlight-card w-full sm:w-[265px] rounded-[26px] p-6 flex flex-col items-center text-center justify-between min-h-[330px] transition-transform duration-300 hover:-translate-y-1">
-
-            <!-- Circular Portrait with Warm Ochre Backdrop (Matching Reference Image) -->
             <div class="relative mt-1">
               <div class="w-20 h-20 rounded-full bg-ochre overflow-hidden border-2 border-white/40 shadow-lg mx-auto">
                 <img
@@ -334,7 +355,6 @@
                 />
               </div>
 
-              <!-- Interactive White Pill Dropdown Switcher -->
               <div class="mt-3 relative inline-block">
                 <button
                   onclick="cycleHeroSpotlight()"
@@ -349,7 +369,6 @@
               </div>
             </div>
 
-            <!-- Center Metric / Price / Accolade Readout -->
             <div class="my-3">
               <span id="spotlight-overline" class="block text-[10px] font-mono uppercase tracking-widest text-white/75">
                 FOR NEW CLIENT DENTISTS
@@ -359,7 +378,6 @@
               </div>
             </div>
 
-            <!-- Bottom Description -->
             <p id="spotlight-desc" class="text-[12px] leading-relaxed text-white/80 font-normal">
               Claim a 15% introductory discount (up to £500) on your first aesthetic, implant, or digital restorations with Knight Dental Design.
             </p>
@@ -384,11 +402,10 @@
       <span>•</span>
       <span class="flex items-center gap-3"><strong class="text-ink">PATENT PENDING</strong> LifeTime Lingual™ CAD-CAM Ceramic Retainer</span>
       <span>•</span>
-      <span class="flex items-center gap-3"><strong class="text-ink">FREEPOST SE6546</strong> Royal Mail White Box &amp; Free UPS Next-Day Brown Box</span>
+      <span class="flex items-center gap-3"><strong class="text-ink">ONLINE DOCKET</strong> Paperless M.D.D. Digital Prescription Portal</span>
       <span>•</span>
       <span class="flex items-center gap-3"><strong class="text-ink">MHRA REGISTERED</strong> Reg. No. CA 003175 · 92 Swingate Lane, London SE18</span>
       <span>•</span>
-      <!-- Duplicate for seamless loop -->
       <span class="flex items-center gap-3"><strong class="text-ink">6× WINNER</strong> UK Dental Laboratory of the Year (2004 · 2008 · 2013)</span>
       <span>•</span>
       <span class="flex items-center gap-3"><strong class="text-ink">CHANNEL 4</strong> Smile Designers for Ten Years Younger</span>
@@ -396,8 +413,6 @@
       <span class="flex items-center gap-3"><strong class="text-ink">DIGITAL SCANS</strong> 3Shape Communicate · Sirona Connect · iTero · Carestream</span>
       <span>•</span>
       <span class="flex items-center gap-3"><strong class="text-ink">PATENT PENDING</strong> LifeTime Lingual™ CAD-CAM Ceramic Retainer</span>
-      <span>•</span>
-      <span class="flex items-center gap-3"><strong class="text-ink">FREEPOST SE6546</strong> Royal Mail White Box &amp; Free UPS Next-Day Brown Box</span>
       <span>•</span>
     </div>
   </section>
@@ -420,14 +435,12 @@
       </div>
     </div>
 
-    <!-- 4 Pillars Grid from knightdentaldesign.co.uk -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-      <!-- Card 1: Cosmetic Dentistry -->
       <article class="group rounded-[28px] bg-surface border border-borderWarm p-7 flex flex-col justify-between min-h-[340px] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:border-ink/30 reveal-up">
         <div>
           <div class="flex items-center justify-between text-xs font-mono text-muted mb-6">
             <span>01 / DISCIPLINE</span>
-            <span class="w-8 h-8 rounded-full border border-borderWarm flex items-center justify-center group-hover:bg-ink group-hover:text-white transition-colors">↗</span>
+            <a href="#digital-prescription" title="Prescribe Online" class="w-8 h-8 rounded-full border border-borderWarm flex items-center justify-center group-hover:bg-ink group-hover:text-white transition-colors">↗</a>
           </div>
           <h3 class="text-2xl font-medium tracking-tight mb-3">Cosmetic Dentistry</h3>
           <p class="text-xs sm:text-sm text-muted leading-relaxed">
@@ -441,12 +454,11 @@
         </div>
       </article>
 
-      <!-- Card 2: Implant Dentistry -->
       <article class="group rounded-[28px] bg-surface border border-borderWarm p-7 flex flex-col justify-between min-h-[340px] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:border-ink/30 reveal-up">
         <div>
           <div class="flex items-center justify-between text-xs font-mono text-muted mb-6">
             <span>02 / DISCIPLINE</span>
-            <span class="w-8 h-8 rounded-full border border-borderWarm flex items-center justify-center group-hover:bg-ink group-hover:text-white transition-colors">↗</span>
+            <a href="#digital-prescription" title="Prescribe Online" class="w-8 h-8 rounded-full border border-borderWarm flex items-center justify-center group-hover:bg-ink group-hover:text-white transition-colors">↗</a>
           </div>
           <h3 class="text-2xl font-medium tracking-tight mb-3">Implant Dentistry</h3>
           <p class="text-xs sm:text-sm text-muted leading-relaxed">
@@ -459,12 +471,11 @@
         </div>
       </article>
 
-      <!-- Card 3: Reconstructive Dentistry -->
       <article class="group rounded-[28px] bg-surface border border-borderWarm p-7 flex flex-col justify-between min-h-[340px] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:border-ink/30 reveal-up">
         <div>
           <div class="flex items-center justify-between text-xs font-mono text-muted mb-6">
             <span>03 / DISCIPLINE</span>
-            <span class="w-8 h-8 rounded-full border border-borderWarm flex items-center justify-center group-hover:bg-ink group-hover:text-white transition-colors">↗</span>
+            <a href="#digital-prescription" title="Prescribe Online" class="w-8 h-8 rounded-full border border-borderWarm flex items-center justify-center group-hover:bg-ink group-hover:text-white transition-colors">↗</a>
           </div>
           <h3 class="text-2xl font-medium tracking-tight mb-3">Reconstructive Dentistry</h3>
           <p class="text-xs sm:text-sm text-muted leading-relaxed">
@@ -477,12 +488,11 @@
         </div>
       </article>
 
-      <!-- Card 4: Digital Dentistry -->
       <article class="group rounded-[28px] bg-ink text-white p-7 flex flex-col justify-between min-h-[340px] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl reveal-up">
         <div>
           <div class="flex items-center justify-between text-xs font-mono text-white/60 mb-6">
             <span>04 / DIGITAL LAB</span>
-            <span class="w-8 h-8 rounded-full border border-white/25 flex items-center justify-center group-hover:bg-white group-hover:text-ink transition-colors">↗</span>
+            <a href="#digital-prescription" title="Prescribe Online" class="w-8 h-8 rounded-full border border-white/25 flex items-center justify-center group-hover:bg-white group-hover:text-ink transition-colors">↗</a>
           </div>
           <h3 class="text-2xl font-medium tracking-tight mb-3">Digital Dentistry</h3>
           <p class="text-xs sm:text-sm text-white/75 leading-relaxed">
@@ -498,7 +508,6 @@
       </article>
     </div>
 
-    <!-- Six Reasons to Choose Knight Dental Design (Award Banner Strip) -->
     <div class="mt-8 rounded-[28px] border border-borderWarm bg-surface p-6 sm:p-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 reveal-up">
       <div>
         <span class="text-xs font-mono uppercase tracking-widest text-gold block mb-1">Six Reasons to Choose Knight Dental Design</span>
@@ -508,7 +517,7 @@
         <span class="rounded-full border border-borderWarm bg-canvas px-4 py-2 text-xs font-medium">🏆 UK Lab of the Year 2013</span>
         <span class="rounded-full border border-borderWarm bg-canvas px-4 py-2 text-xs font-medium">🏆 UK Lab of the Year 2008</span>
         <span class="rounded-full border border-borderWarm bg-canvas px-4 py-2 text-xs font-medium">🏆 UK Lab of the Year 2004</span>
-        <span class="rounded-full border border-borderWarm bg-canvas px-4 py-2 text-xs font-medium">🏆 3× Best UK Dental Laboratory</span>
+        <span class="rounded-full border border-borderWarm bg-canvas px-4 py-2 text-xs font-medium">🏆 Smile Design Winner 2009 · 2007 · 2005</span>
       </div>
     </div>
   </section>
@@ -518,9 +527,7 @@
   <!-- ===================================================================== -->
   <section id="lifetime-lingual" class="px-3 sm:px-5 lg:px-7 pb-20">
     <div class="rounded-[28px] sm:rounded-[36px] bg-ink text-white p-8 sm:p-12 lg:p-16 max-w-[1400px] mx-auto overflow-hidden relative">
-
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-        <!-- Left Copy: Verbatim from Knight Dental Design Latest News & LTL Brochure -->
         <div class="lg:col-span-6 space-y-6 reveal-up">
           <div class="inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/5 px-4 py-1.5 text-xs font-mono uppercase tracking-widest text-amber-300">
             <span>Patent Pending · In Association with Inman Orthodontics</span>
@@ -538,7 +545,6 @@
             CAD-CAM designed and precision milled in high-strength ceramic hybrid (only 1.0mm thick) to hold lower 3–3 teeth securely, comfortably, and hygienically. Delivered diamond-polished and pre-etched with a custom <strong class="text-white">Essix-type location jig</strong> for predictable chairside bonding in under 30 minutes.
           </p>
 
-          <!-- Key Clinical Highlights -->
           <div class="grid grid-cols-3 gap-4 pt-4 border-t border-white/15">
             <div>
               <div class="text-2xl sm:text-3xl font-semibold text-amber-200">1.0mm</div>
@@ -555,7 +561,6 @@
           </div>
         </div>
 
-        <!-- Right Interactive Shade & Retainer Visualizer Card -->
         <div class="lg:col-span-6 reveal-up">
           <div class="rounded-[28px] border border-white/20 bg-white/5 backdrop-blur-xl p-6 sm:p-8">
             <div class="flex flex-wrap items-center justify-between gap-2 pb-5 border-b border-white/15">
@@ -572,10 +577,8 @@
               </button>
             </div>
 
-            <!-- Interactive SVG Lingual Arch Diagram (Lower 3-3) -->
             <div class="my-6 py-8 px-4 rounded-2xl bg-black/35 border border-white/10 flex flex-col items-center justify-center relative">
               <svg viewBox="0 0 500 210" class="w-full max-w-md h-auto overflow-visible">
-                <!-- Translucent Essix Location Jig Overlay -->
                 <g id="svg-essix-jig" class="transition-opacity duration-500" opacity="1">
                   <path d="M55,145 C95,25 405,25 445,145 C420,175 385,180 350,145 C290,90 210,90 150,145 C115,180 80,175 55,145 Z"
                         fill="rgba(186, 230, 253, 0.14)" stroke="rgba(186, 230, 253, 0.55)" stroke-width="1.5" stroke-dasharray="4 3" />
@@ -584,23 +587,15 @@
                   </text>
                 </g>
 
-                <!-- 6 Lower Anterior Teeth (LR3, LR2, LR1, LL1, LL2, LL3) -->
                 <g stroke="#292524" stroke-width="1.5" fill="#EDE9E0">
-                  <!-- LR3 Canine -->
                   <rect x="72" y="96" width="50" height="58" rx="18" />
-                  <!-- LR2 Lateral -->
                   <rect x="130" y="76" width="46" height="56" rx="14" />
-                  <!-- LR1 Central -->
                   <rect x="184" y="66" width="44" height="54" rx="12" />
-                  <!-- LL1 Central -->
                   <rect x="236" y="66" width="44" height="54" rx="12" />
-                  <!-- LL2 Lateral -->
                   <rect x="288" y="76" width="46" height="56" rx="14" />
-                  <!-- LL3 Canine -->
                   <rect x="342" y="96" width="50" height="58" rx="18" />
                 </g>
 
-                <!-- Pink TePe Interdental Embrasure Access Indicators -->
                 <g fill="#F472B6" opacity="0.85">
                   <circle cx="126" cy="126" r="3.5" />
                   <circle cx="180" cy="114" r="3.5" />
@@ -609,7 +604,6 @@
                   <circle cx="338" cy="126" r="3.5" />
                 </g>
 
-                <!-- Precision Milled 1.0mm LifeTime Lingual Ceramic Hybrid Bar -->
                 <path id="ltl-ceramic-bar"
                       d="M92,126 C145,92 190,88 232,88 C274,88 319,92 372,126"
                       fill="none"
@@ -630,7 +624,6 @@
               </svg>
             </div>
 
-            <!-- 5 Vita Shade Selector Buttons -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <span class="text-xs font-mono uppercase tracking-wider text-white/70">Select Vita Shade:</span>
               <div class="flex items-center gap-2">
@@ -644,7 +637,6 @@
           </div>
         </div>
       </div>
-
     </div>
   </section>
 
@@ -666,9 +658,7 @@
       </p>
     </div>
 
-    <!-- 3 Patient Story Cards from knightdentaldesign.co.uk -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <!-- Story 1: Paula Hamilton -->
       <article class="group rounded-[28px] overflow-hidden border border-borderWarm bg-surface flex flex-col justify-between reveal-up">
         <div class="relative h-72 overflow-hidden">
           <img
@@ -698,7 +688,6 @@
         </div>
       </article>
 
-      <!-- Story 2: Jade -->
       <article class="group rounded-[28px] overflow-hidden border border-borderWarm bg-surface flex flex-col justify-between reveal-up">
         <div class="relative h-72 overflow-hidden">
           <img
@@ -728,7 +717,6 @@
         </div>
       </article>
 
-      <!-- Story 3: Elliot -->
       <article class="group rounded-[28px] overflow-hidden border border-borderWarm bg-surface flex flex-col justify-between reveal-up">
         <div class="relative h-72 overflow-hidden">
           <img
@@ -761,7 +749,7 @@
   </section>
 
   <!-- ===================================================================== -->
-  <!-- 6. FOR DENTISTS: WORKING TIMES CALCULATOR, LOGISTICS & DOWNLOADS      -->
+  <!-- 6. FOR DENTISTS: WORKING TIMES CALCULATOR & LOGISTICS                 -->
   <!-- ===================================================================== -->
   <section id="for-dentists" class="max-w-7xl mx-auto px-6 sm:px-10 py-16 sm:py-24 border-t border-borderWarm">
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
@@ -787,7 +775,6 @@
             <span class="text-xs font-mono text-gold">MHRA Reg. No. CA 003175</span>
           </div>
 
-          <!-- Case Size Selector Pills -->
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             <button
               onclick="setTurnaround('small')"
@@ -815,7 +802,6 @@
             </button>
           </div>
 
-          <!-- Express Service Pre-Booked Toggle -->
           <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
             <span class="text-xs text-muted">Pre-Booked Express Service (≤6 units by arrangement):</span>
             <div class="inline-flex rounded-full border border-borderWarm bg-canvas p-1 text-xs">
@@ -825,7 +811,6 @@
             </div>
           </div>
 
-          <!-- Output Metrics -->
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 rounded-2xl bg-canvas border border-borderWarm p-5">
             <div>
               <span class="text-[11px] font-mono uppercase text-muted block">Time in Lab</span>
@@ -843,13 +828,12 @@
         </div>
       </div>
 
-      <!-- Right Column: White Box / Brown Box Collection & Downloads -->
+      <!-- Right Column: White Box / Brown Box Collection & Online Prescription Link -->
       <div class="lg:col-span-5 flex flex-col justify-between space-y-6 reveal-up">
         <div class="rounded-[28px] border border-borderWarm bg-surface p-7 space-y-5">
           <span class="text-xs font-mono uppercase tracking-widest text-gold block">Collection &amp; Delivery Service</span>
           <h3 class="text-2xl font-medium tracking-tight">Send Us a Case</h3>
 
-          <!-- White Box -->
           <div class="rounded-2xl bg-canvas border border-borderWarm p-5">
             <div class="flex items-center justify-between mb-1.5">
               <strong class="text-sm font-semibold text-ink">01. The White Box (Royal Mail FREEPOST)</strong>
@@ -860,7 +844,6 @@
             </p>
           </div>
 
-          <!-- Brown Box -->
           <div class="rounded-2xl bg-canvas border border-borderWarm p-5">
             <div class="flex items-center justify-between mb-1.5">
               <strong class="text-sm font-semibold text-ink">02. The Brown Box (Free UPS Courier)</strong>
@@ -871,23 +854,21 @@
             </p>
           </div>
 
-          <!-- Official Downloads from knightdentaldesign.co.uk/what-we-do/dentist-information/downloads/ -->
+          <!-- Replaced PDF Download with Link to Online Digital Prescription Form -->
           <div class="pt-2 space-y-2.5">
             <a
-              href="https://www.knightdentaldesign.co.uk/wp-content/uploads/2014/11/knight-docket-v2.pdf"
-              target="_blank"
-              rel="noopener"
-              class="flex items-center justify-between w-full rounded-full bg-ink text-white px-6 py-3.5 text-xs font-semibold hover:bg-ink/90 transition-all"
+              href="#digital-prescription"
+              class="flex items-center justify-between w-full rounded-full bg-ink text-white px-6 py-3.5 text-xs font-semibold hover:bg-ink/90 transition-all shadow-md"
             >
-              <span>Download Laboratory Prescription (Knight Chit PDF)</span>
-              <span>↓</span>
+              <span>Complete Online Digital Prescription Form</span>
+              <span>→</span>
             </a>
             <button
               onclick="openModal('dentist')"
               class="flex items-center justify-between w-full rounded-full border border-ink/25 bg-canvas text-ink px-6 py-3.5 text-xs font-semibold hover:bg-ink hover:text-white transition-all"
             >
               <span>Download FREEPOST Label &amp; Book UPS Collection</span>
-              <span>→</span>
+              <span>↓</span>
             </button>
           </div>
         </div>
@@ -897,13 +878,493 @@
   </section>
 
   <!-- ===================================================================== -->
-  <!-- 7. FIND A DENTIST (PATIENT POSTCODE MATCHER) & FOOTER                 -->
+  <!-- 7. ONLINE DIGITAL PRESCRIPTION FORM (REPLACES KNIGHT CHIT PDF)        -->
+  <!-- ===================================================================== -->
+  <section id="digital-prescription" class="px-3 sm:px-5 lg:px-7 py-16 sm:py-24">
+    <div class="rounded-[28px] sm:rounded-[36px] border-2 border-ink/15 bg-surface p-6 sm:p-10 lg:p-14 max-w-[1400px] mx-auto shadow-xl">
+
+      <!-- Docket Header -->
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-8 border-b border-borderWarm">
+        <div>
+          <div class="inline-flex items-center gap-2 rounded-full bg-ink text-white px-4 py-1.5 text-[11px] font-mono uppercase tracking-widest mb-3">
+            <span>MHRA Reg. No. CA 003175 · M.D.D. Patient Statement Compliant</span>
+          </div>
+          <h2 class="text-3xl sm:text-5xl font-medium tracking-tight">
+            Online Laboratory <span class="font-serif italic font-normal text-gold">Prescription Form</span>
+          </h2>
+          <p class="text-xs sm:text-sm text-muted mt-2 max-w-2xl">
+            Please complete this digital prescription clearly and fully. All fields must be completed to unlock submission. A digital copy of this document is generated upon submission and may be offered to the patient to comply with the M.D.D. Patient Statement Regulations 2007.
+          </p>
+        </div>
+
+        <!-- Sticky Completion Status Pill -->
+        <div class="rounded-2xl border border-borderWarm bg-canvas p-5 min-w-[260px] shrink-0">
+          <div class="flex items-center justify-between text-xs font-mono uppercase mb-2">
+            <span class="text-muted">Form Completion</span>
+            <span id="rx-progress-pct" class="font-semibold text-ink">0%</span>
+          </div>
+          <div class="w-full h-2 rounded-full bg-borderWarm overflow-hidden">
+            <div id="rx-progress-bar" class="h-full bg-gold transition-all duration-300" style="width: 0%"></div>
+          </div>
+          <p id="rx-missing-hint" class="text-[11px] font-mono text-muted mt-2.5 leading-snug">
+            Complete all required fields below to enable submission.
+          </p>
+        </div>
+      </div>
+
+      <!-- Digital Prescription Form -->
+      <form id="kdd-rx-form" onsubmit="submitDigitalPrescription(event)" novalidate class="mt-10 space-y-10">
+
+        <!-- ROW 1: CLINICIAN, PRACTICE & PATIENT DETAILS (SECTIONS 1, 2, 3) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+          <!-- 1. Dentist & 2. Practice Name -->
+          <div class="lg:col-span-6 rounded-[24px] border border-borderWarm bg-canvas p-6 sm:p-7 space-y-5">
+            <div class="flex items-center justify-between border-b border-borderWarm pb-3">
+              <span class="text-xs font-mono uppercase tracking-widest text-gold font-semibold">Sections 1 &amp; 2 · Prescriber Details</span>
+              <span class="text-[11px] font-mono text-muted">Required *</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="rx-dentist" class="block text-xs font-mono uppercase text-ink mb-1.5">1. Dentist Name *</label>
+                <input id="rx-dentist" type="text" required placeholder="Dr. First &amp; Surname" class="rx-input w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
+              </div>
+              <div>
+                <label for="rx-practice" class="block text-xs font-mono uppercase text-ink mb-1.5">2. Practice Name *</label>
+                <input id="rx-practice" type="text" required placeholder="Clinic / Surgery Name" class="rx-input w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="rx-email" class="block text-xs font-mono uppercase text-ink mb-1.5">Practice Email *</label>
+                <input id="rx-email" type="email" required placeholder="surgery@practice.co.uk" class="rx-input w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
+              </div>
+              <div>
+                <label for="rx-phone" class="block text-xs font-mono uppercase text-ink mb-1.5">Practice Telephone *</label>
+                <input id="rx-phone" type="tel" required placeholder="020 7946 0000" class="rx-input w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Patient Details -->
+          <div class="lg:col-span-6 rounded-[24px] border border-borderWarm bg-canvas p-6 sm:p-7 space-y-5">
+            <div class="flex items-center justify-between border-b border-borderWarm pb-3">
+              <span class="text-xs font-mono uppercase tracking-widest text-gold font-semibold">Section 3 · Patient Identification</span>
+              <span class="text-[11px] font-mono text-muted">Required *</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="rx-patient-surname" class="block text-xs font-mono uppercase text-ink mb-1.5">Patient Surname *</label>
+                <input id="rx-patient-surname" type="text" required placeholder="Patient Surname" class="rx-input w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
+              </div>
+              <div>
+                <label for="rx-patient-forename" class="block text-xs font-mono uppercase text-ink mb-1.5">Patient Forename *</label>
+                <input id="rx-patient-forename" type="text" required placeholder="Patient Forename" class="rx-input w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
+              </div>
+            </div>
+
+            <div>
+              <span class="block text-xs font-mono uppercase text-ink mb-2">Patient Gender *</span>
+              <div class="grid grid-cols-2 gap-3">
+                <label class="flex items-center gap-3 rounded-xl border border-borderWarm bg-surface px-4 py-3 cursor-pointer hover:border-ink transition-colors">
+                  <input type="radio" name="rx_gender" value="Male" class="rx-input accent-ink w-4 h-4" />
+                  <span class="text-sm font-medium">Male</span>
+                </label>
+                <label class="flex items-center gap-3 rounded-xl border border-borderWarm bg-surface px-4 py-3 cursor-pointer hover:border-ink transition-colors">
+                  <input type="radio" name="rx_gender" value="Female" class="rx-input accent-ink w-4 h-4" />
+                  <span class="text-sm font-medium">Female</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ROW 2: DATES & SHADE TAKING (SECTIONS 4, 5, 6) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+          <!-- 4. Prep Date & 5. Return Date -->
+          <div class="lg:col-span-6 rounded-[24px] border border-borderWarm bg-canvas p-6 sm:p-7 space-y-5">
+            <div class="flex items-center justify-between border-b border-borderWarm pb-3">
+              <span class="text-xs font-mono uppercase tracking-widest text-gold font-semibold">Sections 4 &amp; 5 · Schedule &amp; Dates</span>
+              <span class="text-[11px] font-mono text-muted">Refer to Section 10</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="rx-prep-date" class="block text-xs font-mono uppercase text-ink mb-1.5">4. Prep Date *</label>
+                <input id="rx-prep-date" type="date" required class="rx-input w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
+              </div>
+              <div>
+                <label for="rx-return-date" class="block text-xs font-mono uppercase text-ink mb-1.5">5. Return Date *</label>
+                <input id="rx-return-date" type="date" required class="rx-input w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
+              </div>
+            </div>
+
+            <p class="text-xs text-muted leading-relaxed bg-surface rounded-xl p-3.5 border border-borderWarm">
+              <strong class="text-ink">Note on Section 5 (Return Date):</strong> Please refer to working times in Section 10. Enter the required laboratory return date, <em>not</em> the date of the patient’s appointment.
+            </p>
+          </div>
+
+          <!-- 6. Shade & Stump Shade -->
+          <div class="lg:col-span-6 rounded-[24px] border border-borderWarm bg-canvas p-6 sm:p-7 space-y-5">
+            <div class="flex items-center justify-between border-b border-borderWarm pb-3">
+              <span class="text-xs font-mono uppercase tracking-widest text-gold font-semibold">Section 6 · Shade Specification</span>
+              <span class="text-[11px] font-mono text-muted">Required *</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="rx-shade" class="block text-xs font-mono uppercase text-ink mb-1.5">6. Final Shade *</label>
+                <input id="rx-shade" type="text" required placeholder="e.g. Vita A1 / BL2 / 1M1" class="rx-input w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
+              </div>
+              <div>
+                <label for="rx-stump-shade" class="block text-xs font-mono uppercase text-ink mb-1.5">Stump Shade (or N/A) *</label>
+                <input id="rx-stump-shade" type="text" required placeholder="e.g. ND2 or N/A" class="rx-input w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
+              </div>
+            </div>
+
+            <div>
+              <span class="block text-xs font-mono uppercase text-ink mb-2">Shade Consultation at Laboratory (92 Swingate Lane, SE18) *</span>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label class="flex items-center gap-3 rounded-xl border border-borderWarm bg-surface px-4 py-3 cursor-pointer hover:border-ink transition-colors">
+                  <input type="radio" name="rx_shade_location" value="Provided by Practice" class="rx-input accent-ink w-4 h-4" />
+                  <span class="text-xs sm:text-sm font-medium">Shade Provided Above</span>
+                </label>
+                <label class="flex items-center gap-3 rounded-xl border border-borderWarm bg-surface px-4 py-3 cursor-pointer hover:border-ink transition-colors">
+                  <input type="radio" name="rx_shade_location" value="Shade to be taken at Lab" class="rx-input accent-ink w-4 h-4" />
+                  <span class="text-xs sm:text-sm font-medium">Shade to be taken at Lab</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ROW 3: TYPE OF RESTORATION & WORKING TIMES (SECTIONS 7 & 10) -->
+        <!-- Note: Section 8 (Standard vs Exclusive Quality) has been intentionally removed per instructions -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+          <!-- 7. Type of Restoration -->
+          <div class="lg:col-span-7 rounded-[24px] border border-borderWarm bg-canvas p-6 sm:p-7 space-y-5">
+            <div class="flex items-center justify-between border-b border-borderWarm pb-3">
+              <span class="text-xs font-mono uppercase tracking-widest text-gold font-semibold">Section 7 · Type of Restoration</span>
+              <span class="text-[11px] font-mono text-muted">Select at least one *</span>
+            </div>
+
+            <div class="space-y-4">
+              <!-- Metal Ceramic -->
+              <div>
+                <span class="text-xs font-mono uppercase text-muted block mb-2">Metal Ceramic</span>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <label class="flex items-center gap-2.5 rounded-xl border border-borderWarm bg-surface px-3.5 py-2.5 cursor-pointer hover:border-ink text-xs sm:text-sm">
+                    <input type="checkbox" name="rx_restoration" value="Metal Ceramic: High Gold" class="rx-input accent-ink w-4 h-4" />
+                    <span>High Gold</span>
+                  </label>
+                  <label class="flex items-center gap-2.5 rounded-xl border border-borderWarm bg-surface px-3.5 py-2.5 cursor-pointer hover:border-ink text-xs sm:text-sm">
+                    <input type="checkbox" name="rx_restoration" value="Metal Ceramic: Precious" class="rx-input accent-ink w-4 h-4" />
+                    <span>Precious</span>
+                  </label>
+                  <label class="flex items-center gap-2.5 rounded-xl border border-borderWarm bg-surface px-3.5 py-2.5 cursor-pointer hover:border-ink text-xs sm:text-sm">
+                    <input type="checkbox" name="rx_restoration" value="Metal Ceramic: Non Precious" class="rx-input accent-ink w-4 h-4" />
+                    <span>Non Precious</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- All Ceramic -->
+              <div>
+                <span class="text-xs font-mono uppercase text-muted block mb-2">All Ceramic</span>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  <label class="flex items-center gap-2.5 rounded-xl border border-borderWarm bg-surface px-3.5 py-2.5 cursor-pointer hover:border-ink text-xs sm:text-sm">
+                    <input type="checkbox" name="rx_restoration" value="All Ceramic: Emax" class="rx-input accent-ink w-4 h-4" />
+                    <span>Emax</span>
+                  </label>
+                  <label class="flex items-center gap-2.5 rounded-xl border border-borderWarm bg-surface px-3.5 py-2.5 cursor-pointer hover:border-ink text-xs sm:text-sm">
+                    <input type="checkbox" name="rx_restoration" value="All Ceramic: Zirconia" class="rx-input accent-ink w-4 h-4" />
+                    <span>Zirconia</span>
+                  </label>
+                  <label class="flex items-center gap-2.5 rounded-xl border border-borderWarm bg-surface px-3.5 py-2.5 cursor-pointer hover:border-ink text-xs sm:text-sm">
+                    <input type="checkbox" name="rx_restoration" value="All Ceramic: Authentic" class="rx-input accent-ink w-4 h-4" />
+                    <span>Authentic</span>
+                  </label>
+                  <label class="flex items-center gap-2.5 rounded-xl border border-borderWarm bg-surface px-3.5 py-2.5 cursor-pointer hover:border-ink text-xs sm:text-sm">
+                    <input type="checkbox" id="rx-rest-ceramic-other" name="rx_restoration" value="All Ceramic: Other" class="rx-input accent-ink w-4 h-4" />
+                    <span>Other Ceramic</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Implant & Other -->
+              <div>
+                <span class="text-xs font-mono uppercase text-muted block mb-2">Implant &amp; Specialist Appliances</span>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <label class="flex items-center gap-2.5 rounded-xl border border-borderWarm bg-surface px-3.5 py-2.5 cursor-pointer hover:border-ink text-xs sm:text-sm">
+                    <input type="checkbox" name="rx_restoration" value="Implant Restoration" class="rx-input accent-ink w-4 h-4" />
+                    <span>Implant</span>
+                  </label>
+                  <label class="flex items-center gap-2.5 rounded-xl border border-borderWarm bg-surface px-3.5 py-2.5 cursor-pointer hover:border-ink text-xs sm:text-sm">
+                    <input type="checkbox" name="rx_restoration" value="LifeTime Lingual Retainer" class="rx-input accent-ink w-4 h-4" />
+                    <span>LifeTime Lingual™</span>
+                  </label>
+                  <label class="flex items-center gap-2.5 rounded-xl border border-borderWarm bg-surface px-3.5 py-2.5 cursor-pointer hover:border-ink text-xs sm:text-sm">
+                    <input type="checkbox" id="rx-rest-other" name="rx_restoration" value="Other Restoration" class="rx-input accent-ink w-4 h-4" />
+                    <span>Other (Specify)</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Conditional Specification Field when "Other" is checked -->
+              <div id="rx-other-specify-wrap" class="hidden pt-1">
+                <label for="rx-other-specify" class="block text-xs font-mono uppercase text-ink mb-1.5">Please Specify Other Restoration / Material *</label>
+                <input id="rx-other-specify" type="text" placeholder="Specify restoration, implant system, or ceramic material..." class="rx-input w-full rounded-xl border border-borderWarm bg-surface px-4 py-2.5 text-sm focus:outline-none focus:border-ink" />
+              </div>
+            </div>
+          </div>
+
+          <!-- 10. Working Times -->
+          <div class="lg:col-span-5 rounded-[24px] border border-borderWarm bg-canvas p-6 sm:p-7 space-y-4">
+            <div class="flex items-center justify-between border-b border-borderWarm pb-3">
+              <span class="text-xs font-mono uppercase tracking-widest text-gold font-semibold">Section 10 · Working Times</span>
+              <span class="text-[11px] font-mono text-muted">Select tier *</span>
+            </div>
+
+            <div class="space-y-2.5">
+              <label class="flex items-start gap-3 rounded-xl border border-borderWarm bg-surface p-3.5 cursor-pointer hover:border-ink transition-colors">
+                <input type="radio" name="rx_working_time" value="6 Units or Less (7 Working Days in Lab / Dispatched Day 8)" class="rx-input accent-ink w-4 h-4 mt-0.5" />
+                <div class="text-xs">
+                  <strong class="block text-ink">6 UNITS OR LESS — 7 WORKING DAYS IN LAB</strong>
+                  <span class="text-muted">Work will be dispatched on Day 8</span>
+                </div>
+              </label>
+
+              <label class="flex items-start gap-3 rounded-xl border border-borderWarm bg-surface p-3.5 cursor-pointer hover:border-ink transition-colors">
+                <input type="radio" name="rx_working_time" value="7 Units or More (9 Working Days in Lab / Dispatched Day 10)" class="rx-input accent-ink w-4 h-4 mt-0.5" />
+                <div class="text-xs">
+                  <strong class="block text-ink">7 UNITS OR MORE — 9 WORKING DAYS IN LAB</strong>
+                  <span class="text-muted">Work will be dispatched on Day 10</span>
+                </div>
+              </label>
+
+              <label class="flex items-start gap-3 rounded-xl border border-borderWarm bg-surface p-3.5 cursor-pointer hover:border-ink transition-colors">
+                <input type="radio" name="rx_working_time" value="Implant, Attachment, Combination & Occlusal Rehabilitation (10 Working Days / Dispatched Day 11)" class="rx-input accent-ink w-4 h-4 mt-0.5" />
+                <div class="text-xs">
+                  <strong class="block text-ink">IMPLANT, ATTACHMENT, COMBINATION &amp; OCCLUSAL REHAB</strong>
+                  <span class="text-muted">10 Working Days in Lab — work will be dispatched on Day 11</span>
+                </div>
+              </label>
+
+              <label class="flex items-start gap-3 rounded-xl border border-borderWarm bg-surface p-3.5 cursor-pointer hover:border-ink transition-colors">
+                <input type="radio" name="rx_working_time" value="5 Day Express Service (≤6 Units Pre-Booked Only +25%)" class="rx-input accent-ink w-4 h-4 mt-0.5" />
+                <div class="text-xs">
+                  <strong class="block text-ink">5 DAY EXPRESS SERVICE (+25% BY ARRANGEMENT)</strong>
+                  <span class="text-muted">6 units or less · Pre-booked only</span>
+                </div>
+              </label>
+
+              <label class="flex items-start gap-3 rounded-xl border border-borderWarm bg-surface p-3.5 cursor-pointer hover:border-ink transition-colors">
+                <input type="radio" name="rx_working_time" value="3 Day Express Service (≤6 Units Pre-Booked Only +50%)" class="rx-input accent-ink w-4 h-4 mt-0.5" />
+                <div class="text-xs">
+                  <strong class="block text-ink">3 DAY EXPRESS SERVICE (+50% BY ARRANGEMENT)</strong>
+                  <span class="text-muted">6 units or less · Pre-booked only</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ROW 4: INTERACTIVE PALMER TOOTH NOTATION GRID (SECTION 9) -->
+        <div class="rounded-[24px] border border-borderWarm bg-canvas p-6 sm:p-8 space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-4 border-b border-borderWarm pb-4">
+            <div>
+              <span class="text-xs font-mono uppercase tracking-widest text-gold font-semibold block">Section 9 · Interactive Palmer Tooth Notation</span>
+              <h3 class="text-xl font-medium mt-0.5">Select All Teeth to be Restored *</h3>
+            </div>
+            <div class="flex items-center gap-3">
+              <span id="rx-selected-teeth-badge" class="rounded-full bg-surface border border-borderWarm px-4 py-1.5 text-xs font-mono text-ink">
+                0 Units Selected
+              </span>
+              <button type="button" onclick="clearAllTeeth()" class="text-xs font-mono underline text-muted hover:text-ink">
+                Clear Arch
+              </button>
+            </div>
+          </div>
+
+          <!-- Palmer Cross Grid: Upper Right (UR8-UR1) | Upper Left (UL1-UL8) / Lower Right (LR8-LR1) | Lower Left (LL1-LL8) -->
+          <div class="overflow-x-auto pb-2">
+            <div class="min-w-[680px] space-y-3">
+
+              <!-- Upper Arch Row -->
+              <div class="grid grid-cols-2 gap-6 border-b-2 border-ink/30 pb-4">
+                <!-- Upper Right (UR8 - UR1) -->
+                <div>
+                  <div class="flex justify-between text-[11px] font-mono uppercase text-muted mb-2">
+                    <span>UPPER RIGHT (UR)</span>
+                    <span>MIDLINE →</span>
+                  </div>
+                  <div class="grid grid-cols-8 gap-1.5" id="arch-ur"></div>
+                </div>
+                <!-- Upper Left (UL1 - UL8) -->
+                <div class="border-l-2 border-ink/30 pl-6">
+                  <div class="flex justify-between text-[11px] font-mono uppercase text-muted mb-2">
+                    <span>← MIDLINE</span>
+                    <span>UPPER LEFT (UL)</span>
+                  </div>
+                  <div class="grid grid-cols-8 gap-1.5" id="arch-ul"></div>
+                </div>
+              </div>
+
+              <!-- Lower Arch Row -->
+              <div class="grid grid-cols-2 gap-6 pt-1">
+                <!-- Lower Right (LR8 - LR1) -->
+                <div>
+                  <div class="grid grid-cols-8 gap-1.5" id="arch-lr"></div>
+                  <div class="flex justify-between text-[11px] font-mono uppercase text-muted mt-2">
+                    <span>LOWER RIGHT (LR)</span>
+                    <span>MIDLINE →</span>
+                  </div>
+                </div>
+                <!-- Lower Left (LL1 - LL8) -->
+                <div class="border-l-2 border-ink/30 pl-6">
+                  <div class="grid grid-cols-8 gap-1.5" id="arch-ll"></div>
+                  <div class="flex justify-between text-[11px] font-mono uppercase text-muted mt-2">
+                    <span>← MIDLINE</span>
+                    <span>LOWER LEFT (LL)</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- ROW 5: ENCLOSURES & SPECIAL INSTRUCTIONS (SECTION 11) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+          <!-- 11. Enclosures -->
+          <div class="lg:col-span-6 rounded-[24px] border border-borderWarm bg-canvas p-6 sm:p-7 space-y-4">
+            <div class="flex items-center justify-between border-b border-borderWarm pb-3">
+              <span class="text-xs font-mono uppercase tracking-widest text-gold font-semibold">Section 11 · Enclosures &amp; Digital Files</span>
+              <span class="text-[11px] font-mono text-muted">Select at least one *</span>
+            </div>
+
+            <!-- Upper / Lower Matrix Enclosures -->
+            <div class="space-y-2.5 text-xs sm:text-sm">
+              <div class="flex items-center justify-between rounded-xl border border-borderWarm bg-surface px-4 py-2.5">
+                <span class="font-medium">Study Model/s</span>
+                <div class="flex items-center gap-4 font-mono text-xs">
+                  <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="rx_enclosure" value="Study Model (Upper)" class="rx-input accent-ink w-4 h-4" /> <span>U</span></label>
+                  <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="rx_enclosure" value="Study Model (Lower)" class="rx-input accent-ink w-4 h-4" /> <span>L</span></label>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between rounded-xl border border-borderWarm bg-surface px-4 py-2.5">
+                <span class="font-medium">Alginate/s</span>
+                <div class="flex items-center gap-4 font-mono text-xs">
+                  <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="rx_enclosure" value="Alginate (Upper)" class="rx-input accent-ink w-4 h-4" /> <span>U</span></label>
+                  <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="rx_enclosure" value="Alginate (Lower)" class="rx-input accent-ink w-4 h-4" /> <span>L</span></label>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between rounded-xl border border-borderWarm bg-surface px-4 py-2.5">
+                <span class="font-medium">Master Impression/s</span>
+                <div class="flex items-center gap-4 font-mono text-xs">
+                  <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="rx_enclosure" value="Master Impression (Upper)" class="rx-input accent-ink w-4 h-4" /> <span>U</span></label>
+                  <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="rx_enclosure" value="Master Impression (Lower)" class="rx-input accent-ink w-4 h-4" /> <span>L</span></label>
+                </div>
+              </div>
+
+              <!-- Single Tick Enclosures -->
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
+                <label class="flex items-center gap-2 rounded-xl border border-borderWarm bg-surface px-3.5 py-2.5 cursor-pointer hover:border-ink text-xs">
+                  <input type="checkbox" name="rx_enclosure" value="Bite Reg" class="rx-input accent-ink w-4 h-4" />
+                  <span>Bite Reg</span>
+                </label>
+                <label class="flex items-center gap-2 rounded-xl border border-borderWarm bg-surface px-3.5 py-2.5 cursor-pointer hover:border-ink text-xs">
+                  <input type="checkbox" name="rx_enclosure" value="Face Bow" class="rx-input accent-ink w-4 h-4" />
+                  <span>Face Bow</span>
+                </label>
+                <label class="flex items-center gap-2 rounded-xl border border-borderWarm bg-surface px-3.5 py-2.5 cursor-pointer hover:border-ink text-xs">
+                  <input type="checkbox" name="rx_enclosure" value="Photos" class="rx-input accent-ink w-4 h-4" />
+                  <span>Photos</span>
+                </label>
+                <label class="flex items-center gap-2 rounded-xl border border-borderWarm bg-surface px-3.5 py-2.5 cursor-pointer hover:border-ink text-xs">
+                  <input type="checkbox" name="rx_enclosure" value="Digital Image/s / Intraoral Scan" class="rx-input accent-ink w-4 h-4" />
+                  <span>Digital Image/s</span>
+                </label>
+                <label class="col-span-2 flex items-center gap-2 rounded-xl border border-borderWarm bg-surface px-3.5 py-2.5 cursor-pointer hover:border-ink text-xs">
+                  <input type="checkbox" name="rx_enclosure" value="Email to Follow (please forward ASAP to info@kdduk.net)" class="rx-input accent-ink w-4 h-4" />
+                  <span>Email to Follow (forward ASAP)</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Special Instructions & Health/Safety Declaration -->
+          <div class="lg:col-span-6 rounded-[24px] border border-borderWarm bg-canvas p-6 sm:p-7 flex flex-col justify-between space-y-5">
+            <div class="space-y-3">
+              <div class="flex items-center justify-between border-b border-borderWarm pb-3">
+                <span class="text-xs font-mono uppercase tracking-widest text-gold font-semibold">Special Instructions &amp; Clinical Notes</span>
+                <span class="text-[11px] font-mono text-muted">Required *</span>
+              </div>
+              <label for="rx-instructions" class="sr-only">Special Instructions</label>
+              <textarea
+                id="rx-instructions"
+                rows="4"
+                required
+                placeholder="Provide occlusal scheme, pontic design, implant platform/system, surface texture, translucency notes, or scanner portal reference..."
+                class="rx-input w-full rounded-xl border border-borderWarm bg-surface p-4 text-sm focus:outline-none focus:border-ink"
+              ></textarea>
+            </div>
+
+            <!-- Mandatory COSHH & Medical Devices Regulations Declaration -->
+            <div class="rounded-2xl border border-borderWarm bg-surface p-4 space-y-3">
+              <p class="text-[11px] text-muted leading-relaxed">
+                <strong class="text-ink">M.D.D. &amp; HEALTH &amp; SAFETY REMINDER:</strong> This is a custom-made medical device manufactured to satisfy the design characteristics specified by the prescriber for this patient under Annex I of the Medical Devices Directive &amp; UK Medical Devices Regulations. To comply with COSHH Regulations and BDA good practice, physical impressions and appliances must be suitably decontaminated and disinfected prior to dispatch.
+              </p>
+              <label class="flex items-start gap-3 cursor-pointer pt-1">
+                <input id="rx-coshh-confirm" type="checkbox" required class="rx-input accent-ink w-4 h-4 mt-0.5 shrink-0" />
+                <span class="text-xs font-medium text-ink">
+                  I confirm all prescription details are complete and any physical impressions/appliances have been decontaminated in accordance with COSHH &amp; BDA guidelines. *
+                </span>
+              </label>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- SUBMIT BAR (LOCKED UNTIL 100% COMPLETE) -->
+        <div class="pt-4 border-t border-borderWarm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+          <div id="rx-validation-banner" class="text-xs font-mono text-amber-800 bg-amber-500/10 border border-amber-600/25 rounded-xl px-4 py-3">
+            ⚠ Submission Locked: Please fill out all required sections (including at least 1 tooth in Section 9) to submit.
+          </div>
+
+          <button
+            id="rx-submit-btn"
+            type="submit"
+            disabled
+            class="rounded-full bg-ink text-white px-8 py-4 text-xs sm:text-sm font-semibold tracking-wide transition-all disabled:opacity-35 disabled:cursor-not-allowed hover:bg-ink/90 shadow-lg shrink-0"
+          >
+            Submit Digital Prescription →
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- 8. FIND A DENTIST (PATIENT POSTCODE MATCHER) & FOOTER                 -->
   <!-- ===================================================================== -->
   <section id="find-dentist" class="px-3 sm:px-5 lg:px-7 pb-10">
     <div class="rounded-[28px] sm:rounded-[36px] border border-borderWarm bg-surface p-8 sm:p-12 lg:p-16 max-w-[1400px] mx-auto">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
 
-        <!-- Left Text: Verbatim from /what-we-do/for-patients/find-dentist/ -->
         <div class="lg:col-span-6 space-y-5">
           <div class="inline-flex items-center gap-2 rounded-full border border-borderWarm bg-canvas px-4 py-1.5 text-xs font-mono uppercase tracking-widest text-muted">
             <span>✳ Find a Client Dentist</span>
@@ -919,7 +1380,6 @@
           </p>
         </div>
 
-        <!-- Right Form -->
         <div class="lg:col-span-6">
           <form onsubmit="handleDentistFinder(event)" class="rounded-[26px] border border-borderWarm bg-canvas p-6 sm:p-8 space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -967,7 +1427,7 @@
       <!-- Footer Info -->
       <footer class="mt-14 pt-8 border-t border-borderWarm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-muted">
         <div>
-          <strong class="text-ink">Knight Dental Design Ltd</strong> · 92 Swingate Lane, Plumstead Common, London SE18 2HL · Tel: <a href="tel:02083166248" class="underline hover:text-ink">020 8316 6248</a> · <a href="mailto:info@kdduk.net" class="underline hover:text-ink">info@kdduk.net</a>
+          <strong class="text-ink">Knight Dental Design Ltd</strong> · 92 Swingate Lane, Plumstead Common, London SE18 2HL · Tel: <a href="tel:02083166248" class="underline hover:text-ink">020 8316 6248</a> · Fax: 020 8317 1950 · <a href="mailto:info@kdduk.net" class="underline hover:text-ink">info@kdduk.net</a>
         </div>
         <div class="font-mono text-[11px]">
           © Knight Dental Design · MHRA Reg. No. CA 003175 · Privacy &amp; GDPR Data Processing Policy
@@ -977,17 +1437,17 @@
   </section>
 
   <!-- ===================================================================== -->
-  <!-- INTERACTIVE MODAL (CASE SUBMISSION & PATIENT STORY READER)            -->
+  <!-- INTERACTIVE MODAL (DIGITAL DOCKET RECEIPT, LOGISTICS & CASE STUDIES)  -->
   <!-- ===================================================================== -->
-  <div id="kdd-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-    <div class="relative w-full max-w-lg rounded-[28px] bg-surface border border-borderWarm p-7 sm:p-9 shadow-2xl">
-      <button onclick="closeModal()" class="absolute top-5 right-5 w-9 h-9 rounded-full border border-borderWarm flex items-center justify-center text-muted hover:text-ink">✕</button>
+  <div id="kdd-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+    <div class="relative w-full max-w-2xl rounded-[28px] bg-surface border border-borderWarm p-7 sm:p-9 shadow-2xl my-8">
+      <button onclick="closeModal()" class="no-print absolute top-5 right-5 w-9 h-9 rounded-full border border-borderWarm flex items-center justify-center text-muted hover:text-ink">✕</button>
       <div id="modal-body"></div>
     </div>
   </div>
 
   <!-- ===================================================================== -->
-  <!-- INTERACTIVE SCRIPTS (LENIS, GSAP, HERO PILLS, SPOTLIGHT & CALCULATOR) -->
+  <!-- INTERACTIVE SCRIPTS (LENIS, GSAP, PALMER ARCH & STRICT VALIDATOR)     -->
   <!-- ===================================================================== -->
   <script>
     // 1. Initialize Lenis Smooth Scroll + GSAP ScrollTrigger
@@ -1002,8 +1462,223 @@
     gsap.ticker.add((time) => lenis.raf(time * 1000));
     gsap.ticker.lagSmoothing(0);
 
-    // 2. Hero Entrance & Parallax Scroll Animations
+    // 2. Build Interactive Palmer Notation Arch (UR8-UR1, UL1-UL8, LR8-LR1, LL1-LL8)
+    const selectedTeeth = new Set();
+
+    function buildPalmerArch() {
+      const urContainer = document.getElementById('arch-ur');
+      const ulContainer = document.getElementById('arch-ul');
+      const lrContainer = document.getElementById('arch-lr');
+      const llContainer = document.getElementById('arch-ll');
+
+      const rightOrder = [8, 7, 6, 5, 4, 3, 2, 1];
+      const leftOrder = [1, 2, 3, 4, 5, 6, 7, 8];
+
+      rightOrder.forEach((n) => {
+        urContainer.appendChild(createToothButton(`UR${n}`, n));
+        lrContainer.appendChild(createToothButton(`LR${n}`, n));
+      });
+
+      leftOrder.forEach((n) => {
+        ulContainer.appendChild(createToothButton(`UL${n}`, n));
+        llContainer.appendChild(createToothButton(`LL${n}`, n));
+      });
+    }
+
+    function createToothButton(code, displayNum) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.dataset.tooth = code;
+      btn.className = 'tooth-btn rounded-xl border border-borderWarm bg-surface py-2.5 text-center font-mono text-xs font-medium text-ink hover:border-ink';
+      btn.innerHTML = `<span class="block text-[10px] text-muted">${code.slice(0,2)}</span><span>${displayNum}</span>`;
+      btn.addEventListener('click', () => {
+        if (selectedTeeth.has(code)) {
+          selectedTeeth.delete(code);
+          btn.classList.remove('selected');
+        } else {
+          selectedTeeth.add(code);
+          btn.classList.add('selected');
+        }
+        updateToothCountBadge();
+        validatePrescriptionForm();
+      });
+      return btn;
+    }
+
+    function clearAllTeeth() {
+      selectedTeeth.clear();
+      document.querySelectorAll('.tooth-btn').forEach((b) => b.classList.remove('selected'));
+      updateToothCountBadge();
+      validatePrescriptionForm();
+    }
+
+    function updateToothCountBadge() {
+      const count = selectedTeeth.size;
+      const badge = document.getElementById('rx-selected-teeth-badge');
+      badge.textContent = count === 0
+        ? '0 Units Selected'
+        : `${count} Unit${count > 1 ? 's' : ''} (${Array.from(selectedTeeth).join(', ')})`;
+    }
+
+    // 3. Strict 100% Form Validation Engine
+    function validatePrescriptionForm() {
+      const dentist = document.getElementById('rx-dentist').value.trim();
+      const practice = document.getElementById('rx-practice').value.trim();
+      const email = document.getElementById('rx-email').value.trim();
+      const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      const phone = document.getElementById('rx-phone').value.trim();
+      const surname = document.getElementById('rx-patient-surname').value.trim();
+      const forename = document.getElementById('rx-patient-forename').value.trim();
+      const gender = document.querySelector('input[name="rx_gender"]:checked');
+      const prepDate = document.getElementById('rx-prep-date').value;
+      const returnDate = document.getElementById('rx-return-date').value;
+      const datesLogical = Boolean(prepDate && returnDate && returnDate >= prepDate);
+      const shade = document.getElementById('rx-shade').value.trim();
+      const stumpShade = document.getElementById('rx-stump-shade').value.trim();
+      const shadeLoc = document.querySelector('input[name="rx_shade_location"]:checked');
+
+      const restorations = document.querySelectorAll('input[name="rx_restoration"]:checked');
+      const otherCeramicChecked = document.getElementById('rx-rest-ceramic-other').checked;
+      const otherRestChecked = document.getElementById('rx-rest-other').checked;
+      const otherSpecifyWrap = document.getElementById('rx-other-specify-wrap');
+      const otherSpecifyInput = document.getElementById('rx-other-specify');
+
+      const needsOtherSpecify = otherCeramicChecked || otherRestChecked;
+      otherSpecifyWrap.classList.toggle('hidden', !needsOtherSpecify);
+      const otherSpecifyValid = !needsOtherSpecify || otherSpecifyInput.value.trim().length > 0;
+
+      const workingTime = document.querySelector('input[name="rx_working_time"]:checked');
+      const teethSelected = selectedTeeth.size > 0;
+      const enclosures = document.querySelectorAll('input[name="rx_enclosure"]:checked');
+      const instructions = document.getElementById('rx-instructions').value.trim();
+      const coshh = document.getElementById('rx-coshh-confirm').checked;
+
+      const checks = [
+        { ok: dentist.length > 0, label: 'Dentist Name' },
+        { ok: practice.length > 0, label: 'Practice Name' },
+        { ok: emailValid, label: 'Valid Practice Email' },
+        { ok: phone.length > 0, label: 'Practice Phone' },
+        { ok: surname.length > 0, label: 'Patient Surname' },
+        { ok: forename.length > 0, label: 'Patient Forename' },
+        { ok: Boolean(gender), label: 'Patient Gender' },
+        { ok: datesLogical, label: 'Prep & Return Dates' },
+        { ok: shade.length > 0, label: 'Final Shade' },
+        { ok: stumpShade.length > 0, label: 'Stump Shade' },
+        { ok: Boolean(shadeLoc), label: 'Shade Location' },
+        { ok: restorations.length > 0 && otherSpecifyValid, label: 'Type of Restoration' },
+        { ok: Boolean(workingTime), label: 'Working Time' },
+        { ok: teethSelected, label: 'Palmer Tooth Notation' },
+        { ok: enclosures.length > 0, label: 'Enclosures' },
+        { ok: instructions.length > 0, label: 'Special Instructions' },
+        { ok: coshh, label: 'COSHH Declaration' }
+      ];
+
+      const completedCount = checks.filter((c) => c.ok).length;
+      const pct = Math.round((completedCount / checks.length) * 100);
+      const missing = checks.filter((c) => !c.ok).map((c) => c.label);
+
+      document.getElementById('rx-progress-pct').textContent = `${pct}%`;
+      document.getElementById('rx-progress-bar').style.width = `${pct}%`;
+
+      const submitBtn = document.getElementById('rx-submit-btn');
+      const banner = document.getElementById('rx-validation-banner');
+      const hint = document.getElementById('rx-missing-hint');
+
+      if (missing.length === 0) {
+        submitBtn.disabled = false;
+        banner.className = 'text-xs font-mono text-emerald-800 bg-emerald-500/15 border border-emerald-600/30 rounded-xl px-4 py-3';
+        banner.textContent = '✓ All prescription fields verified. Ready for online laboratory submission.';
+        hint.textContent = '100% Complete — Ready to submit.';
+      } else {
+        submitBtn.disabled = true;
+        banner.className = 'text-xs font-mono text-amber-800 bg-amber-500/10 border border-amber-600/25 rounded-xl px-4 py-3';
+        banner.textContent = `⚠ Incomplete (${missing.length} remaining): ${missing.slice(0, 4).join(', ')}${missing.length > 4 ? '...' : ''}`;
+        hint.textContent = `Missing: ${missing.slice(0, 3).join(', ')}${missing.length > 3 ? ` +${missing.length - 3} more` : ''}`;
+      }
+
+      return missing.length === 0;
+    }
+
+    // Submit Digital Prescription & Open M.D.D. Compliant Printable Docket Modal
+    function submitDigitalPrescription(e) {
+      e.preventDefault();
+      if (!validatePrescriptionForm()) return;
+
+      const rxId = 'KDD-' + Date.now().toString().slice(-6);
+      const dentist = document.getElementById('rx-dentist').value.trim();
+      const practice = document.getElementById('rx-practice').value.trim();
+      const email = document.getElementById('rx-email').value.trim();
+      const phone = document.getElementById('rx-phone').value.trim();
+      const patient = `${document.getElementById('rx-patient-forename').value.trim()} ${document.getElementById('rx-patient-surname').value.trim()}`;
+      const gender = document.querySelector('input[name="rx_gender"]:checked').value;
+      const prepDate = document.getElementById('rx-prep-date').value;
+      const returnDate = document.getElementById('rx-return-date').value;
+      const shade = document.getElementById('rx-shade').value.trim();
+      const stumpShade = document.getElementById('rx-stump-shade').value.trim();
+      const shadeLoc = document.querySelector('input[name="rx_shade_location"]:checked').value;
+
+      const restList = Array.from(document.querySelectorAll('input[name="rx_restoration"]:checked')).map((el) => el.value);
+      const otherSpec = document.getElementById('rx-other-specify').value.trim();
+      if (otherSpec) restList.push(`Spec: ${otherSpec}`);
+
+      const workingTime = document.querySelector('input[name="rx_working_time"]:checked').value;
+      const teethList = Array.from(selectedTeeth).join(', ');
+      const enclosureList = Array.from(document.querySelectorAll('input[name="rx_enclosure"]:checked')).map((el) => el.value).join(', ');
+      const instructions = document.getElementById('rx-instructions').value.trim();
+
+      const modal = document.getElementById('kdd-modal');
+      const body = document.getElementById('modal-body');
+
+      body.innerHTML = `
+        <div class="border-b border-borderWarm pb-4 flex items-center justify-between">
+          <div>
+            <span class="text-xs font-mono uppercase tracking-widest text-emerald-700 font-semibold block">✓ Digital Prescription Logged · Ref ${rxId}</span>
+            <h3 class="text-2xl font-medium mt-0.5">Knight Dental Design — Digital Prescription Summary</h3>
+          </div>
+          <span class="text-xs font-mono text-muted">MHRA Reg. CA 003175</span>
+        </div>
+
+        <div class="my-5 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-canvas rounded-2xl p-5 border border-borderWarm">
+          <div><span class="text-muted block font-mono uppercase text-[10px]">1. Dentist &amp; 2. Practice</span><strong class="text-ink">${dentist} — ${practice}</strong><br/><span class="text-muted">${email} · ${phone}</span></div>
+          <div><span class="text-muted block font-mono uppercase text-[10px]">3. Patient</span><strong class="text-ink">${patient} (${gender})</strong></div>
+          <div><span class="text-muted block font-mono uppercase text-[10px]">4. Prep Date &amp; 5. Return Date</span><strong class="text-ink">Prep: ${prepDate} → Return: ${returnDate}</strong></div>
+          <div><span class="text-muted block font-mono uppercase text-[10px]">6. Shade &amp; Stump Shade</span><strong class="text-ink">Shade: ${shade} | Stump: ${stumpShade}</strong><br/><span class="text-muted">${shadeLoc}</span></div>
+          <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">7. Restoration Type</span><strong class="text-ink">${restList.join(' · ')}</strong></div>
+          <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">9. Palmer Tooth Notation (${selectedTeeth.size} Units)</span><strong class="text-ink font-mono">${teethList}</strong></div>
+          <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">10. Working Times</span><strong class="text-ink">${workingTime}</strong></div>
+          <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">11. Enclosures</span><strong class="text-ink">${enclosureList}</strong></div>
+          <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">Special Instructions</span><p class="text-ink mt-0.5">${instructions}</p></div>
+        </div>
+
+        <p class="text-[11px] text-muted leading-relaxed mb-5">
+          A copy of this document may be offered to the patient to comply with the M.D.D. Patient Statement Regulations 2007. Knight Dental Design Ltd, 92 Swingate Lane, Plumstead Common, London SE18 2HL (Tel: 020 8316 6248 · info@kdduk.net).
+        </p>
+
+        <div class="no-print flex flex-wrap items-center justify-end gap-3">
+          <button onclick="window.print()" class="rounded-full border border-ink px-5 py-2.5 text-xs font-semibold text-ink hover:bg-canvas transition-colors">
+            Print / Save M.D.D. Statement PDF
+          </button>
+          <button onclick="closeModal()" class="rounded-full bg-ink text-white px-6 py-2.5 text-xs font-semibold hover:bg-ink/90 transition-colors">
+            Done
+          </button>
+        </div>
+      `;
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    // 4. Hero & Page Animations
     window.addEventListener('DOMContentLoaded', () => {
+      buildPalmerArch();
+
+      // Attach live validation listeners to all prescription inputs
+      document.querySelectorAll('#kdd-rx-form .rx-input').forEach((input) => {
+        input.addEventListener('input', validatePrescriptionForm);
+        input.addEventListener('change', validatePrescriptionForm);
+      });
+      validatePrescriptionForm();
+
       gsap.from('.hero-reveal', {
         y: 32,
         opacity: 0,
@@ -1040,7 +1715,7 @@
       updateDispatchDate(7);
     });
 
-    // 3. Mouse Spotlight Glare & Subtle Magnetic Buttons
+    // 5. Mouse Spotlight Glare & Subtle Magnetic Buttons
     document.querySelectorAll('.spotlight-card').forEach((card) => {
       card.addEventListener('mousemove', (e) => {
         const rect = card.getBoundingClientRect();
@@ -1061,7 +1736,7 @@
       });
     });
 
-    // 4. Hero Service Pills Data & Switcher (Updates Left Frosted Glass Card)
+    // 6. Hero Service Pills Data & Switcher
     const HERO_SERVICES = {
       veneers: {
         tag: '01 / PORCELAIN VENEERS',
@@ -1102,7 +1777,7 @@
       document.getElementById('glass-service-text').textContent = data.text;
     }
 
-    // 5. Right Glass Card Spotlight Switcher (Cycles Intro Offer, LifeTime Lingual, & Patient Stories)
+    // 7. Right Glass Card Spotlight Switcher
     const HERO_SPOTLIGHTS = [
       {
         label: 'Intro Offer',
@@ -1141,7 +1816,7 @@
       document.getElementById('spotlight-avatar').src = item.avatar;
     }
 
-    // 6. LifeTime Lingual Shade & Essix Jig Controls
+    // 8. LifeTime Lingual Shade & Essix Jig Controls
     let essixVisible = true;
     function setLtlShade(code, hex, title) {
       document.getElementById('ltl-ceramic-bar').setAttribute('stroke', hex);
@@ -1156,7 +1831,7 @@
       btn.textContent = `Essix Location Jig: ${essixVisible ? 'ON' : 'OFF'}`;
     }
 
-    // 7. Section 10 Working Times & Express Calculator
+    // 9. Section 10 Working Times & Express Calculator
     let currentCaseSize = 'small';
     let currentExpress = 'standard';
 
@@ -1216,7 +1891,7 @@
       document.getElementById('calc-date').textContent = formatted;
     }
 
-    // 8. Modals & Form Feedback
+    // 10. Modals & Form Feedback
     function handleDentistFinder(e) {
       e.preventDefault();
       const pc = document.getElementById('finder-postcode').value.trim().toUpperCase();
@@ -1230,21 +1905,21 @@
       const body = document.getElementById('modal-body');
       if (type === 'dentist') {
         body.innerHTML = `
-          <span class="text-xs font-mono uppercase tracking-widest text-gold block">Clinician Dispatch Portal</span>
+          <span class="text-xs font-mono uppercase tracking-widest text-gold block">Clinician Dispatch &amp; Logistics</span>
           <h3 class="text-2xl font-medium mt-1">Send a Digital Scan or Impression</h3>
           <p class="text-xs text-muted mt-2 leading-relaxed">
-            Connect directly via <strong>3Shape Communicate</strong> or <strong>Sirona Connect</strong> (search <em>Knight Dental Design / info@kdduk.net</em>), or download our Freepost White Box label below.
+            Connect directly via <strong>3Shape Communicate</strong> or <strong>Sirona Connect</strong> (search <em>Knight Dental Design / info@kdduk.net</em>), complete our online prescription form, or download our Freepost White Box label below.
           </p>
           <div class="mt-5 space-y-2.5 text-xs">
-            <a href="https://www.knightdentaldesign.co.uk/wp-content/uploads/2014/11/knight-docket-v2.pdf" target="_blank" class="flex justify-between rounded-xl border border-borderWarm bg-canvas p-3.5 font-semibold hover:border-ink">
-              <span>1. Download Knight Chit Prescription (PDF)</span><span>↓</span>
+            <a href="#digital-prescription" onclick="closeModal()" class="flex justify-between rounded-xl border border-ink bg-ink text-white p-3.5 font-semibold hover:bg-ink/90">
+              <span>1. Complete Online Digital Prescription Form</span><span>→</span>
             </a>
             <a href="https://www.knightdentaldesign.co.uk/what-we-do/dentist-information/downloads/" target="_blank" class="flex justify-between rounded-xl border border-borderWarm bg-canvas p-3.5 font-semibold hover:border-ink">
               <span>2. Download Royal Mail FREEPOST White Box Label</span><span>↓</span>
             </a>
             <div class="rounded-xl border border-borderWarm bg-canvas p-3.5">
               <strong>3. Book Free UPS Next-Day Brown Box Courier:</strong>
-              <p class="text-muted mt-1">Call Dorothy &amp; the Lab Admin Team on <strong>020 8316 6248</strong> for facebow or multi-unit collections.</p>
+              <p class="text-muted mt-1">Call the Lab Admin Team on <strong>020 8316 6248</strong> for facebow or multi-unit collections.</p>
             </div>
           </div>
         `;
