@@ -3,22 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Knight Dental Design — 3D Digital Prescription</title>
+  <title>Knight Dental Design — London's Leading Cosmetic Dental Laboratory</title>
+  <meta name="description" content="Smile Designers for the Ten Years Younger TV series and 6x UK Dental Laboratory of the Year. Complete your interactive 3D digital laboratory prescription online." />
 
   <!-- Google Fonts: Plus Jakarta Sans, Instrument Serif & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-  <!-- Tailwind CSS -->
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
           fontFamily: {
-            sans: ['"Plus Jakarta Sans"', '-apple-system', 'sans-serif'],
-            serif: ['"Instrument Serif"', 'serif'],
+            sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            serif: ['"Instrument Serif"', 'Georgia', 'serif'],
             mono: ['"JetBrains Mono"', 'monospace'],
           },
           colors: {
@@ -27,6 +28,7 @@
             ink: '#1C1917',
             muted: '#6E675F',
             gold: '#C59B47',
+            ochre: '#D99B26',
             borderWarm: '#D8D2C7',
           }
         }
@@ -34,720 +36,2747 @@
     }
   </script>
 
-  <!-- Lenis, GSAP, Three.js + OrbitControls -->
+  <!-- Lenis Smooth Scroll, GSAP + ScrollTrigger, Three.js + OrbitControls -->
   <link rel="stylesheet" href="https://unpkg.com/lenis@1.1.20/dist/lenis.css">
   <script src="https://unpkg.com/lenis@1.1.20/dist/lenis.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
   <style>
+    :root {
+      --bg-canvas: #EAE5DD;
+      --ink: #1C1917;
+    }
+
     body {
-      background-color: #EAE5DD;
-      color: #1C1917;
+      background-color: var(--bg-canvas);
+      color: var(--ink);
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
     }
 
-    /* 3D Canvas Container */
-    #mouth-3d-canvas {
-      background: radial-gradient(circle at 50% 50%, #ECE9E1 0%, #D8D2C7 100%);
-      cursor: grab;
+    /* Sculpted Frosted Glass Cards matching the reference UI */
+    .glass-card-left {
+      background: linear-gradient(165deg, rgba(255, 255, 255, 0.16) 0%, rgba(30, 22, 16, 0.42) 100%);
+      backdrop-filter: blur(22px) saturate(140%);
+      -webkit-backdrop-filter: blur(22px) saturate(140%);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      box-shadow: 0 24px 60px -15px rgba(0, 0, 0, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.35);
+      position: relative;
     }
-    #mouth-3d-canvas:active { cursor: grabbing; }
 
-    /* Non-Occluding Palmer Labels */
-    .palmer-pin {
+    .glass-card-left::before {
+      content: '';
       position: absolute;
-      transform: translate(-50%, -50%);
+      top: -1px;
+      left: 18%;
+      right: 18%;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.28);
+      border-bottom-left-radius: 999px;
+      border-bottom-right-radius: 999px;
       pointer-events: none;
-      z-index: 30;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));
     }
-    .palmer-q-UR { border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; padding: 0 4px 1px 3px; }
-    .palmer-q-UL { border-left: 2px solid currentColor; border-bottom: 2px solid currentColor; padding: 0 3px 1px 4px; }
-    .palmer-q-LR { border-right: 2px solid currentColor; border-top: 2px solid currentColor; padding: 1px 4px 0 3px; }
-    .palmer-q-LL { border-left: 2px solid currentColor; border-top: 2px solid currentColor; padding: 1px 3px 0 4px; }
 
-    /* SVG Leader Lines */
-    #leader-lines-svg {
+    .glass-card-right {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.10) 0%, rgba(28, 20, 15, 0.38) 100%);
+      backdrop-filter: blur(18px) saturate(130%);
+      -webkit-backdrop-filter: blur(18px) saturate(130%);
+      border: 1px solid rgba(255, 255, 255, 0.32);
+      box-shadow: 0 28px 70px -15px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+      position: relative;
+    }
+
+    .spotlight-card {
+      position: relative;
+      overflow: hidden;
+    }
+    .spotlight-card::after {
+      content: '';
       position: absolute;
       inset: 0;
-      width: 100%;
-      height: 100%;
+      background: radial-gradient(
+        480px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+        rgba(255, 255, 255, 0.16),
+        transparent 45%
+      );
+      opacity: 0;
+      transition: opacity 0.35s ease;
+      pointer-events: none;
+    }
+    .spotlight-card:hover::after {
+      opacity: 1;
+    }
+
+    .hero-portrait-bg {
+      background-image:
+        radial-gradient(circle at 48% 42%, rgba(28, 20, 14, 0.08) 0%, rgba(22, 16, 12, 0.58) 78%),
+        linear-gradient(180deg, rgba(20, 15, 11, 0.42) 0%, rgba(20, 15, 11, 0.12) 45%, rgba(18, 13, 9, 0.72) 100%),
+        url('https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=2000&q=85');
+      background-size: cover;
+      background-position: center 28%;
+    }
+
+    @keyframes spinSlow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .asterisk-spin {
+      animation: spinSlow 18s linear infinite;
+    }
+
+    @keyframes marqueeScroll {
+      0% { transform: translateX(0%); }
+      100% { transform: translateX(-50%); }
+    }
+    .marquee-track {
+      display: flex;
+      width: max-content;
+      animation: marqueeScroll 34s linear infinite;
+    }
+    .marquee-track:hover {
+      animation-play-state: paused;
+    }
+
+    /* 3D Palmer Floating Pin Styling */
+    .palmer-pin {
+      position: absolute;
+      transform: translate(-50%, -100%);
       pointer-events: none;
       z-index: 20;
+      transition: opacity 0.15s ease;
+      filter: drop-shadow(0 4px 10px rgba(0,0,0,0.45));
     }
-    .leader-line {
-      stroke: #1C1917;
-      stroke-width: 1.5;
-      stroke-dasharray: 4 2;
-      opacity: 0.4;
-      transition: opacity 0.2s;
-    }
-
-    /* Toolbar Active States */
-    .tool-btn.active {
-      background-color: #1C1917;
-      color: #FFFFFF;
-      border-color: #1C1917;
+    .palmer-pin::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      bottom: -6px;
+      transform: translateX(-50%);
+      border-width: 6px 5px 0 5px;
+      border-style: solid;
+      border-color: #1C1917 transparent transparent transparent;
     }
 
-    /* Print Styling */
+    /* Authentic Palmer Quadrant Bracket Borders */
+    .palmer-q-UR { border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; padding: 0 3px 1px 2px; }
+    .palmer-q-UL { border-left: 2px solid currentColor; border-bottom: 2px solid currentColor; padding: 0 2px 1px 3px; }
+    .palmer-q-LR { border-right: 2px solid currentColor; border-top: 2px solid currentColor; padding: 1px 3px 0 2px; }
+    .palmer-q-LL { border-left: 2px solid currentColor; border-top: 2px solid currentColor; padding: 1px 2px 0 3px; }
+
+    /* Print Docket Styling */
     @media print {
-      body * { visibility: hidden; }
-      #kdd-modal, #kdd-modal * { visibility: visible; }
-      #kdd-modal { position: absolute; inset: 0; background: white !important; padding: 0 !important; }
-      .no-print { display: none !important; }
+      body * {
+        visibility: hidden;
+      }
+      #kdd-modal, #kdd-modal * {
+        visibility: visible;
+      }
+      #kdd-modal {
+        position: absolute;
+        inset: 0;
+        background: white !important;
+        padding: 0 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #EAE5DD;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #B8B0A4;
+      border-radius: 999px;
     }
   </style>
 </head>
 <body class="selection:bg-ink selection:text-canvas">
 
   <!-- ===================================================================== -->
-  <!-- 1. HEADER                                                             -->
+  <!-- 1. FRAMED EDITORIAL HERO (DIRECT INSPIRATION FROM REFERENCE DESIGN)   -->
   <!-- ===================================================================== -->
-  <header class="max-w-[1400px] mx-auto px-6 sm:px-10 pt-8 pb-4">
-    <div class="flex items-center justify-between border-b border-borderWarm pb-6">
-      <div class="flex items-center gap-4">
-        <svg viewBox="0 0 40 40" class="w-10 h-10 text-ink" fill="currentColor">
-          <path d="M20 2C16.5 9 16.5 13 20 18C23.5 13 23.5 9 20 2Z" />
-          <path d="M20 38C16.5 31 16.5 27 20 22C23.5 27 23.5 31 20 38Z" />
-          <path d="M2 20C9 16.5 13 16.5 18 20C13 23.5 9 23.5 2 20Z" />
-          <path d="M38 20C31 16.5 27 16.5 22 20C27 23.5 31 23.5 38 20Z" />
-        </svg>
-        <div>
-          <h1 class="text-xl font-semibold tracking-tight leading-none">Knight Dental Design</h1>
-          <span class="text-xs font-mono text-muted uppercase tracking-widest">3D Clinical Portal</span>
+  <div class="p-3 sm:p-5 lg:p-7">
+    <header class="relative min-h-[92vh] w-full rounded-[28px] sm:rounded-[36px] overflow-hidden shadow-2xl flex flex-col justify-between text-white">
+
+      <!-- Parallax Background Layer -->
+      <div id="hero-bg" class="hero-portrait-bg absolute inset-0 scale-105 transition-transform duration-700 ease-out pointer-events-none"></div>
+
+      <!-- Top Navigation Bar inside Hero -->
+      <nav class="relative z-30 flex items-center justify-between px-6 sm:px-10 lg:px-14 pt-6 sm:pt-9">
+        <a href="#" class="flex items-center gap-3.5 group">
+          <div class="relative w-10 h-10 flex items-center justify-center">
+            <svg viewBox="0 0 40 40" class="w-9 h-9 text-white transition-transform duration-500 group-hover:rotate-90" fill="currentColor">
+              <path d="M20 2C16.5 9 16.5 13 20 18C23.5 13 23.5 9 20 2Z" />
+              <path d="M20 38C16.5 31 16.5 27 20 22C23.5 27 23.5 31 20 38Z" />
+              <path d="M2 20C9 16.5 13 16.5 18 20C13 23.5 9 23.5 2 20Z" />
+              <path d="M38 20C31 16.5 27 16.5 22 20C27 23.5 31 23.5 38 20Z" />
+            </svg>
+          </div>
+          <div class="leading-[1.12] tracking-tight">
+            <span class="block text-base sm:text-lg font-semibold">Knight</span>
+            <span class="block text-sm sm:text-base font-normal text-white/85">Dental Design</span>
+          </div>
+        </a>
+
+        <ul class="hidden lg:flex items-center gap-8 text-sm font-normal text-white/85">
+          <li><a href="#what-we-do" class="hover:text-white transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-white hover:after:w-full after:transition-all">What We Do</a></li>
+          <li><a href="#for-patients" class="hover:text-white transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-white hover:after:w-full after:transition-all">For Patients</a></li>
+          <li><a href="#lifetime-lingual" class="hover:text-white transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-white hover:after:w-full after:transition-all">LifeTime Lingual™</a></li>
+          <li><a href="#for-dentists" class="hover:text-white transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-white hover:after:w-full after:transition-all">For Dentists</a></li>
+          <li><a href="#digital-prescription" class="text-amber-200 hover:text-white font-medium transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-amber-200 hover:after:w-full after:transition-all">3D Online Prescription</a></li>
+          <li><a href="#find-dentist" class="hover:text-white transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-white hover:after:w-full after:transition-all">Contact</a></li>
+        </ul>
+
+        <div class="flex items-center gap-3">
+          <a
+            href="#digital-prescription"
+            data-magnetic
+            class="group inline-flex items-center gap-3 rounded-full border border-white/65 bg-white/10 px-5 sm:px-6 py-2.5 text-xs sm:text-sm font-medium text-white backdrop-blur-md transition-all hover:bg-white hover:text-ink"
+          >
+            <span>3D Prescription</span>
+            <span class="transition-transform duration-300 group-hover:translate-x-1">→</span>
+          </a>
         </div>
-      </div>
-      <div class="hidden sm:flex items-center gap-6 text-xs font-mono text-muted uppercase">
-        <span>MHRA Reg. CA 003175</span>
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-      </div>
-    </div>
-  </header>
+      </nav>
 
-  <!-- ===================================================================== -->
-  <!-- 2. DIGITAL PRESCRIPTION FORM (AUTO-CALCULATED)                        -->
-  <!-- ===================================================================== -->
-  <main class="max-w-[1400px] mx-auto px-6 sm:px-10 py-10">
-    
-    <div class="flex flex-col lg:flex-row justify-between items-end gap-6 mb-12">
-      <div class="max-w-3xl">
-        <h2 class="text-4xl sm:text-6xl font-medium tracking-tight leading-[1.05]">
-          Interactive <span class="font-serif italic text-gold font-normal">3D Prescription</span>
-        </h2>
-        <p class="text-sm text-muted mt-4 leading-relaxed">
-          Schedules, dates, and turnaround times are calculated automatically. Enter your prescriber details below, then use the rotatable 3D anatomical model to prescribe bespoke ceramics precisely to individual teeth. 
-        </p>
-      </div>
-
-      <!-- Auto-Calculated Logistics Engine Readout -->
-      <div class="rounded-2xl border border-borderWarm bg-surface p-5 min-w-[300px] shadow-sm">
-        <div class="flex items-center justify-between text-xs font-mono uppercase text-muted mb-3 pb-3 border-b border-borderWarm">
-          <span>Logistics Engine</span>
-          <span id="logistics-status" class="text-emerald-700 font-semibold">Active</span>
-        </div>
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <span class="block text-[10px] uppercase text-muted">Units Selected</span>
-            <span id="calc-units" class="block text-2xl font-semibold text-ink">0</span>
-          </div>
-          <div>
-            <span class="block text-[10px] uppercase text-muted">Working Time</span>
-            <span id="calc-days" class="block text-2xl font-semibold text-ink">7 Days</span>
-          </div>
-          <div class="col-span-2 pt-2">
-            <span class="block text-[10px] uppercase text-muted">Est. Dispatch Date (Excl. Weekends)</span>
-            <span id="calc-date" class="block text-lg font-mono font-semibold text-gold mt-0.5">—</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <form id="kdd-rx-form" onsubmit="submitPrescription(event)" novalidate class="space-y-10">
-
-      <!-- PRESCRIBER & PATIENT -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="rounded-[24px] border border-borderWarm bg-surface p-7 space-y-5">
-          <span class="text-xs font-mono uppercase tracking-widest text-gold font-semibold block border-b border-borderWarm pb-3">Prescriber Details *</span>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-mono uppercase text-muted mb-1.5">Dentist Name</label>
-              <input id="rx-dentist" type="text" required placeholder="Dr. First & Surname" class="rx-input w-full rounded-xl border border-borderWarm bg-canvas px-4 py-3 text-sm focus:outline-none focus:border-ink" />
-            </div>
-            <div>
-              <label class="block text-xs font-mono uppercase text-muted mb-1.5">Practice Name</label>
-              <input id="rx-practice" type="text" required placeholder="Clinic Name" class="rx-input w-full rounded-xl border border-borderWarm bg-canvas px-4 py-3 text-sm focus:outline-none focus:border-ink" />
-            </div>
-          </div>
+      <!-- Center Headline Block -->
+      <div class="relative z-20 px-6 sm:px-10 lg:px-14 my-auto pt-12 pb-6">
+        <div class="flex items-center gap-4 mb-5 hero-reveal">
+          <svg class="w-8 h-8 text-white/90 asterisk-spin shrink-0" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.75">
+            <line x1="16" y1="2" x2="16" y2="30" />
+            <line x1="2" y1="16" x2="30" y2="16" />
+            <line x1="6.1" y1="6.1" x2="25.9" y2="25.9" />
+            <line x1="25.9" y1="6.1" x2="6.1" y2="25.9" />
+          </svg>
+          <p class="text-xs sm:text-sm leading-snug text-white/90 max-w-xs">
+            Smile Designers for the <span class="underline decoration-white/50 underline-offset-2">Ten Years Younger</span> TV series<br />
+            &amp; 6× UK Dental Laboratory of the Year
+          </p>
         </div>
 
-        <div class="rounded-[24px] border border-borderWarm bg-surface p-7 space-y-5">
-          <span class="text-xs font-mono uppercase tracking-widest text-gold font-semibold block border-b border-borderWarm pb-3">Patient Identification *</span>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-mono uppercase text-muted mb-1.5">Patient Name</label>
-              <input id="rx-patient" type="text" required placeholder="Full Name" class="rx-input w-full rounded-xl border border-borderWarm bg-canvas px-4 py-3 text-sm focus:outline-none focus:border-ink" />
-            </div>
-            <div>
-              <label class="block text-xs font-mono uppercase text-muted mb-1.5">Gender</label>
-              <select id="rx-gender" required class="rx-input w-full rounded-xl border border-borderWarm bg-canvas px-4 py-3 text-sm focus:outline-none focus:border-ink">
-                <option value="">Select...</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 3D MEDICAL VIEWER (CORE RX INTERFACE) -->
-      <div class="rounded-[28px] border-2 border-borderWarm bg-surface p-5 sm:p-8 space-y-6 shadow-xl relative overflow-hidden">
-        
-        <!-- Toolbar -->
-        <div class="relative z-40 flex flex-col xl:flex-row xl:items-center justify-between gap-5 bg-canvas rounded-2xl border border-borderWarm p-4">
-          
-          <div class="flex flex-wrap items-center gap-3">
-            <span class="text-xs font-mono uppercase text-muted">1. Select Product:</span>
-            <button type="button" onclick="setProduct('Crown')" id="tool-Crown" class="tool-btn active rounded-full border border-borderWarm bg-surface px-4 py-2 text-xs font-semibold shadow-sm transition-all">Single Crown</button>
-            <button type="button" onclick="setProduct('Veneer')" id="tool-Veneer" class="tool-btn rounded-full border border-borderWarm bg-surface px-4 py-2 text-xs font-semibold shadow-sm transition-all">Porcelain Veneer</button>
-            <button type="button" onclick="setProduct('Bridge')" id="tool-Bridge" class="tool-btn rounded-full border border-borderWarm bg-surface px-4 py-2 text-xs font-semibold shadow-sm transition-all">Bridge Unit</button>
-            <button type="button" onclick="setProduct('Remove')" id="tool-Remove" class="tool-btn rounded-full border border-borderWarm bg-surface px-4 py-2 text-xs font-semibold text-rose-700 shadow-sm transition-all">✕ Erase</button>
-          </div>
-
-          <div class="h-[1px] w-full xl:w-[1px] xl:h-8 bg-borderWarm"></div>
-
-          <div class="flex flex-wrap items-center gap-4">
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-mono uppercase text-muted">Material:</span>
-              <select id="rx-material-select" class="rounded-xl border border-borderWarm bg-surface px-3 py-1.5 text-xs font-semibold focus:outline-none cursor-pointer shadow-sm">
-                <option value="IPS e.max">IPS e.max</option>
-                <option value="Zirconia (Monolithic)">Zirconia (Monolithic)</option>
-                <option value="Zirconia (Layered)">Zirconia (Layered)</option>
-                <option value="PFM (Precious)">PFM (Precious Alloy)</option>
-                <option value="PFM (Non-Precious)">PFM (Non-Precious)</option>
-              </select>
-            </div>
-            
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-mono uppercase text-muted">Shade:</span>
-              <select id="rx-shade-select" onchange="syncShadeColor(this.value)" class="rounded-xl border border-borderWarm bg-surface px-3 py-1.5 text-xs font-semibold focus:outline-none cursor-pointer shadow-sm">
-                <optgroup label="Bleach">
-                  <option value="BL1">BL1</option>
-                  <option value="BL2">BL2</option>
-                  <option value="BL3">BL3</option>
-                  <option value="BL4">BL4</option>
-                </optgroup>
-                <optgroup label="Classical A">
-                  <option value="A1" selected>A1</option>
-                  <option value="A2">A2</option>
-                  <option value="A3">A3</option>
-                </optgroup>
-                <optgroup label="Classical B, C, D">
-                  <option value="B1">B1</option>
-                  <option value="C1">C1</option>
-                  <option value="D2">D2</option>
-                </optgroup>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <!-- 3D Canvas Wrapper -->
-        <div class="relative w-full h-[550px] rounded-2xl overflow-hidden border border-borderWarm shadow-inner">
-          <div id="mouth-3d-canvas" class="w-full h-full"></div>
-          
-          <!-- SVG for Non-Occluding Leader Lines -->
-          <svg id="leader-lines-svg"></svg>
-          
-          <!-- DOM Container for Palmer Labels -->
-          <div id="palmer-labels-container" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
-
-          <!-- Explode/Seat Toggle & Camera Controls -->
-          <div class="absolute bottom-4 left-4 z-40 flex items-center gap-2">
-            <button type="button" onclick="toggleExplode()" id="btn-explode" class="rounded-lg bg-ink text-white px-4 py-2 text-xs font-semibold shadow-lg hover:bg-ink/80 transition-colors">
-              ⇅ Explode View
+        <h1 class="hero-reveal text-4xl sm:text-6xl lg:text-[4.65rem] xl:text-[5.25rem] font-medium tracking-[-0.03em] leading-[1.04] max-w-6xl">
+          <span class="inline-flex flex-wrap items-center gap-x-4 gap-y-2">
+            <span>Providing stunning</span>
+            <button
+              onclick="document.getElementById('case-studies').scrollIntoView({behavior: 'smooth'})"
+              title="Explore Smile Makeovers"
+              class="hidden md:inline-flex items-center justify-center w-28 lg:w-40 h-12 lg:h-16 rounded-full border border-white/45 bg-white/10 backdrop-blur-[2px] shadow-inner group hover:border-white transition-all cursor-pointer mx-1"
+            >
+              <span class="text-[11px] font-mono uppercase tracking-widest text-white/90 opacity-80 group-hover:opacity-100 flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse"></span>
+                6× Winner
+              </span>
             </button>
-            <div class="flex rounded-lg bg-surface/80 backdrop-blur border border-borderWarm p-1 shadow-lg">
-              <button type="button" onclick="setCam('anterior')" class="px-3 py-1 text-[10px] font-mono hover:bg-canvas rounded">Front</button>
-              <button type="button" onclick="setCam('upper')" class="px-3 py-1 text-[10px] font-mono hover:bg-canvas rounded">Upper</button>
-              <button type="button" onclick="setCam('lower')" class="px-3 py-1 text-[10px] font-mono hover:bg-canvas rounded">Lower</button>
+            <span>smiles with</span>
+          </span>
+          <span class="block mt-1">the UK’s leading dentists!</span>
+        </h1>
+      </div>
+
+      <!-- Bottom Grid: Left Service Pills + Mission Text | Right Overlapping Frosted Glass Cards -->
+      <div class="relative z-20 px-6 sm:px-10 lg:px-14 pb-8 sm:pb-11 grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
+
+        <!-- Bottom-Left Column -->
+        <div class="lg:col-span-6 space-y-6 hero-reveal">
+          <div class="flex flex-wrap items-center gap-2.5" id="hero-service-pills" role="tablist" aria-label="Laboratory Services">
+            <button onclick="selectHeroService('veneers')" data-pill="veneers" class="hero-pill active-pill rounded-full border border-white bg-white text-ink px-5 py-2 text-xs sm:text-sm font-medium transition-all">Veneers</button>
+            <button onclick="selectHeroService('implants')" data-pill="implants" class="hero-pill rounded-full border border-white/50 bg-black/15 text-white/90 hover:border-white hover:bg-white/15 px-5 py-2 text-xs sm:text-sm font-normal backdrop-blur-sm transition-all">Implants</button>
+            <button onclick="selectHeroService('crowns')" data-pill="crowns" class="hero-pill rounded-full border border-white/50 bg-black/15 text-white/90 hover:border-white hover:bg-white/15 px-5 py-2 text-xs sm:text-sm font-normal backdrop-blur-sm transition-all">Crowns</button>
+            <button onclick="selectHeroService('bridges')" data-pill="bridges" class="hero-pill rounded-full border border-white/50 bg-black/15 text-white/90 hover:border-white hover:bg-white/15 px-5 py-2 text-xs sm:text-sm font-normal backdrop-blur-sm transition-all">Bridges</button>
+            <button onclick="selectHeroService('digital')" data-pill="digital" class="hero-pill rounded-full border border-white/50 bg-black/15 text-white/90 hover:border-white hover:bg-white/15 px-5 py-2 text-xs sm:text-sm font-normal backdrop-blur-sm transition-all">Digital Dentistry</button>
+          </div>
+
+          <p class="text-xs sm:text-sm leading-relaxed text-white/85 max-w-lg font-normal">
+            London’s Leading Cosmetic Dental Laboratory. Based in Plumstead Common, London, our specialist team of registered dental technicians combines traditional ceramic artistry with Sirona, 3Shape, iTero, and Carestream digital workflows to deliver life-changing aesthetic and implant restorations across the UK.
+          </p>
+        </div>
+
+        <!-- Bottom-Right Column: Two Asymmetrical Frosted Glass Cards -->
+        <div class="lg:col-span-6 flex flex-col sm:flex-row items-stretch sm:items-end justify-end gap-4 sm:gap-5 hero-reveal">
+
+          <div id="hero-left-glass" class="glass-card-left spotlight-card w-full sm:w-[265px] rounded-[26px] p-6 flex flex-col justify-between min-h-[250px] transition-transform duration-300 hover:-translate-y-1">
+            <div class="pt-3">
+              <span id="glass-service-tag" class="inline-block text-[10px] font-mono uppercase tracking-widest text-amber-200/90 mb-2">
+                01 / COSMETIC DENTISTRY
+              </span>
+              <p id="glass-service-text" class="text-xs sm:text-[13px] leading-relaxed text-white/90 font-normal">
+                Hand-layered porcelain &amp; IPS e.max veneers crafted with digital smile simulation and in-studio colour matching for natural translucency.
+              </p>
+            </div>
+
+            <div class="pt-6 flex items-center justify-center">
+              <a
+                href="#digital-prescription"
+                data-magnetic
+                class="w-full text-center rounded-full bg-white text-ink py-2.5 px-6 text-xs font-semibold shadow-md hover:bg-canvas transition-colors"
+              >
+                Prescribe in 3D →
+              </a>
+            </div>
+          </div>
+
+          <div id="hero-right-glass" class="glass-card-right spotlight-card w-full sm:w-[265px] rounded-[26px] p-6 flex flex-col items-center text-center justify-between min-h-[330px] transition-transform duration-300 hover:-translate-y-1">
+            <div class="relative mt-1">
+              <div class="w-20 h-20 rounded-full bg-ochre overflow-hidden border-2 border-white/40 shadow-lg mx-auto">
+                <img
+                  id="spotlight-avatar"
+                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80"
+                  alt="Knight Dental Case Spotlight"
+                  class="w-full h-full object-cover object-center transition-all duration-500"
+                />
+              </div>
+
+              <div class="mt-3 relative inline-block">
+                <button
+                  onclick="cycleHeroSpotlight()"
+                  class="inline-flex items-center gap-1.5 rounded-full bg-white text-ink px-4 py-1 text-xs font-semibold shadow-sm hover:bg-canvas transition-colors"
+                  title="Click to cycle stories & offers"
+                >
+                  <span id="spotlight-pill-label">Intro Offer</span>
+                  <svg class="w-3 h-3 text-ink/70" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="my-3">
+              <span id="spotlight-overline" class="block text-[10px] font-mono uppercase tracking-widest text-white/75">
+                FOR NEW CLIENT DENTISTS
+              </span>
+              <div id="spotlight-metric" class="text-3xl font-semibold tracking-tight text-white mt-0.5">
+                Up to £500
+              </div>
+            </div>
+
+            <p id="spotlight-desc" class="text-[12px] leading-relaxed text-white/80 font-normal">
+              Claim a 15% introductory discount (up to £500) on your first aesthetic, implant, or digital restorations with Knight Dental Design.
+            </p>
+          </div>
+
+        </div>
+      </div>
+
+    </header>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- 2. SEAMLESS CREDENTIALS & DIGITAL SCANNER MARQUEE                     -->
+  <!-- ===================================================================== -->
+  <section class="py-5 border-y border-borderWarm bg-surface/60 overflow-hidden">
+    <div class="marquee-track flex items-center gap-12 text-xs font-mono uppercase tracking-widest text-muted">
+      <span class="flex items-center gap-3"><strong class="text-ink">6× WINNER</strong> UK Dental Laboratory of the Year (2004 · 2008 · 2013)</span>
+      <span>•</span>
+      <span class="flex items-center gap-3"><strong class="text-ink">CHANNEL 4</strong> Smile Designers for Ten Years Younger</span>
+      <span>•</span>
+      <span class="flex items-center gap-3"><strong class="text-ink">DIGITAL SCANS</strong> 3Shape Communicate · Sirona Connect · iTero · Carestream</span>
+      <span>•</span>
+      <span class="flex items-center gap-3"><strong class="text-ink">PATENT PENDING</strong> LifeTime Lingual™ CAD-CAM Ceramic Retainer</span>
+      <span>•</span>
+      <span class="flex items-center gap-3"><strong class="text-ink">3D ODONTOGRAM</strong> Interactive Palmer Notation &amp; Shade Prescription</span>
+      <span>•</span>
+      <span class="flex items-center gap-3"><strong class="text-ink">MHRA REGISTERED</strong> Reg. No. CA 003175 · 92 Swingate Lane, London SE18</span>
+      <span>•</span>
+      <span class="flex items-center gap-3"><strong class="text-ink">6× WINNER</strong> UK Dental Laboratory of the Year (2004 · 2008 · 2013)</span>
+      <span>•</span>
+      <span class="flex items-center gap-3"><strong class="text-ink">CHANNEL 4</strong> Smile Designers for Ten Years Younger</span>
+      <span>•</span>
+      <span class="flex items-center gap-3"><strong class="text-ink">DIGITAL SCANS</strong> 3Shape Communicate · Sirona Connect · iTero · Carestream</span>
+      <span>•</span>
+      <span class="flex items-center gap-3"><strong class="text-ink">PATENT PENDING</strong> LifeTime Lingual™ CAD-CAM Ceramic Retainer</span>
+      <span>•</span>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- 3. WHAT WE DO — FOUR CORE DISCIPLINES & SIX REASONS TO CHOOSE US      -->
+  <!-- ===================================================================== -->
+  <section id="what-we-do" class="max-w-7xl mx-auto px-6 sm:px-10 py-20 sm:py-28">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-end mb-14 reveal-up">
+      <div class="lg:col-span-7">
+        <div class="inline-flex items-center gap-2 rounded-full border border-borderWarm bg-surface px-4 py-1.5 text-xs font-mono uppercase tracking-widest text-muted mb-4">
+          <span>✳ What We Do</span>
+        </div>
+        <h2 class="text-3xl sm:text-5xl font-medium tracking-tight leading-[1.08]">
+          Combining traditional <span class="font-serif italic font-normal text-gold">ceramic artistry</span> with precision digital dentistry.
+        </h2>
+      </div>
+      <div class="lg:col-span-5 text-sm text-muted leading-relaxed">
+        Founded by Tony Knight in 1981, Knight Dental Design is a family-run boutique laboratory in South London. Every restoration is custom-engineered for discerning private practices and patients across the UK.
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+      <article class="group rounded-[28px] bg-surface border border-borderWarm p-7 flex flex-col justify-between min-h-[340px] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:border-ink/30 reveal-up">
+        <div>
+          <div class="flex items-center justify-between text-xs font-mono text-muted mb-6">
+            <span>01 / DISCIPLINE</span>
+            <a href="#digital-prescription" title="Prescribe Online" class="w-8 h-8 rounded-full border border-borderWarm flex items-center justify-center group-hover:bg-ink group-hover:text-white transition-colors">↗</a>
+          </div>
+          <h3 class="text-2xl font-medium tracking-tight mb-3">Cosmetic Dentistry</h3>
+          <p class="text-xs sm:text-sm text-muted leading-relaxed">
+            Bespoke porcelain veneers, IPS e.max crowns, diagnostic wax-ups, and digital smile design crafted to harmonise with facial proportions.
+          </p>
+        </div>
+        <div class="pt-6 border-t border-borderWarm/80 flex flex-wrap gap-1.5">
+          <span class="text-[11px] rounded-full bg-canvas px-3 py-1 text-ink/80">Veneers</span>
+          <span class="text-[11px] rounded-full bg-canvas px-3 py-1 text-ink/80">IPS e.max</span>
+          <span class="text-[11px] rounded-full bg-canvas px-3 py-1 text-ink/80">Trial Smiles</span>
+        </div>
+      </article>
+
+      <article class="group rounded-[28px] bg-surface border border-borderWarm p-7 flex flex-col justify-between min-h-[340px] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:border-ink/30 reveal-up">
+        <div>
+          <div class="flex items-center justify-between text-xs font-mono text-muted mb-6">
+            <span>02 / DISCIPLINE</span>
+            <a href="#digital-prescription" title="Prescribe Online" class="w-8 h-8 rounded-full border border-borderWarm flex items-center justify-center group-hover:bg-ink group-hover:text-white transition-colors">↗</a>
+          </div>
+          <h3 class="text-2xl font-medium tracking-tight mb-3">Implant Dentistry</h3>
+          <p class="text-xs sm:text-sm text-muted leading-relaxed">
+            Working across nine leading implant systems, from single custom zirconia abutments to full-arch screw-retained implant bridges.
+          </p>
+        </div>
+        <div class="pt-6 border-t border-borderWarm/80 flex flex-wrap gap-1.5">
+          <span class="text-[11px] rounded-full bg-canvas px-3 py-1 text-ink/80">9 Implant Systems</span>
+          <span class="text-[11px] rounded-full bg-canvas px-3 py-1 text-ink/80">Custom Abutments</span>
+        </div>
+      </article>
+
+      <article class="group rounded-[28px] bg-surface border border-borderWarm p-7 flex flex-col justify-between min-h-[340px] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:border-ink/30 reveal-up">
+        <div>
+          <div class="flex items-center justify-between text-xs font-mono text-muted mb-6">
+            <span>03 / DISCIPLINE</span>
+            <a href="#digital-prescription" title="Prescribe Online" class="w-8 h-8 rounded-full border border-borderWarm flex items-center justify-center group-hover:bg-ink group-hover:text-white transition-colors">↗</a>
+          </div>
+          <h3 class="text-2xl font-medium tracking-tight mb-3">Reconstructive Dentistry</h3>
+          <p class="text-xs sm:text-sm text-muted leading-relaxed">
+            Comprehensive treatment planning for severe tooth wear, occlusal rehabilitation, precision CrCo dentures, telescopic dentures, and splints.
+          </p>
+        </div>
+        <div class="pt-6 border-t border-borderWarm/80 flex flex-wrap gap-1.5">
+          <span class="text-[11px] rounded-full bg-canvas px-3 py-1 text-ink/80">Occlusal Rehab</span>
+          <span class="text-[11px] rounded-full bg-canvas px-3 py-1 text-ink/80">Wear Cases</span>
+        </div>
+      </article>
+
+      <article class="group rounded-[28px] bg-ink text-white p-7 flex flex-col justify-between min-h-[340px] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl reveal-up">
+        <div>
+          <div class="flex items-center justify-between text-xs font-mono text-white/60 mb-6">
+            <span>04 / DIGITAL LAB</span>
+            <a href="#digital-prescription" title="Prescribe Online" class="w-8 h-8 rounded-full border border-white/25 flex items-center justify-center group-hover:bg-white group-hover:text-ink transition-colors">↗</a>
+          </div>
+          <h3 class="text-2xl font-medium tracking-tight mb-3">Digital Dentistry</h3>
+          <p class="text-xs sm:text-sm text-white/75 leading-relaxed">
+            Virtually chairside via Sirona Connect &amp; 3Shape Communicate to view and advise on preparations and scans from iTero and Carestream in real time.
+          </p>
+        </div>
+        <div class="pt-6 border-t border-white/15 flex flex-wrap gap-1.5">
+          <span class="text-[11px] rounded-full bg-white/10 px-3 py-1 text-white/90">3Shape</span>
+          <span class="text-[11px] rounded-full bg-white/10 px-3 py-1 text-white/90">Sirona</span>
+          <span class="text-[11px] rounded-full bg-white/10 px-3 py-1 text-white/90">iTero</span>
+          <span class="text-[11px] rounded-full bg-white/10 px-3 py-1 text-white/90">Carestream</span>
+        </div>
+      </article>
+    </div>
+
+    <div class="mt-8 rounded-[28px] border border-borderWarm bg-surface p-6 sm:p-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 reveal-up">
+      <div>
+        <span class="text-xs font-mono uppercase tracking-widest text-gold block mb-1">Six Reasons to Choose Knight Dental Design</span>
+        <h3 class="text-xl sm:text-2xl font-medium">6× UK Dental Laboratory of the Year</h3>
+      </div>
+      <div class="flex flex-wrap gap-2.5">
+        <span class="rounded-full border border-borderWarm bg-canvas px-4 py-2 text-xs font-medium">🏆 UK Lab of the Year 2013</span>
+        <span class="rounded-full border border-borderWarm bg-canvas px-4 py-2 text-xs font-medium">🏆 UK Lab of the Year 2008</span>
+        <span class="rounded-full border border-borderWarm bg-canvas px-4 py-2 text-xs font-medium">🏆 UK Lab of the Year 2004</span>
+        <span class="rounded-full border border-borderWarm bg-canvas px-4 py-2 text-xs font-medium">🏆 Smile Design Winner 2009 · 2007 · 2005</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- 4. LATEST NEWS & INNOVATION: LIFETIME LINGUAL™ (INTERACTIVE STUDIO)   -->
+  <!-- ===================================================================== -->
+  <section id="lifetime-lingual" class="px-3 sm:px-5 lg:px-7 pb-20">
+    <div class="rounded-[28px] sm:rounded-[36px] bg-ink text-white p-8 sm:p-12 lg:p-16 max-w-[1400px] mx-auto overflow-hidden relative">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <div class="lg:col-span-6 space-y-6 reveal-up">
+          <div class="inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/5 px-4 py-1.5 text-xs font-mono uppercase tracking-widest text-amber-300">
+            <span>Patent Pending · In Association with Inman Orthodontics</span>
+          </div>
+
+          <h2 class="text-3xl sm:text-5xl font-medium tracking-tight leading-[1.08]">
+            Introducing the <span class="font-serif italic font-normal text-amber-200">LifeTime Lingual™</span> ceramic hybrid retainer.
+          </h2>
+
+          <p class="text-sm sm:text-base text-white/80 leading-relaxed">
+            The LifeTime Lingual™ is a completely new concept in final orthodontic retention. Unlike traditional lingual retainers, there are <strong class="text-white font-medium">no stainless steel wires, metal bonding pads, or fibres</strong> to fracture or debond.
+          </p>
+
+          <p class="text-xs sm:text-sm text-white/70 leading-relaxed">
+            CAD-CAM designed and precision milled in high-strength ceramic hybrid (only 1.0mm thick) to hold lower 3–3 teeth securely, comfortably, and hygienically. Delivered diamond-polished and pre-etched with a custom <strong class="text-white">Essix-type location jig</strong> for predictable chairside bonding in under 30 minutes.
+          </p>
+
+          <div class="grid grid-cols-3 gap-4 pt-4 border-t border-white/15">
+            <div>
+              <div class="text-2xl sm:text-3xl font-semibold text-amber-200">1.0mm</div>
+              <div class="text-xs text-white/65 mt-1">Ultra-thin ceramic hybrid profile</div>
+            </div>
+            <div>
+              <div class="text-2xl sm:text-3xl font-semibold text-amber-200">&lt;30 min</div>
+              <div class="text-xs text-white/65 mt-1">Chairside fit with Essix location jig</div>
+            </div>
+            <div>
+              <div class="text-2xl sm:text-3xl font-semibold text-amber-200">5 Shades</div>
+              <div class="text-xs text-white/65 mt-1">Vita shades with TePe access</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-6 reveal-up">
+          <div class="rounded-[28px] border border-white/20 bg-white/5 backdrop-blur-xl p-6 sm:p-8">
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-5 border-b border-white/15">
+              <div>
+                <span class="text-[11px] font-mono uppercase tracking-widest text-white/60 block">INTERACTIVE SPEC VIEWER</span>
+                <h3 id="ltl-shade-title" class="text-lg font-medium mt-0.5">Vita Shade A1 — Warm Ivory Pearl</h3>
+              </div>
+              <button
+                onclick="toggleEssixJig()"
+                id="jig-toggle-btn"
+                class="rounded-full border border-amber-300/50 bg-amber-300/15 px-4 py-1.5 text-xs font-mono text-amber-200 hover:bg-amber-300/25 transition-colors"
+              >
+                Essix Location Jig: ON
+              </button>
+            </div>
+
+            <div class="my-6 py-8 px-4 rounded-2xl bg-black/35 border border-white/10 flex flex-col items-center justify-center relative">
+              <svg viewBox="0 0 500 210" class="w-full max-w-md h-auto overflow-visible">
+                <g id="svg-essix-jig" class="transition-opacity duration-500" opacity="1">
+                  <path d="M55,145 C95,25 405,25 445,145 C420,175 385,180 350,145 C290,90 210,90 150,145 C115,180 80,175 55,145 Z"
+                        fill="rgba(186, 230, 253, 0.14)" stroke="rgba(186, 230, 253, 0.55)" stroke-width="1.5" stroke-dasharray="4 3" />
+                  <text x="250" y="34" text-anchor="middle" fill="#BAE6FD" font-family="JetBrains Mono" font-size="10" letter-spacing="1">
+                    ESSIX LOCATION JIG (SEATS LL3–LR3 IN ONE CURE)
+                  </text>
+                </g>
+
+                <g stroke="#292524" stroke-width="1.5" fill="#EDE9E0">
+                  <rect x="72" y="96" width="50" height="58" rx="18" />
+                  <rect x="130" y="76" width="46" height="56" rx="14" />
+                  <rect x="184" y="66" width="44" height="54" rx="12" />
+                  <rect x="236" y="66" width="44" height="54" rx="12" />
+                  <rect x="288" y="76" width="46" height="56" rx="14" />
+                  <rect x="342" y="96" width="50" height="58" rx="18" />
+                </g>
+
+                <g fill="#F472B6" opacity="0.85">
+                  <circle cx="126" cy="126" r="3.5" />
+                  <circle cx="180" cy="114" r="3.5" />
+                  <circle cx="232" cy="110" r="3.5" />
+                  <circle cx="284" cy="114" r="3.5" />
+                  <circle cx="338" cy="126" r="3.5" />
+                </g>
+
+                <path id="ltl-ceramic-bar"
+                      d="M92,126 C145,92 190,88 232,88 C274,88 319,92 372,126"
+                      fill="none"
+                      stroke="#EFECE4"
+                      stroke-width="14"
+                      stroke-linecap="round"
+                      class="transition-all duration-300 drop-shadow-[0_4px_12px_rgba(255,255,255,0.25)]" />
+                <path d="M92,126 C145,92 190,88 232,88 C274,88 319,92 372,126"
+                      fill="none"
+                      stroke="#B5945B"
+                      stroke-width="1.2"
+                      stroke-dasharray="2 3"
+                      stroke-linecap="round" />
+
+                <text x="232" y="185" text-anchor="middle" fill="rgba(255,255,255,0.65)" font-family="JetBrains Mono" font-size="10">
+                  ● PINK DOTS = OPEN CERVICAL EMBRASURES FOR TEPE BRUSH ACCESS
+                </text>
+              </svg>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <span class="text-xs font-mono uppercase tracking-wider text-white/70">Select Vita Shade:</span>
+              <div class="flex items-center gap-2">
+                <button onclick="setLtlShade('BL2', '#F7F7F4', 'Vita Shade BL2 — Natural Bleach')" class="ltl-shade-btn rounded-full px-3.5 py-1.5 text-xs font-mono border border-white/25 bg-[#F7F7F4] text-ink font-medium">BL2</button>
+                <button onclick="setLtlShade('A1', '#EFECE4', 'Vita Shade A1 — Warm Ivory Pearl')" class="ltl-shade-btn rounded-full px-3.5 py-1.5 text-xs font-mono border-2 border-amber-300 bg-[#EFECE4] text-ink font-semibold scale-105">A1</button>
+                <button onclick="setLtlShade('B1', '#EBE7DC', 'Vita Shade B1 — Translucent Enamel')" class="ltl-shade-btn rounded-full px-3.5 py-1.5 text-xs font-mono border border-white/25 bg-[#EBE7DC] text-ink font-medium">B1</button>
+                <button onclick="setLtlShade('A2', '#E5DEC9', 'Vita Shade A2 — Classic Natural')" class="ltl-shade-btn rounded-full px-3.5 py-1.5 text-xs font-mono border border-white/25 bg-[#E5DEC9] text-ink font-medium">A2</button>
+                <button onclick="setLtlShade('A3', '#DCD1B8', 'Vita Shade A3 — Warm Dentine')" class="ltl-shade-btn rounded-full px-3.5 py-1.5 text-xs font-mono border border-white/25 bg-[#DCD1B8] text-ink font-medium">A3</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- 5. FOR PATIENTS & REAL SMILE STORIES (JADE, PAULA HAMILTON, ELLIOT)   -->
+  <!-- ===================================================================== -->
+  <section id="case-studies" class="max-w-7xl mx-auto px-6 sm:px-10 py-16 sm:py-24">
+    <div id="for-patients" class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6 reveal-up">
+      <div>
+        <div class="inline-flex items-center gap-2 rounded-full border border-borderWarm bg-surface px-4 py-1.5 text-xs font-mono uppercase tracking-widest text-muted mb-4">
+          <span>✳ Patient Info &amp; Case Studies</span>
+        </div>
+        <h2 class="text-3xl sm:text-5xl font-medium tracking-tight">
+          Real patients. <span class="font-serif italic font-normal text-gold">Documented studio artistry.</span>
+        </h2>
+      </div>
+      <p class="text-xs sm:text-sm text-muted max-w-md leading-relaxed">
+        Patients visit our London SE18 photographic studio from across the UK for macro portrait photography, digital and manual shade measurement, and digital cosmetic simulations.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <article class="group rounded-[28px] overflow-hidden border border-borderWarm bg-surface flex flex-col justify-between reveal-up">
+        <div class="relative h-72 overflow-hidden">
+          <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=900&q=80" alt="Paula Hamilton Case Study" class="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105" />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent"></div>
+          <span class="absolute top-4 left-4 rounded-full bg-white/20 backdrop-blur-md border border-white/30 px-3.5 py-1 text-[11px] font-mono uppercase text-white">Smile Makeover &amp; Implants</span>
+          <div class="absolute bottom-4 left-5 right-5 text-white">
+            <h3 class="text-2xl font-medium">Paula Hamilton</h3>
+            <p class="text-xs text-white/80">Model &amp; TV Personality · Full Aesthetic Rehabilitation</p>
+          </div>
+        </div>
+        <div class="p-6 flex-1 flex flex-col justify-between space-y-5">
+          <p class="text-xs sm:text-sm text-muted leading-relaxed">
+            Featured in our clinical portfolio and media transformations, combining hand-layered ceramic veneers and precision implant restorations calibrated in our photographic studio.
+          </p>
+          <button onclick="openCaseModal('paula')" class="w-full rounded-full border border-ink/20 py-2.5 text-xs font-semibold text-ink hover:bg-ink hover:text-white transition-colors">Read Paula’s Story →</button>
+        </div>
+      </article>
+
+      <article class="group rounded-[28px] overflow-hidden border border-borderWarm bg-surface flex flex-col justify-between reveal-up">
+        <div class="relative h-72 overflow-hidden">
+          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=900&q=80" alt="Jade Case Study" class="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105" />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent"></div>
+          <span class="absolute top-4 left-4 rounded-full bg-white/20 backdrop-blur-md border border-white/30 px-3.5 py-1 text-[11px] font-mono uppercase text-white">Porcelain Veneers</span>
+          <div class="absolute bottom-4 left-5 right-5 text-white">
+            <h3 class="text-2xl font-medium">Jade</h3>
+            <p class="text-xs text-white/80">Digital Smile Analysis &amp; Minimal-Prep Ceramic Veneers</p>
+          </div>
+        </div>
+        <div class="p-6 flex-1 flex flex-col justify-between space-y-5">
+          <p class="text-xs sm:text-sm text-muted leading-relaxed">
+            Designed using golden proportion analysis and trial smile verification to restore natural tooth length, midline symmetry, and warm enamel translucency.
+          </p>
+          <button onclick="openCaseModal('jade')" class="w-full rounded-full border border-ink/20 py-2.5 text-xs font-semibold text-ink hover:bg-ink hover:text-white transition-colors">Read Jade’s Story →</button>
+        </div>
+      </article>
+
+      <article class="group rounded-[28px] overflow-hidden border border-borderWarm bg-surface flex flex-col justify-between reveal-up">
+        <div class="relative h-72 overflow-hidden">
+          <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=900&q=80" alt="Elliot Case Study" class="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105" />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent"></div>
+          <span class="absolute top-4 left-4 rounded-full bg-white/20 backdrop-blur-md border border-white/30 px-3.5 py-1 text-[11px] font-mono uppercase text-white">Reconstructive &amp; Crowns</span>
+          <div class="absolute bottom-4 left-5 right-5 text-white">
+            <h3 class="text-2xl font-medium">Elliot</h3>
+            <p class="text-xs text-white/80">Restorative Crowns &amp; Functional Smile Design</p>
+          </div>
+        </div>
+        <div class="p-6 flex-1 flex flex-col justify-between space-y-5">
+          <p class="text-xs sm:text-sm text-muted leading-relaxed">
+            Restored worn and uneven anterior dentition with high-strength all-ceramic crowns, custom gingival emergence profiles, and natural surface characterization.
+          </p>
+          <button onclick="openCaseModal('elliot')" class="w-full rounded-full border border-ink/20 py-2.5 text-xs font-semibold text-ink hover:bg-ink hover:text-white transition-colors">Read Elliot’s Story →</button>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- 6. FOR DENTISTS: WORKING TIMES CALCULATOR & LOGISTICS                 -->
+  <!-- ===================================================================== -->
+  <section id="for-dentists" class="max-w-7xl mx-auto px-6 sm:px-10 py-16 sm:py-24 border-t border-borderWarm">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+
+      <div class="lg:col-span-7 space-y-6 reveal-up">
+        <div class="inline-flex items-center gap-2 rounded-full border border-borderWarm bg-surface px-4 py-1.5 text-xs font-mono uppercase tracking-widest text-muted">
+          <span>✳ For Dentists · Digital &amp; Dispatch Hub</span>
+        </div>
+
+        <h2 class="text-3xl sm:text-4xl font-medium tracking-tight">
+          Laboratory working times, <span class="font-serif italic font-normal text-gold">express tiers</span> &amp; nationwide collection.
+        </h2>
+
+        <p class="text-xs sm:text-sm text-muted leading-relaxed">
+          We are one of the UK’s most experienced Digital Laboratories—receiving scans directly from <strong class="text-ink">Carestream, iTero, Sirona, and 3Shape</strong> scanners, or physical impressions via our Freepost White Box and Free UPS Next-Day Brown Box service.
+        </p>
+
+        <div class="rounded-[28px] border border-borderWarm bg-surface p-6 sm:p-8 space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <span class="text-xs font-mono uppercase tracking-widest text-muted">Section 10 · Working Times Calculator</span>
+            <span class="text-xs font-mono text-gold">MHRA Reg. No. CA 003175</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <button onclick="setTurnaround('small')" id="turn-btn-small" class="turn-btn rounded-2xl border border-ink bg-ink text-white p-3.5 text-left transition-all">
+              <div class="text-xs font-mono opacity-75">STANDARD CASE</div>
+              <div class="text-sm font-semibold mt-0.5">6 Units or Less</div>
+            </button>
+            <button onclick="setTurnaround('large')" id="turn-btn-large" class="turn-btn rounded-2xl border border-borderWarm bg-canvas text-ink p-3.5 text-left hover:border-ink transition-all">
+              <div class="text-xs font-mono text-muted">LARGE CASE</div>
+              <div class="text-sm font-semibold mt-0.5">7 Units or More</div>
+            </button>
+            <button onclick="setTurnaround('implant')" id="turn-btn-implant" class="turn-btn rounded-2xl border border-borderWarm bg-canvas text-ink p-3.5 text-left hover:border-ink transition-all">
+              <div class="text-xs font-mono text-muted">COMPLEX REHAB</div>
+              <div class="text-sm font-semibold mt-0.5">Implant / Occlusal</div>
+            </button>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+            <span class="text-xs text-muted">Pre-Booked Express Service (≤6 units by arrangement):</span>
+            <div class="inline-flex rounded-full border border-borderWarm bg-canvas p-1 text-xs">
+              <button onclick="setExpressTier('standard')" id="exp-standard" class="exp-btn rounded-full bg-ink text-white px-3.5 py-1 font-medium transition-all">Standard</button>
+              <button onclick="setExpressTier('5day')" id="exp-5day" class="exp-btn rounded-full text-muted px-3.5 py-1 font-medium transition-all">5-Day (+25%)</button>
+              <button onclick="setExpressTier('3day')" id="exp-3day" class="exp-btn rounded-full text-muted px-3.5 py-1 font-medium transition-all">3-Day (+50%)</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 rounded-2xl bg-canvas border border-borderWarm p-5">
+            <div>
+              <span class="text-[11px] font-mono uppercase text-muted block">Time in Lab</span>
+              <span id="calc-days" class="text-2xl sm:text-3xl font-semibold text-ink mt-1 block">7 Working Days</span>
+            </div>
+            <div>
+              <span class="text-[11px] font-mono uppercase text-muted block">Dispatch Schedule</span>
+              <span id="calc-dispatch" class="text-2xl sm:text-3xl font-semibold text-gold mt-1 block">Day 8</span>
+            </div>
+            <div class="col-span-2 sm:col-span-1 border-t sm:border-t-0 sm:border-l border-borderWarm pt-3 sm:pt-0 sm:pl-4">
+              <span class="text-[11px] font-mono uppercase text-muted block">Est. Dispatch Date</span>
+              <span id="calc-date" class="text-lg font-mono font-semibold text-ink mt-1.5 block">—</span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- ENCLOSURES & INSTRUCTIONS -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="rounded-[24px] border border-borderWarm bg-surface p-7 space-y-4">
-          <span class="text-xs font-mono uppercase tracking-widest text-gold font-semibold block border-b border-borderWarm pb-3">Enclosures *</span>
-          <div class="grid grid-cols-2 gap-3 text-sm">
-            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="rx_encl" value="Upper Impression" class="rx-input accent-ink w-4 h-4" /> Upper Impression</label>
-            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="rx_encl" value="Lower Impression" class="rx-input accent-ink w-4 h-4" /> Lower Impression</label>
-            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="rx_encl" value="Bite Registration" class="rx-input accent-ink w-4 h-4" /> Bite Registration</label>
-            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="rx_encl" value="Digital Scans (iTero/3Shape)" class="rx-input accent-ink w-4 h-4" /> Digital Scans Sent</label>
+      <div class="lg:col-span-5 flex flex-col justify-between space-y-6 reveal-up">
+        <div class="rounded-[28px] border border-borderWarm bg-surface p-7 space-y-5">
+          <span class="text-xs font-mono uppercase tracking-widest text-gold block">Collection &amp; Delivery Service</span>
+          <h3 class="text-2xl font-medium tracking-tight">Send Us a Case</h3>
+
+          <div class="rounded-2xl bg-canvas border border-borderWarm p-5">
+            <div class="flex items-center justify-between mb-1.5">
+              <strong class="text-sm font-semibold text-ink">01. The White Box (Royal Mail FREEPOST)</strong>
+              <span class="text-[11px] font-mono rounded-full bg-white px-2.5 py-0.5 border border-borderWarm">Letterbox Size</span>
+            </div>
+            <p class="text-xs text-muted leading-relaxed">
+              Our WHITE BOX has been designed to fit directly into a Royal Mail red letterbox and holds an upper and lower impression.
+            </p>
+          </div>
+
+          <div class="rounded-2xl bg-canvas border border-borderWarm p-5">
+            <div class="flex items-center justify-between mb-1.5">
+              <strong class="text-sm font-semibold text-ink">02. The Brown Box (Free UPS Courier)</strong>
+              <span class="text-[11px] font-mono rounded-full bg-white px-2.5 py-0.5 border border-borderWarm">Next-Day Collection</span>
+            </div>
+            <p class="text-xs text-muted leading-relaxed">
+              For larger cases or cases with a facebow, call <strong class="text-ink">020 8316 6248</strong> for a FREE standard UPS Next-Day collection using our supplied Brown Box.
+            </p>
+          </div>
+
+          <div class="pt-2 space-y-2.5">
+            <a
+              href="#digital-prescription"
+              class="flex items-center justify-between w-full rounded-full bg-ink text-white px-6 py-3.5 text-xs font-semibold hover:bg-ink/90 transition-all shadow-md"
+            >
+              <span>Complete 3D Online Digital Prescription Form</span>
+              <span>→</span>
+            </a>
+            <button
+              onclick="openModal('dentist')"
+              class="flex items-center justify-between w-full rounded-full border border-ink/25 bg-canvas text-ink px-6 py-3.5 text-xs font-semibold hover:bg-ink hover:text-white transition-all"
+            >
+              <span>Download FREEPOST Label &amp; Book UPS Collection</span>
+              <span>↓</span>
+            </button>
           </div>
         </div>
+      </div>
 
-        <div class="rounded-[24px] border border-borderWarm bg-surface p-7 space-y-4 flex flex-col">
-          <span class="text-xs font-mono uppercase tracking-widest text-gold font-semibold block border-b border-borderWarm pb-3">Clinical Instructions &amp; COSHH *</span>
-          <textarea id="rx-notes" required placeholder="Pontic design, surface texture, stump shade..." class="rx-input w-full flex-1 rounded-xl border border-borderWarm bg-canvas p-4 text-sm focus:outline-none focus:border-ink mb-3"></textarea>
-          <label class="flex items-start gap-3 cursor-pointer">
-            <input id="rx-coshh" type="checkbox" required class="rx-input accent-ink w-4 h-4 mt-0.5 shrink-0" />
-            <span class="text-[11px] font-medium text-ink leading-tight">
-              I confirm items are decontaminated per COSHH/BDA. This is a custom medical device under MDD Regulations. *
-            </span>
-          </label>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- 7. ONLINE DIGITAL PRESCRIPTION FORM WITH 3D ROTATABLE MOUTH MODEL     -->
+  <!-- ===================================================================== -->
+  <section id="digital-prescription" class="px-3 sm:px-5 lg:px-7 py-16 sm:py-24">
+    <div class="rounded-[28px] sm:rounded-[36px] border-2 border-ink/15 bg-surface p-6 sm:p-10 lg:p-14 max-w-[1400px] mx-auto shadow-xl">
+
+      <!-- Docket Header -->
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-8 border-b border-borderWarm">
+        <div>
+          <div class="inline-flex items-center gap-2 rounded-full bg-ink text-white px-4 py-1.5 text-[11px] font-mono uppercase tracking-widest mb-3">
+            <span>MHRA Reg. No. CA 003175 · M.D.D. Patient Statement Compliant</span>
+          </div>
+          <h2 class="text-3xl sm:text-5xl font-medium tracking-tight">
+            Online Laboratory <span class="font-serif italic font-normal text-gold">Prescription Form</span>
+          </h2>
+          <p class="text-xs sm:text-sm text-muted mt-2 max-w-2xl">
+            Complete your digital prescription below. Use the rotatable 3D mouth model in Section 9 to assign <strong class="text-ink">Crowns, Veneers, or Bridges</strong> to individual teeth with live floating Palmer Notation verification and real-time Vita shade rendering.
+          </p>
+        </div>
+
+        <!-- Sticky Completion Status Pill -->
+        <div class="rounded-2xl border border-borderWarm bg-canvas p-5 min-w-[270px] shrink-0">
+          <div class="flex items-center justify-between text-xs font-mono uppercase mb-2">
+            <span class="text-muted">Form Completion</span>
+            <span id="rx-progress-pct" class="font-semibold text-ink">0%</span>
+          </div>
+          <div class="w-full h-2 rounded-full bg-borderWarm overflow-hidden">
+            <div id="rx-progress-bar" class="h-full bg-gold transition-all duration-300" style="width: 0%"></div>
+          </div>
+          <p id="rx-missing-hint" class="text-[11px] font-mono text-muted mt-2.5 leading-snug">
+            Complete all required fields below to enable submission.
+          </p>
         </div>
       </div>
 
-      <!-- SUBMIT -->
-      <div class="pt-6 border-t border-borderWarm flex items-center justify-between">
-        <div id="rx-val-banner" class="text-xs font-mono text-amber-800 bg-amber-500/10 border border-amber-600/25 rounded-xl px-4 py-3">
-          ⚠ Please complete prescriber details, 3D tooth selection, enclosures, and COSHH.
-        </div>
-        <button id="rx-submit-btn" type="submit" disabled class="rounded-full bg-ink text-white px-8 py-4 text-sm font-semibold transition-all disabled:opacity-35 disabled:cursor-not-allowed hover:bg-ink/90 shadow-xl">
-          Submit 3D Prescription →
-        </button>
-      </div>
-    </form>
-  </main>
+      <!-- Digital Prescription Form -->
+      <form id="kdd-rx-form" onsubmit="submitDigitalPrescription(event)" novalidate class="mt-10 space-y-10">
 
-  <!-- MODAL RECEIPT -->
-  <div id="kdd-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-canvas/90 backdrop-blur p-4 overflow-y-auto">
-    <div class="relative w-full max-w-2xl rounded-[28px] bg-surface border border-borderWarm p-8 shadow-2xl my-8">
-      <button onclick="closeModal()" class="no-print absolute top-5 right-5 w-9 h-9 rounded-full border border-borderWarm flex items-center justify-center hover:bg-canvas">✕</button>
+        <!-- ROW 1: CLINICIAN, PRACTICE & PATIENT DETAILS (SECTIONS 1, 2, 3) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+          <!-- 1. Dentist & 2. Practice Name -->
+          <div class="lg:col-span-6 rounded-[24px] border border-borderWarm bg-canvas p-6 sm:p-7 space-y-5">
+            <div class="flex items-center justify-between border-b border-borderWarm pb-3">
+              <span class="text-xs font-mono uppercase tracking-widest text-gold font-semibold">Sections 1 &amp; 2 · Prescriber Details</span>
+              <span class="text-[11px] font-mono text-muted">Required *</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="rx-dentist" class="block text-xs font-mono uppercase text-ink mb-1.5">1. Dentist Name *</label>
+                <input id="rx-dentist" type="text" required placeholder="Dr. First &amp; Surname" class="rx-input w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
+              </div>
+              <div>
+                <label for="rx-practice" class="block text-xs font-mono uppercase text-ink mb-1.5">2. Practice Name *</label>
+                <input id="rx-practice" type="text" required placeholder="Clinic / Surgery Name" class="rx-input w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="rx-email" class="block text-xs font-mono uppercase text-ink mb-1.5">Practice Email *</label>
+                <input id="rx-email" type="email" required placeholder="surgery@practice.co.uk" class="rx-input w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
+              </div>
+              <div>
+                <label for="rx-phone" class="block text-xs font-mono uppercase text-ink mb-1.5">Practice Telephone *</label>
+                <input id="rx-phone" type="tel" required placeholder="020 7946 0000" class="rx-input w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Patient Details -->
+          <div class="lg:col-span-6 rounded-[24px] border border-borderWarm bg-canvas p-6 sm:p-7 space-y-5">
+            <div class="flex items-center justify-between border-b border-borderWarm pb-3">
+              <span class="text-xs font-mono uppercase tracking-widest text-gold font-semibold">Section 3 · Patient Identification</span>
+              <span class="text-[11px] font-mono text-muted">Required *</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="rx-patient-surname" class="block text-xs font-mono uppercase text-ink mb-1.5">Patient Surname *</label>
+                <input id="rx-patient-surname" type="text" required placeholder="Patient Surname" class="rx-input w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
+              </div>
+              <div>
+                <label for="rx-patient-forename" class="block text-xs font-mono uppercase text-ink mb-1.5">Patient Forename *</label>
+                <input id="rx-patient-forename" type="text" required placeholder="Patient Forename" class="rx-input w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
+              </div>
+            </div>
+
+            <div>
+              <span class="block text-xs font-mono uppercase text-ink mb-2">Patient Gender *</span>
+              <div class="grid grid-cols-2 gap-3">
+                <label class="flex items-center gap-3 rounded-xl border border-borderWarm bg-surface px-4 py-3 cursor-pointer hover:border-ink transition-colors">
+                  <input type="radio" name="rx_gender" value="Male" class="rx-input accent-ink w-4 h-4" />
+                  <span class="text-sm font-medium">Male</span>
+                </label>
+                <label class="flex items-center gap-3 rounded-xl border border-borderWarm bg-surface px-4 py-3 cursor-pointer hover:border-ink transition-colors">
+                  <input type="radio" name="rx_gender" value="Female" class="rx-input accent-ink w-4 h-4" />
+                  <span class="text-sm font-medium">Female</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ROW 2: DATES & STANDARD TOOTH SHADE DROPDOWNS (SECTIONS 4, 5, 6) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+          <!-- 4. Prep Date & 5. Return Date -->
+          <div class="lg:col-span-6 rounded-[24px] border border-borderWarm bg-canvas p-6 sm:p-7 space-y-5">
+            <div class="flex items-center justify-between border-b border-borderWarm pb-3">
+              <span class="text-xs font-mono uppercase tracking-widest text-gold font-semibold">Sections 4 &amp; 5 · Schedule &amp; Dates</span>
+              <span class="text-[11px] font-mono text-muted">Refer to Section 10</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="rx-prep-date" class="block text-xs font-mono uppercase text-ink mb-1.5">4. Prep Date *</label>
+                <input id="rx-prep-date" type="date" required class="rx-input w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
+              </div>
+              <div>
+                <label for="rx-return-date" class="block text-xs font-mono uppercase text-ink mb-1.5">5. Return Date *</label>
+                <input id="rx-return-date" type="date" required class="rx-input w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
+              </div>
+            </div>
+
+            <p class="text-xs text-muted leading-relaxed bg-surface rounded-xl p-3.5 border border-borderWarm">
+              <strong class="text-ink">Note on Section 5 (Return Date):</strong> Please refer to working times in Section 10. Enter the required laboratory return date, <em>not</em> the date of the patient’s appointment.
+            </p>
+          </div>
+
+          <!-- 6. Final Shade Dropdown & Stump Shade Dropdown -->
+          <div class="lg:col-span-6 rounded-[24px] border border-borderWarm bg-canvas p-6 sm:p-7 space-y-5">
+            <div class="flex items-center justify-between border-b border-borderWarm pb-3">
+              <span class="text-xs font-mono uppercase tracking-widest text-gold font-semibold">Section 6 · Final Tooth Shade &amp; Stump Shade</span>
+              <span class="text-[11px] font-mono text-muted">Live 3D Sync *</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="rx-shade" class="block text-xs font-mono uppercase text-ink mb-1.5">6. Final Shade (Vita Standard) *</label>
+                <div class="flex items-center gap-2">
+                  <span id="rx-shade-swatch" class="w-8 h-10 rounded-lg border border-borderWarm shrink-0 shadow-inner" style="background-color:#EFECE4;"></span>
+                  <select id="rx-shade" required onchange="syncFinalShadeFromForm(this.value)" class="rx-input w-full rounded-xl border border-borderWarm bg-surface px-3.5 py-3 text-sm focus:outline-none focus:border-ink">
+                    <option value="">Select Final Shade...</option>
+                    <optgroup label="Vita Bleach Shades">
+                      <option value="BL1">BL1 — Extra Bleach White</option>
+                      <option value="BL2">BL2 — Natural Bleach Bright</option>
+                      <option value="BL3">BL3 — Soft Bleach Ivory</option>
+                      <option value="BL4">BL4 — Warm Bleach Enamel</option>
+                    </optgroup>
+                    <optgroup label="Vita Classical A (Reddish-Brownish)">
+                      <option value="A1" selected>A1 — Warm Ivory Pearl</option>
+                      <option value="A2">A2 — Classic Natural Enamel</option>
+                      <option value="A3">A3 — Warm Dentine</option>
+                      <option value="A3.5">A3.5 — Deep Warm Dentine</option>
+                      <option value="A4">A4 — Mature Cervical</option>
+                    </optgroup>
+                    <optgroup label="Vita Classical B (Reddish-Yellowish)">
+                      <option value="B1">B1 — Translucent Bright Pearl</option>
+                      <option value="B2">B2 — Creamy Light Enamel</option>
+                      <option value="B3">B3 — Golden Ivory</option>
+                      <option value="B4">B4 — Deep Amber Dentine</option>
+                    </optgroup>
+                    <optgroup label="Vita Classical C (Greyish Shades)">
+                      <option value="C1">C1 — Cool Light Enamel</option>
+                      <option value="C2">C2 — Medium Cool Enamel</option>
+                      <option value="C3">C3 — Muted Grey Dentine</option>
+                      <option value="C4">C4 — Deep Cool Dentine</option>
+                    </optgroup>
+                    <optgroup label="Vita Classical D (Reddish-Grey)">
+                      <option value="D2">D2 — Soft Rose Enamel</option>
+                      <option value="D3">D3 — Warm Grey-Rose</option>
+                      <option value="D4">D4 — Deep Neutral Dentine</option>
+                    </optgroup>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label for="rx-stump-shade" class="block text-xs font-mono uppercase text-ink mb-1.5">Prepared Stump Shade *</label>
+                <select id="rx-stump-shade" required onchange="syncStumpShade(this.value)" class="rx-input w-full rounded-xl border border-borderWarm bg-surface px-3.5 py-3 text-sm focus:outline-none focus:border-ink">
+                  <option value="">Select Stump Shade...</option>
+                  <option value="N/A (Unprepared / Non-Ceramic)">N/A (Unprepared / Metal Ceramic)</option>
+                  <option value="ND1" selected>ND1 — Light Natural Die</option>
+                  <option value="ND2">ND2 — Warm Ivory Die</option>
+                  <option value="ND3">ND3 — Medium Chromatic Die</option>
+                  <option value="ND4">ND4 — Deep Yellow-Brown Die</option>
+                  <option value="ND5">ND5 — Greyish Discoloured Die</option>
+                  <option value="ND6">ND6 — Dark Chromatic Die</option>
+                  <option value="ND7">ND7 — Tetracycline Dark Die</option>
+                  <option value="ND8">ND8 — Endodontic Darkened Die</option>
+                  <option value="ND9">ND9 — Severe Discolouration Die</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <span class="block text-xs font-mono uppercase text-ink mb-2">Shade Consultation at Laboratory (92 Swingate Lane, SE18) *</span>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label class="flex items-center gap-3 rounded-xl border border-borderWarm bg-surface px-4 py-3 cursor-pointer hover:border-ink transition-colors">
+                  <input type="radio" name="rx_shade_location" value="Provided by Practice" checked class="rx-input accent-ink w-4 h-4" />
+                  <span class="text-xs sm:text-sm font-medium">Shade Selected Above</span>
+                </label>
+                <label class="flex items-center gap-3 rounded-xl border border-borderWarm bg-surface px-4 py-3 cursor-pointer hover:border-ink transition-colors">
+                  <input type="radio" name="rx_shade_location" value="Shade to be taken at Lab" class="rx-input accent-ink w-4 h-4" />
+                  <span class="text-xs sm:text-sm font-medium">Shade to be taken at Lab</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- SECTION 9: ROTATABLE 3D MOUTH MODEL & PALMER NOTATION ODONTOGRAM  -->
+        <!-- ================================================================= -->
+        <div class="rounded-[28px] border-2 border-ink/20 bg-[#161412] text-white p-5 sm:p-8 space-y-6 shadow-2xl">
+
+          <!-- Top Control Header -->
+          <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-5 border-b border-white/15 pb-5">
+            <div>
+              <div class="flex items-center gap-2.5">
+                <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="text-xs font-mono uppercase tracking-widest text-amber-300 font-semibold">
+                  Section 9 · Interactive 3D Mouth Model &amp; Palmer Tooth Notation
+                </span>
+              </div>
+              <h3 class="text-2xl sm:text-3xl font-medium mt-1">
+                Select Product (<span class="text-amber-200">Crown, Veneer, Bridge</span>) &amp; Click Teeth in 3D *
+              </h3>
+              <p class="text-xs text-white/70 mt-1 max-w-2xl">
+                Drag to rotate the 3D dental arches. Click any tooth to install the selected restoration. Floating <strong class="text-white">Palmer Notation brackets (`1┘`, `└2`, `6┐`, `┌6`)</strong> lock above each selected tooth to prevent picking the wrong unit.
+              </p>
+            </div>
+
+            <!-- Synced Final Shade Dropdown inside 3D Studio -->
+            <div class="flex flex-wrap items-center gap-3 bg-white/5 border border-white/15 rounded-2xl p-3.5 shrink-0">
+              <div class="flex items-center gap-2.5">
+                <span id="3d-shade-swatch" class="w-7 h-7 rounded-full border border-white/40 shadow" style="background-color:#EFECE4;"></span>
+                <div>
+                  <label for="3d-shade-select" class="block text-[10px] font-mono uppercase tracking-wider text-white/60">Final Porcelain Shade</label>
+                  <select id="3d-shade-select" onchange="syncFinalShadeFrom3D(this.value)" class="bg-transparent text-white text-xs sm:text-sm font-semibold focus:outline-none cursor-pointer">
+                    <option value="BL1" class="text-ink">BL1 — Extra Bleach</option>
+                    <option value="BL2" class="text-ink">BL2 — Natural Bleach</option>
+                    <option value="BL3" class="text-ink">BL3 — Soft Bleach</option>
+                    <option value="BL4" class="text-ink">BL4 — Warm Bleach</option>
+                    <option value="A1" selected class="text-ink">A1 — Warm Ivory Pearl</option>
+                    <option value="A2" class="text-ink">A2 — Classic Natural</option>
+                    <option value="A3" class="text-ink">A3 — Warm Dentine</option>
+                    <option value="A3.5" class="text-ink">A3.5 — Deep Dentine</option>
+                    <option value="A4" class="text-ink">A4 — Mature Cervical</option>
+                    <option value="B1" class="text-ink">B1 — Bright Pearl</option>
+                    <option value="B2" class="text-ink">B2 — Creamy Enamel</option>
+                    <option value="B3" class="text-ink">B3 — Golden Ivory</option>
+                    <option value="B4" class="text-ink">B4 — Deep Amber</option>
+                    <option value="C1" class="text-ink">C1 — Cool Light</option>
+                    <option value="C2" class="text-ink">C2 — Medium Cool</option>
+                    <option value="C3" class="text-ink">C3 — Muted Grey</option>
+                    <option value="C4" class="text-ink">C4 — Deep Cool</option>
+                    <option value="D2" class="text-ink">D2 — Soft Rose</option>
+                    <option value="D3" class="text-ink">D3 — Warm Grey-Rose</option>
+                    <option value="D4" class="text-ink">D4 — Deep Neutral</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="h-8 w-[1px] bg-white/15 hidden sm:block"></div>
+
+              <button
+                type="button"
+                onclick="loadDemoBridgeAndCrown()"
+                class="rounded-xl border border-amber-300/40 bg-amber-300/10 hover:bg-amber-300/20 px-3.5 py-2 text-xs font-mono text-amber-200 transition-colors"
+                title="Load a sample 3-unit Bridge + Single Crown installation"
+              >
+                ★ Demo Bridge + Crown
+              </button>
+            </div>
+          </div>
+
+          <!-- Product Selector Toolbar + Camera Views -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
+
+            <!-- 4 Active Product Brush Buttons -->
+            <div class="lg:col-span-7 flex flex-wrap items-center gap-2">
+              <span class="text-[11px] font-mono uppercase text-white/60 mr-1">1. Pick Product:</span>
+
+              <button
+                type="button"
+                onclick="setActiveProductTool('Crown')"
+                id="tool-btn-Crown"
+                class="product-tool-btn rounded-full border-2 border-amber-400 bg-amber-400 text-ink px-4 py-2 text-xs font-semibold flex items-center gap-2 transition-all shadow-md"
+              >
+                <span class="w-2.5 h-2.5 rounded-full bg-ink"></span>
+                <span>Single Crown</span>
+              </button>
+
+              <button
+                type="button"
+                onclick="setActiveProductTool('Veneer')"
+                id="tool-btn-Veneer"
+                class="product-tool-btn rounded-full border border-white/25 bg-white/5 hover:bg-white/15 text-white px-4 py-2 text-xs font-medium flex items-center gap-2 transition-all"
+              >
+                <span class="w-2.5 h-2.5 rounded-full bg-teal-400"></span>
+                <span>Porcelain Veneer</span>
+              </button>
+
+              <button
+                type="button"
+                onclick="setActiveProductTool('Bridge')"
+                id="tool-btn-Bridge"
+                class="product-tool-btn rounded-full border border-white/25 bg-white/5 hover:bg-white/15 text-white px-4 py-2 text-xs font-medium flex items-center gap-2 transition-all"
+              >
+                <span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span>
+                <span>Dental Bridge Unit</span>
+              </button>
+
+              <button
+                type="button"
+                onclick="setActiveProductTool('Remove')"
+                id="tool-btn-Remove"
+                class="product-tool-btn rounded-full border border-white/20 bg-white/5 hover:bg-rose-500/20 text-white/75 hover:text-rose-200 px-3.5 py-2 text-xs font-mono transition-all"
+              >
+                ✕ Deselect Tooth
+              </button>
+            </div>
+
+            <!-- Camera Preset & Exploded Seating Animation Controls -->
+            <div class="lg:col-span-5 flex flex-wrap items-center justify-end gap-1.5">
+              <button type="button" onclick="setMouthCamera('anterior')" class="rounded-lg border border-white/15 bg-white/5 hover:bg-white/15 px-2.5 py-1.5 text-[11px] font-mono text-white/85">Anterior</button>
+              <button type="button" onclick="setMouthCamera('upper')" class="rounded-lg border border-white/15 bg-white/5 hover:bg-white/15 px-2.5 py-1.5 text-[11px] font-mono text-white/85">Upper Arch</button>
+              <button type="button" onclick="setMouthCamera('lower')" class="rounded-lg border border-white/15 bg-white/5 hover:bg-white/15 px-2.5 py-1.5 text-[11px] font-mono text-white/85">Lower Arch</button>
+              <button type="button" onclick="setMouthCamera('buccal')" class="rounded-lg border border-white/15 bg-white/5 hover:bg-white/15 px-2.5 py-1.5 text-[11px] font-mono text-white/85">Side View</button>
+              <button
+                type="button"
+                id="explode-prosthesis-btn"
+                onclick="toggleProsthesisSeating()"
+                class="rounded-lg border border-amber-300/50 bg-amber-400/15 hover:bg-amber-400/25 px-3 py-1.5 text-[11px] font-mono text-amber-200 transition-colors"
+              >
+                ⇅ Lift / Seat Prosthetics
+              </button>
+            </div>
+
+          </div>
+
+          <!-- 3D Viewport Canvas + Floating Palmer Notation Labels Overlay -->
+          <div class="relative w-full h-[470px] sm:h-[540px] rounded-[22px] overflow-hidden border border-white/15 bg-gradient-to-b from-[#231F1D] via-[#171412] to-[#0E0C0B]">
+
+            <!-- Three.js Mount Container -->
+            <div id="mouth-3d-canvas" class="w-full h-full cursor-grab active:cursor-grabbing"></div>
+
+            <!-- Live Hover Palmer Tooltip (Prevents clicking the wrong tooth) -->
+            <div id="mouth-hover-tooltip" class="hidden pointer-events-none absolute z-30 -translate-x-1/2 -translate-y-full rounded-xl bg-white text-ink px-3 py-1.5 text-xs font-mono shadow-xl border border-ink"></div>
+
+            <!-- Floating Selected Palmer Tooth Labels Container -->
+            <div id="palmer-floating-labels" class="pointer-events-none absolute inset-0 overflow-hidden z-20"></div>
+
+            <!-- Top-Left Quadrant Orientation Legend -->
+            <div class="pointer-events-none absolute top-4 left-4 z-10 rounded-xl bg-black/55 backdrop-blur-md border border-white/15 px-3.5 py-2.5 text-[11px] font-mono text-white/80 space-y-1">
+              <div class="text-white font-semibold">PALMER QUADRANT KEY</div>
+              <div class="grid grid-cols-2 gap-x-4 text-[10px] text-white/70">
+                <span>UR: <strong class="text-white">8┘–1┘</strong></span>
+                <span>UL: <strong class="text-white">└1–└8</strong></span>
+                <span>LR: <strong class="text-white">8┐–1┐</strong></span>
+                <span>LL: <strong class="text-white">┌1–┌8</strong></span>
+              </div>
+            </div>
+
+            <!-- Bottom-Left Jaw Aperture Slider -->
+            <div class="
+              absolute bottom-4 left-4 z-20 flex items-center gap-3 rounded-full bg-black/60 backdrop-blur-md border border-white/15 px-4 py-2 text-xs font-mono text-white/85">
+              <span>Jaw Opening:</span>
+              <input
+                type="range"
+                min="10"
+                max="48"
+                value="28"
+                oninput="setJawOpeningAngle(this.value)"
+                class="w-24 accent-amber-400 cursor-pointer"
+              />
+            </div>
+
+            <!-- Bottom-Right Instructions -->
+            <div class="pointer-events-none absolute bottom-4 right-4 z-10 hidden sm:flex items-center gap-3 rounded-full bg-black/60 backdrop-blur-md border border-white/15 px-4 py-2 text-[11px] font-mono text-white/70">
+              <span>Left-Drag: Orbit 360°</span>
+              <span>·</span>
+              <span>Scroll: Zoom</span>
+              <span>·</span>
+              <span>Click Tooth: Assign Product</span>
+            </div>
+          </div>
+
+          <!-- Selected Teeth Prescription Summary Strip -->
+          <div class="rounded-2xl bg-white/5 border border-white/15 p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div class="space-y-1">
+              <div class="flex items-center gap-3">
+                <span class="text-xs font-mono uppercase tracking-widest text-amber-300" id="rx-selected-teeth-badge">
+                  0 Units Selected
+                </span>
+                <span class="text-xs font-mono text-white/50">|</span>
+                <span class="text-xs font-mono text-white/80" id="rx-selected-shade-readout">
+                  Final Shade: Vita A1
+                </span>
+              </div>
+              <div id="rx-selected-teeth-pills" class="flex flex-wrap gap-2 pt-1.5">
+                <span class="text-xs text-white/50 italic">No teeth selected yet. Click any tooth on the 3D mouth model above to prescribe a Crown, Veneer, or Bridge.</span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onclick="clearAllTeeth()"
+              class="self-start lg:self-center rounded-full border border-white/20 hover:border-white/50 px-4 py-2 text-xs font-mono text-white/80 hover:text-white transition-colors shrink-0"
+            >
+              Reset All 32 Teeth
+            </button>
+          </div>
+
+        </div>
+
+        <!-- ROW 4: TYPE OF RESTORATION & WORKING TIMES (SECTIONS 7 & 10) -->
+        <!-- Note: Section 8 (Standard vs Exclusive Quality) remains completely removed -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+          <!-- 7. Type of Restoration Material Specification -->
+          <div class="lg:col-span-7 rounded-[24px] border border-borderWarm bg-canvas p-6 sm:p-7 space-y-5">
+            <div class="flex items-center justify-between border-b border-borderWarm pb-3">
+              <span class="text-xs font-mono uppercase tracking-widest text-gold font-semibold">Section 7 · Alloy &amp; Ceramic Material System</span>
+              <span class="text-[11px] font-mono text-muted">Auto-synced or tick below *</span>
+            </div>
+
+            <div class="space-y-4">
+              <div>
+                <span class="text-xs font-mono uppercase text-muted block mb-2">Metal Ceramic</span>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <label class="flex items-center gap-2.5 rounded-xl border border-borderWarm bg-surface px-3.5 py-2.5 cursor-pointer hover:border-ink text-xs sm:text-sm">
+                    <input type="checkbox" name="rx_restoration" value="Metal Ceramic: High Gold" class="rx-input accent-ink w-4 h-4" />
+                    <span>High Gold</span>
+                  </label>
+                  <label class="flex items-center gap-2.5 rounded-xl border border-borderWarm bg-surface px-3.5 py-2.5 cursor-pointer hover:border-ink text-xs sm:text-sm">
+                    <input type="checkbox" name="rx_restoration" value="Metal Ceramic: Precious" class="rx-input accent-ink w-4 h-4" />
+                    <span>Precious</span>
+                  </label>
+                  <label class="flex items-center gap-2.5 rounded-xl border border-borderWarm bg-surface px-3.5 py-2.5 cursor-pointer hover:border-ink text-xs sm:text-sm">
+                    <input type="checkbox" name="rx_restoration" value="Metal Ceramic: Non Precious" class="rx-input accent-ink w-4 h-4" />
+                    <span>Non Precious</span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <span class="text-xs font-mono uppercase text-muted block mb-2">All Ceramic</span>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  <label class="flex items-center gap-2.5 rounded-xl border border-borderWarm bg-surface px-3.5 py-2.5 cursor-pointer hover:border-ink text-xs sm:text-sm">
+                    <input type="checkbox" id="rx-rest-emax" name="rx_restoration" value="All Ceramic: Emax" class="rx-input accent-ink w-4 h-4" />
+                    <span>Emax</span>
+                  </label>
+                  <label class="flex items-center gap-2.5 rounded-xl border border-borderWarm bg-surface px-3.5 py-2.5 cursor-pointer hover:border-ink text-xs sm:text-sm">
+                    <input type="checkbox" id="rx-rest-zirconia" name="rx_restoration" value="All Ceramic: Zirconia" class="rx-input accent-ink w-4 h-4" />
+                    <span>Zirconia</span>
+                  </label>
+                  <label class="flex items-center gap-2.5 rounded-xl border border-borderWarm bg-surface px-3.5 py-2.5 cursor-pointer hover:border-ink text-xs sm:text-sm">
+                    <input type="checkbox" name="rx_restoration" value="All Ceramic: Authentic" class="rx-input accent-ink w-4 h-4" />
+                    <span>Authentic</span>
+                  </label>
+                  <label class="flex items-center gap-2.5 rounded-xl border border-borderWarm bg-surface px-3.5 py-2.5 cursor-pointer hover:border-ink text-xs sm:text-sm">
+                    <input type="checkbox" id="rx-rest-ceramic-other" name="rx_restoration" value="All Ceramic: Other" class="rx-input accent-ink w-4 h-4" />
+                    <span>Other Ceramic</span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <span class="text-xs font-mono uppercase text-muted block mb-2">Implant &amp; Specialist Appliances</span>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <label class="flex items-center gap-2.5 rounded-xl border border-borderWarm bg-surface px-3.5 py-2.5 cursor-pointer hover:border-ink text-xs sm:text-sm">
+                    <input type="checkbox" name="rx_restoration" value="Implant Restoration" class="rx-input accent-ink w-4 h-4" />
+                    <span>Implant</span>
+                  </label>
+                  <label class="flex items-center gap-2.5 rounded-xl border border-borderWarm bg-surface px-3.5 py-2.5 cursor-pointer hover:border-ink text-xs sm:text-sm">
+                    <input type="checkbox" name="rx_restoration" value="LifeTime Lingual Retainer" class="rx-input accent-ink w-4 h-4" />
+                    <span>LifeTime Lingual™</span>
+                  </label>
+                  <label class="flex items-center gap-2.5 rounded-xl border border-borderWarm bg-surface px-3.5 py-2.5 cursor-pointer hover:border-ink text-xs sm:text-sm">
+                    <input type="checkbox" id="rx-rest-other" name="rx_restoration" value="Other Restoration" class="rx-input accent-ink w-4 h-4" />
+                    <span>Other (Specify)</span>
+                  </label>
+                </div>
+              </div>
+
+              <div id="rx-other-specify-wrap" class="hidden pt-1">
+                <label for="rx-other-specify" class="block text-xs font-mono uppercase text-ink mb-1.5">Please Specify Other Restoration / Material *</label>
+                <input id="rx-other-specify" type="text" placeholder="Specify restoration, implant system, or ceramic material..." class="rx-input w-full rounded-xl border border-borderWarm bg-surface px-4 py-2.5 text-sm focus:outline-none focus:border-ink" />
+              </div>
+            </div>
+          </div>
+
+          <!-- 10. Working Times -->
+          <div class="lg:col-span-5 rounded-[24px] border border-borderWarm bg-canvas p-6 sm:p-7 space-y-4">
+            <div class="flex items-center justify-between border-b border-borderWarm pb-3">
+              <span class="text-xs font-mono uppercase tracking-widest text-gold font-semibold">Section 10 · Working Times</span>
+              <span class="text-[11px] font-mono text-muted">Select tier *</span>
+            </div>
+
+            <div class="space-y-2.5">
+              <label class="flex items-start gap-3 rounded-xl border border-borderWarm bg-surface p-3.5 cursor-pointer hover:border-ink transition-colors">
+                <input type="radio" name="rx_working_time" value="6 Units or Less (7 Working Days in Lab / Dispatched Day 8)" class="rx-input accent-ink w-4 h-4 mt-0.5" />
+                <div class="text-xs">
+                  <strong class="block text-ink">6 UNITS OR LESS — 7 WORKING DAYS IN LAB</strong>
+                  <span class="text-muted">Work will be dispatched on Day 8</span>
+                </div>
+              </label>
+
+              <label class="flex items-start gap-3 rounded-xl border border-borderWarm bg-surface p-3.5 cursor-pointer hover:border-ink transition-colors">
+                <input type="radio" name="rx_working_time" value="7 Units or More (9 Working Days in Lab / Dispatched Day 10)" class="rx-input accent-ink w-4 h-4 mt-0.5" />
+                <div class="text-xs">
+                  <strong class="block text-ink">7 UNITS OR MORE — 9 WORKING DAYS IN LAB</strong>
+                  <span class="text-muted">Work will be dispatched on Day 10</span>
+                </div>
+              </label>
+
+              <label class="flex items-start gap-3 rounded-xl border border-borderWarm bg-surface p-3.5 cursor-pointer hover:border-ink transition-colors">
+                <input type="radio" name="rx_working_time" value="Implant, Attachment, Combination & Occlusal Rehabilitation (10 Working Days / Dispatched Day 11)" class="rx-input accent-ink w-4 h-4 mt-0.5" />
+                <div class="text-xs">
+                  <strong class="block text-ink">IMPLANT, ATTACHMENT, COMBINATION &amp; OCCLUSAL REHAB</strong>
+                  <span class="text-muted">10 Working Days in Lab — work will be dispatched on Day 11</span>
+                </div>
+              </label>
+
+              <label class="flex items-start gap-3 rounded-xl border border-borderWarm bg-surface p-3.5 cursor-pointer hover:border-ink transition-colors">
+                <input type="radio" name="rx_working_time" value="5 Day Express Service (≤6 Units Pre-Booked Only +25%)" class="rx-input accent-ink w-4 h-4 mt-0.5" />
+                <div class="text-xs">
+                  <strong class="block text-ink">5 DAY EXPRESS SERVICE (+25% BY ARRANGEMENT)</strong>
+                  <span class="text-muted">6 units or less · Pre-booked only</span>
+                </div>
+              </label>
+
+              <label class="flex items-start gap-3 rounded-xl border border-borderWarm bg-surface p-3.5 cursor-pointer hover:border-ink transition-colors">
+                <input type="radio" name="rx_working_time" value="3 Day Express Service (≤6 Units Pre-Booked Only +50%)" class="rx-input accent-ink w-4 h-4 mt-0.5" />
+                <div class="text-xs">
+                  <strong class="block text-ink">3 DAY EXPRESS SERVICE (+50% BY ARRANGEMENT)</strong>
+                  <span class="text-muted">6 units or less · Pre-booked only</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ROW 5: ENCLOSURES & SPECIAL INSTRUCTIONS (SECTION 11) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+          <!-- 11. Enclosures -->
+          <div class="lg:col-span-6 rounded-[24px] border border-borderWarm bg-canvas p-6 sm:p-7 space-y-4">
+            <div class="flex items-center justify-between border-b border-borderWarm pb-3">
+              <span class="text-xs font-mono uppercase tracking-widest text-gold font-semibold">Section 11 · Enclosures &amp; Digital Files</span>
+              <span class="text-[11px] font-mono text-muted">Select at least one *</span>
+            </div>
+
+            <div class="space-y-2.5 text-xs sm:text-sm">
+              <div class="flex items-center justify-between rounded-xl border border-borderWarm bg-surface px-4 py-2.5">
+                <span class="font-medium">Study Model/s</span>
+                <div class="flex items-center gap-4 font-mono text-xs">
+                  <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="rx_enclosure" value="Study Model (Upper)" class="rx-input accent-ink w-4 h-4" /> <span>U</span></label>
+                  <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="rx_enclosure" value="Study Model (Lower)" class="rx-input accent-ink w-4 h-4" /> <span>L</span></label>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between rounded-xl border border-borderWarm bg-surface px-4 py-2.5">
+                <span class="font-medium">Alginate/s</span>
+                <div class="flex items-center gap-4 font-mono text-xs">
+                  <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="rx_enclosure" value="Alginate (Upper)" class="rx-input accent-ink w-4 h-4" /> <span>U</span></label>
+                  <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="rx_enclosure" value="Alginate (Lower)" class="rx-input accent-ink w-4 h-4" /> <span>L</span></label>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between rounded-xl border border-borderWarm bg-surface px-4 py-2.5">
+                <span class="font-medium">Master Impression/s</span>
+                <div class="flex items-center gap-4 font-mono text-xs">
+                  <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="rx_enclosure" value="Master Impression (Upper)" class="rx-input accent-ink w-4 h-4" /> <span>U</span></label>
+                  <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="rx_enclosure" value="Master Impression (Lower)" class="rx-input accent-ink w-4 h-4" /> <span>L</span></label>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
+                <label class="flex items-center gap-2 rounded-xl border border-borderWarm bg-surface px-3.5 py-2.5 cursor-pointer hover:border-ink text-xs">
+                  <input type="checkbox" name="rx_enclosure" value="Bite Reg" class="rx-input accent-ink w-4 h-4" />
+                  <span>Bite Reg</span>
+                </label>
+                <label class="flex items-center gap-2 rounded-xl border border-borderWarm bg-surface px-3.5 py-2.5 cursor-pointer hover:border-ink text-xs">
+                  <input type="checkbox" name="rx_enclosure" value="Face Bow" class="rx-input accent-ink w-4 h-4" />
+                  <span>Face Bow</span>
+                </label>
+                <label class="flex items-center gap-2 rounded-xl border border-borderWarm bg-surface px-3.5 py-2.5 cursor-pointer hover:border-ink text-xs">
+                  <input type="checkbox" name="rx_enclosure" value="Photos" class="rx-input accent-ink w-4 h-4" />
+                  <span>Photos</span>
+                </label>
+                <label class="flex items-center gap-2 rounded-xl border border-borderWarm bg-surface px-3.5 py-2.5 cursor-pointer hover:border-ink text-xs">
+                  <input type="checkbox" name="rx_enclosure" value="Digital Image/s / Intraoral Scan" class="rx-input accent-ink w-4 h-4" />
+                  <span>Digital Image/s</span>
+                </label>
+                <label class="col-span-2 flex items-center gap-2 rounded-xl border border-borderWarm bg-surface px-3.5 py-2.5 cursor-pointer hover:border-ink text-xs">
+                  <input type="checkbox" name="rx_enclosure" value="Email to Follow (please forward ASAP to info@kdduk.net)" class="rx-input accent-ink w-4 h-4" />
+                  <span>Email to Follow (forward ASAP)</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Special Instructions & Health/Safety Declaration -->
+          <div class="lg:col-span-6 rounded-[24px] border border-borderWarm bg-canvas p-6 sm:p-7 flex flex-col justify-between space-y-5">
+            <div class="space-y-3">
+              <div class="flex items-center justify-between border-b border-borderWarm pb-3">
+                <span class="text-xs font-mono uppercase tracking-widest text-gold font-semibold">Special Instructions &amp; Clinical Notes</span>
+                <span class="text-[11px] font-mono text-muted">Required *</span>
+              </div>
+              <label for="rx-instructions" class="sr-only">Special Instructions</label>
+              <textarea
+                id="rx-instructions"
+                rows="4"
+                required
+                placeholder="Provide pontic design (ovate/ridge-lap), occlusal staining, cervical translucency, implant platform, or 3Shape/iTero scan reference..."
+                class="rx-input w-full rounded-xl border border-borderWarm bg-surface p-4 text-sm focus:outline-none focus:border-ink"
+              ></textarea>
+            </div>
+
+            <div class="rounded-2xl border border-borderWarm bg-surface p-4 space-y-3">
+              <p class="text-[11px] text-muted leading-relaxed">
+                <strong class="text-ink">M.D.D. &amp; HEALTH &amp; SAFETY REMINDER:</strong> This is a custom-made medical device manufactured to satisfy the design characteristics specified by the prescriber for this patient under Annex I of the Medical Devices Directive &amp; UK Medical Devices Regulations. To comply with COSHH Regulations and BDA good practice, physical impressions and appliances must be suitably decontaminated and disinfected prior to dispatch.
+              </p>
+              <label class="flex items-start gap-3 cursor-pointer pt-1">
+                <input id="rx-coshh-confirm" type="checkbox" required class="rx-input accent-ink w-4 h-4 mt-0.5 shrink-0" />
+                <span class="text-xs font-medium text-ink">
+                  I confirm all prescription details are complete and any physical impressions/appliances have been decontaminated in accordance with COSHH &amp; BDA guidelines. *
+                </span>
+              </label>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- SUBMIT BAR (LOCKED UNTIL 100% COMPLETE) -->
+        <div class="pt-4 border-t border-borderWarm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+          <div id="rx-validation-banner" class="text-xs font-mono text-amber-800 bg-amber-500/10 border border-amber-600/25 rounded-xl px-4 py-3">
+            ⚠ Submission Locked: Please fill out all required sections (including at least 1 tooth on the 3D mouth model) to submit.
+          </div>
+
+          <button
+            id="rx-submit-btn"
+            type="submit"
+            disabled
+            class="rounded-full bg-ink text-white px-8 py-4 text-xs sm:text-sm font-semibold tracking-wide transition-all disabled:opacity-35 disabled:cursor-not-allowed hover:bg-ink/90 shadow-lg shrink-0"
+          >
+            Submit Digital Prescription →
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- 8. FIND A DENTIST (PATIENT POSTCODE MATCHER) & FOOTER                 -->
+  <!-- ===================================================================== -->
+  <section id="find-dentist" class="px-3 sm:px-5 lg:px-7 pb-10">
+    <div class="rounded-[28px] sm:rounded-[36px] border border-borderWarm bg-surface p-8 sm:p-12 lg:p-16 max-w-[1400px] mx-auto">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+
+        <div class="lg:col-span-6 space-y-5">
+          <div class="inline-flex items-center gap-2 rounded-full border border-borderWarm bg-canvas px-4 py-1.5 text-xs font-mono uppercase tracking-widest text-muted">
+            <span>✳ Find a Client Dentist</span>
+          </div>
+          <h2 class="text-3xl sm:text-5xl font-medium tracking-tight leading-[1.08]">
+            Find the right UK dentist for <span class="font-serif italic font-normal text-gold">the smile you’re after.</span>
+          </h2>
+          <p class="text-xs sm:text-sm text-muted leading-relaxed">
+            Knight Dental Design client dentists show their commitment to high-quality dentistry by using the UK’s most awarded laboratory for their aesthetic and implant cases.
+          </p>
+          <p class="text-xs sm:text-sm text-muted leading-relaxed">
+            While we can only ever work for a small percentage of the country’s most discerning dentists, it is probable that we have a client practice within a reasonable distance of you. Send us your postcode and area of interest and we will put you in touch with our nearest client practice.
+          </p>
+        </div>
+
+        <div class="lg:col-span-6">
+          <form onsubmit="handleDentistFinder(event)" class="rounded-[26px] border border-borderWarm bg-canvas p-6 sm:p-8 space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-mono uppercase text-muted mb-1.5">Name*</label>
+                <input type="text" required placeholder="Your full name" class="w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
+              </div>
+              <div>
+                <label class="block text-xs font-mono uppercase text-muted mb-1.5">Email*</label>
+                <input type="email" required placeholder="you@example.co.uk" class="w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-mono uppercase text-muted mb-1.5">UK Postcode*</label>
+                <input id="finder-postcode" type="text" required placeholder="e.g. SE18 2HL" class="w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm uppercase focus:outline-none focus:border-ink" />
+              </div>
+              <div>
+                <label class="block text-xs font-mono uppercase text-muted mb-1.5">Phone</label>
+                <input type="tel" placeholder="07700 900000" class="w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-mono uppercase text-muted mb-1.5">Area of Interest*</label>
+              <select class="w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink">
+                <option>Smile Makeover / Porcelain Veneers</option>
+                <option>Dental Implants &amp; Bridges</option>
+                <option>LifeTime Lingual™ Ceramic Retainer</option>
+                <option>Crowns &amp; Reconstructive Dentistry</option>
+                <option>In-Lab Digital Smile Analysis Consultation</option>
+              </select>
+            </div>
+            <button
+              type="submit"
+              class="w-full rounded-full bg-ink text-white py-3.5 text-xs sm:text-sm font-semibold hover:bg-ink/90 transition-colors"
+            >
+              Match Me With a Nearest Client Practice →
+            </button>
+            <p id="finder-feedback" class="hidden text-xs font-mono text-emerald-700 text-center pt-2"></p>
+          </form>
+        </div>
+
+      </div>
+
+      <footer class="mt-14 pt-8 border-t border-borderWarm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-muted">
+        <div>
+          <strong class="text-ink">Knight Dental Design Ltd</strong> · 92 Swingate Lane, Plumstead Common, London SE18 2HL · Tel: <a href="tel:02083166248" class="underline hover:text-ink">020 8316 6248</a> · Fax: 020 8317 1950 · <a href="mailto:info@kdduk.net" class="underline hover:text-ink">info@kdduk.net</a>
+        </div>
+        <div class="font-mono text-[11px]">
+          © Knight Dental Design · MHRA Reg. No. CA 003175 · Privacy &amp; GDPR Data Processing Policy
+        </div>
+      </footer>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- INTERACTIVE MODAL (DIGITAL DOCKET RECEIPT, LOGISTICS & CASE STUDIES)  -->
+  <!-- ===================================================================== -->
+  <div id="kdd-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+    <div class="relative w-full max-w-2xl rounded-[28px] bg-surface border border-borderWarm p-7 sm:p-9 shadow-2xl my-8">
+      <button onclick="closeModal()" class="no-print absolute top-5 right-5 w-9 h-9 rounded-full border border-borderWarm flex items-center justify-center text-muted hover:text-ink">✕</button>
       <div id="modal-body"></div>
     </div>
   </div>
 
+  <!-- ===================================================================== -->
+  <!-- SCRIPTS: 3D MOUTH MODEL (THREE.JS), PALMER LABELS & VALIDATION        -->
+  <!-- ===================================================================== -->
   <script>
-    // -------------------------------------------------------------------------
-    // SYSTEM LOGIC: Auto-Calculation & Validation
-    // -------------------------------------------------------------------------
-    const selectedTeeth = new Map(); // code -> { product, material, shade, x, y, z (world) }
-    let activeProduct = 'Crown';
-    
-    const VITA_HEX = {
-      'BL1': '#FAFBF9', 'BL2': '#F6F6F1', 'BL3': '#F2F0E8', 'BL4': '#EFECE2',
-      'A1': '#EFECE4', 'A2': '#E8E0CE', 'A3': '#DFD3BA', 'B1': '#F0EEE6',
-      'C1': '#E6E3D8', 'D2': '#E4DFD3'
+    // ---------------------------------------------------------------------
+    // 1. STANDARD VITA SHADE & STUMP SHADE PALETTE DEFINITIONS
+    // ---------------------------------------------------------------------
+    const VITA_SHADE_HEX = {
+      'BL1': '#FAFBF9',
+      'BL2': '#F6F6F1',
+      'BL3': '#F2F0E8',
+      'BL4': '#EFECE2',
+      'A1':  '#EFECE4',
+      'A2':  '#E8E0CE',
+      'A3':  '#DFD3BA',
+      'A3.5':'#D6C6A7',
+      'A4':  '#C9B692',
+      'B1':  '#F0EEE6',
+      'B2':  '#EAE4D2',
+      'B3':  '#E0D5B9',
+      'B4':  '#D6C6A1',
+      'C1':  '#E6E3D8',
+      'C2':  '#DBD6C6',
+      'C3':  '#CFC8B4',
+      'C4':  '#C1B8A2',
+      'D2':  '#E4DFD3',
+      'D3':  '#DAD2C2',
+      'D4':  '#CEC5B0'
     };
 
-    function updateLogistics() {
-      const units = selectedTeeth.size;
-      const days = units >= 7 ? 9 : (units > 0 ? 7 : 0);
-      
-      document.getElementById('calc-units').textContent = units;
-      document.getElementById('calc-days').textContent = days ? `${days} Days` : '—';
-      
-      if (days > 0) {
-        const d = new Date(); // Using current date automatically per requirements
-        let added = 0;
-        while (added < days) {
-          d.setDate(d.getDate() + 1);
-          if (d.getDay() !== 0 && d.getDay() !== 6) added++;
-        }
-        document.getElementById('calc-date').textContent = d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
-      } else {
-        document.getElementById('calc-date').textContent = '—';
-      }
-      validateForm();
-    }
+    const STUMP_SHADE_HEX = {
+      'N/A (Unprepared / Non-Ceramic)': '#E8DFCA',
+      'ND1': '#EFE8D5',
+      'ND2': '#E6DAC0',
+      'ND3': '#DCCAA6',
+      'ND4': '#CFB78B',
+      'ND5': '#C4BCAB',
+      'ND6': '#C2A878',
+      'ND7': '#AD9268',
+      'ND8': '#997E58',
+      'ND9': '#826847'
+    };
 
-    function validateForm() {
-      const ok = (
-        document.getElementById('rx-dentist').value.trim() &&
-        document.getElementById('rx-practice').value.trim() &&
-        document.getElementById('rx-patient').value.trim() &&
-        document.getElementById('rx-gender').value &&
-        selectedTeeth.size > 0 &&
-        document.querySelectorAll('input[name="rx_encl"]:checked').length > 0 &&
-        document.getElementById('rx-notes').value.trim() &&
-        document.getElementById('rx-coshh').checked
-      );
+    const TOOTH_NAMES = {
+      1: 'Central Incisor',
+      2: 'Lateral Incisor',
+      3: 'Canine',
+      4: 'First Premolar',
+      5: 'Second Premolar',
+      6: 'First Molar',
+      7: 'Second Molar',
+      8: 'Third Molar'
+    };
 
-      const btn = document.getElementById('rx-submit-btn');
-      const banner = document.getElementById('rx-val-banner');
-      
-      if (ok) {
-        btn.disabled = false;
-        banner.className = 'text-xs font-mono text-emerald-800 bg-emerald-500/15 border border-emerald-600/30 rounded-xl px-4 py-3';
-        banner.textContent = '✓ 3D Prescription validated. Ready to submit.';
-      } else {
-        btn.disabled = true;
-        banner.className = 'text-xs font-mono text-amber-800 bg-amber-500/10 border border-amber-600/25 rounded-xl px-4 py-3';
-        banner.textContent = '⚠ Complete text fields, check boxes, and select at least 1 tooth in 3D.';
-      }
-    }
+    // Map of selected teeth: toothCode (e.g. 'UR1') -> { product: 'Crown'|'Veneer'|'Bridge', quadrant: 'UR', num: 1, palmerText: '1┘' }
+    const selectedTeeth = new Map();
+    let activeProductTool = 'Crown';
+    let currentFinalShade = 'A1';
+    let currentStumpShade = 'ND1';
+    let isExplodedSeating = false;
 
-    document.querySelectorAll('.rx-input').forEach(el => {
-      el.addEventListener('input', validateForm);
-      el.addEventListener('change', validateForm);
-    });
-
-    function setProduct(prod) {
-      activeProduct = prod;
-      ['Crown', 'Veneer', 'Bridge', 'Remove'].forEach(t => {
-        const el = document.getElementById(`tool-${t}`);
-        if(t === prod) {
-          el.classList.add('active', 'bg-ink', 'text-white');
-          el.classList.remove('bg-surface', 'text-rose-700');
-        } else {
-          el.classList.remove('active', 'bg-ink', 'text-white');
-          el.classList.add('bg-surface');
-          if(t === 'Remove') el.classList.add('text-rose-700');
-        }
-      });
-    }
-
-    function syncShadeColor(shade) {
-      const hex = VITA_HEX[shade] || '#EFECE4';
-      if (ceramicMaterial) ceramicMaterial.color.set(hex);
-      // Update all selected teeth models to match the new global shade
-      // In a more complex app, this would be per-tooth. For this form, we apply globally for aesthetics.
-    }
-
-    // -------------------------------------------------------------------------
-    // 3D MEDICAL VIEWER (THREE.JS)
-    // -------------------------------------------------------------------------
+    // ---------------------------------------------------------------------
+    // 2. THREE.JS 3D ROTATABLE MOUTH & PROSTHETIC INSTALLATION VIEWER
+    // ---------------------------------------------------------------------
     let scene, camera, renderer, controls;
-    let maxillaGroup, mandibleGroup;
-    let isExploded = false;
-    
-    // Medical Materials
-    const dentinMaterial = new THREE.MeshPhysicalMaterial({ color: '#E6DAC0', roughness: 0.5, clearcoat: 0.1 });
-    const ceramicMaterial = new THREE.MeshPhysicalMaterial({ 
-      color: '#EFECE4', roughness: 0.1, transmission: 0.75, thickness: 1.5, ior: 1.55, clearcoat: 1.0 
-    });
-    const jawMaterial = new THREE.MeshPhysicalMaterial({ 
-      color: '#ffffff', transmission: 0.9, opacity: 1, transparent: true, roughness: 0.3 
-    });
-    const gingivaMaterial = new THREE.MeshPhysicalMaterial({ 
-      color: '#D97E8A', transmission: 0.4, thickness: 2.0, roughness: 0.4, clearcoat: 0.3 
-    });
+    let upperJawGroup, lowerJawGroup, bridgeConnectorGroup;
+    const toothObjectsMap = new Map(); // code -> { rootGroup, naturalMesh, stumpMesh, crownMesh, veneerMesh, labelAnchor, isUpper, archIdx, quadrant, num }
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    const pickableMeshes = [];
 
-    const teethMeshes = []; // Raycast targets
-    const toothRegistry = new Map(); // code -> { group, dentin, ceramic, quadrant, num, isUpper }
+    // Shared Materials
+    let naturalEnamelMaterial, preparedStumpMaterial, prostheticCeramicMaterial, gumMaterial;
+    let crownRingMat, veneerRingMat, bridgeRingMat;
 
-    function init3D() {
-      const canvas = document.getElementById('mouth-3d-canvas');
+    function formatPalmerAscii(quadrant, num) {
+      if (quadrant === 'UR') return `${num}┘`;
+      if (quadrant === 'UL') return `└${num}`;
+      if (quadrant === 'LR') return `${num}┐`;
+      return `┌${num}`;
+    }
+
+    function createAnatomicalToothGeometry(toothNum, isUpper, scaleOverride = 1.0) {
+      const geo = new THREE.CylinderGeometry(0.46, 0.34, 1.15, 28, 16);
+      const pos = geo.attributes.position;
+
+      // Anatomical dimensions by tooth number (1=Central Incisor ... 8=3rd Molar)
+      const mesioDistal = [0, 0.88, 0.70, 0.80, 0.78, 0.78, 1.12, 1.04, 0.92][toothNum] * scaleOverride;
+      const labioLingual = [0, 0.56, 0.52, 0.74, 0.88, 0.90, 1.08, 1.04, 0.95][toothNum] * scaleOverride;
+      const crownHeight = [0, 1.12, 0.98, 1.18, 0.95, 0.92, 0.88, 0.84, 0.78][toothNum] * scaleOverride;
+
+      for (let i = 0; i < pos.count; i++) {
+        let x = pos.getX(i);
+        let y = pos.getY(i);
+        let z = pos.getZ(i);
+
+        // Normalize height t from 0 (cervical root base) to 1 (incisal/occlusal tip)
+        const t = (y + 0.575) / 1.15;
+
+        // Cervical constriction & anatomical labial belly
+        const bulge = Math.sin(t * Math.PI) * 0.22 + (1 - t) * 0.05;
+        let rx = x * mesioDistal * (1 + bulge);
+        let rz = z * labioLingual * (1 + bulge);
+        let ry = y * crownHeight;
+
+        if (toothNum <= 2) {
+          // Chisel-shaped Incisor: flatten labiolingually towards incisal edge
+          const pinch = Math.max(0.18, 1 - Math.pow(t, 1.65) * 0.78);
+          rz *= pinch;
+          // Slight labial curvature
+          if (z > 0) rz += Math.sin(t * Math.PI) * 0.08 * scaleOverride;
+        } else if (toothNum === 3) {
+          // Pointed Canine cusp
+          const cuspFactor = 1 - Math.pow(t, 1.9) * 0.58;
+          rx *= cuspFactor;
+          rz *= cuspFactor;
+          if (t > 0.75) {
+            const peak = Math.max(0, 1 - Math.hypot(x, z) * 2.1);
+            ry += peak * 0.22 * scaleOverride;
+          }
+        } else if (toothNum === 4 || toothNum === 5) {
+          // Bicuspid Premolar (buccal + lingual cusps with central groove)
+          if (t > 0.68) {
+            const groove = Math.cos(z * 6.5) * 0.09 * ((t - 0.68) / 0.32);
+            ry += groove * scaleOverride;
+          }
+        } else {
+          // Multi-cusp Molar (4 cusps + central occlusal fossa)
+          if (t > 0.65) {
+            const cusps = (Math.cos(x * 5.8) + Math.cos(z * 5.8)) * 0.075 * ((t - 0.65) / 0.35);
+            ry += cusps * scaleOverride;
+          }
+        }
+
+        // Flip vertical orientation for upper arch so occlusal/incisal faces downward
+        if (isUpper) {
+          ry = -ry;
+        }
+
+        pos.setXYZ(i, rx, ry, rz);
+      }
+
+      geo.computeVertexNormals();
+      return geo;
+    }
+
+    function createLabialVeneerGeometry(toothNum, isUpper) {
+      const geo = createAnatomicalToothGeometry(toothNum, isUpper, 1.04);
+      const pos = geo.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        let x = pos.getX(i);
+        let y = pos.getY(i);
+        let z = pos.getZ(i);
+        // Compress lingual side so veneer forms a thin facial ceramic laminate shell
+        if (z < 0.05) {
+          z = 0.05 + z * 0.12;
+        }
+        pos.setXYZ(i, x, y, z + 0.045);
+      }
+      geo.computeVertexNormals();
+      return geo;
+    }
+
+    function getArchCoordinates(quadrant, toothNum) {
+      // Parabolic dental arch curve from 1 (Central Incisor) to 8 (3rd Molar)
+      const archStep = [0, 0.44, 1.24, 2.08, 2.95, 3.85, 4.88, 6.02, 7.12][toothNum];
+      const u = archStep / 7.12;
+      const sign = (quadrant === 'UR' || quadrant === 'LR') ? -1 : 1;
+
+      const x = sign * (Math.sin(u * 1.22) * 3.45 + u * 0.55);
+      const z = Math.cos(u * 1.38) * 3.85 - 1.15;
+
+      // Tangent angle so labial/buccal surface faces outward along the dental arch
+      const rotY = sign * (u * 1.28);
+      return { x, z, rotY };
+    }
+
+    function buildGingivaArchMesh(isUpper) {
+      const curvePoints = [];
+      for (let i = -16; i <= 16; i++) {
+        const u = Math.abs(i) / 16;
+        const sign = i < 0 ? -1 : 1;
+        const x = sign * (Math.sin(u * 1.22) * 3.45 + u * 0.55);
+        const z = Math.cos(u * 1.38) * 3.85 - 1.15;
+        const y = isUpper ? 0.62 : -0.62;
+        curvePoints.push(new THREE.Vector3(x, y, z));
+      }
+      const archCurve = new THREE.CatmullRomCurve3(curvePoints);
+      const tubeGeo = new THREE.TubeGeometry(archCurve, 64, 0.56, 20, false);
+      // Slightly scale vertically for natural alveolar ridge contour
+      tubeGeo.scale(1, 0.82, 1);
+      return new THREE.Mesh(tubeGeo, gumMaterial);
+    }
+
+    function initMouth3DViewer() {
+      const container = document.getElementById('mouth-3d-canvas');
+      if (!container) return;
+
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+
       scene = new THREE.Scene();
-      
-      camera = new THREE.PerspectiveCamera(35, canvas.clientWidth / canvas.clientHeight, 0.1, 100);
-      camera.position.set(0, 0, 14);
+
+      camera = new THREE.PerspectiveCamera(36, width / height, 0.1, 100);
+      camera.position.set(0, 0.6, 11.2);
 
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-      renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+      renderer.setSize(width, height);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      canvas.appendChild(renderer.domElement);
+      renderer.outputEncoding = THREE.sRGBEncoding;
+      container.appendChild(renderer.domElement);
 
       controls = new THREE.OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
-      controls.minDistance = 6;
-      controls.maxDistance = 20;
+      controls.dampingFactor = 0.07;
+      controls.minDistance = 5.5;
+      controls.maxDistance = 17;
+      controls.target.set(0, 0, 0.6);
 
-      // Studio Lighting for Photorealism
-      scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-      const key = new THREE.DirectionalLight(0xffeedd, 1.2); key.position.set(5, 5, 8); scene.add(key);
-      const fill = new THREE.DirectionalLight(0xddeeff, 0.6); fill.position.set(-5, -2, 5); scene.add(fill);
-      const rim = new THREE.DirectionalLight(0xffffff, 0.8); rim.position.set(0, 8, -10); scene.add(rim);
+      // Studio Clinical Lighting
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+      scene.add(ambientLight);
 
-      maxillaGroup = new THREE.Group(); maxillaGroup.position.y = 0.5;
-      mandibleGroup = new THREE.Group(); mandibleGroup.position.y = -0.5;
-      scene.add(maxillaGroup, mandibleGroup);
+      const keyLight = new THREE.DirectionalLight(0xfffbf2, 0.95);
+      keyLight.position.set(5, 8, 9);
+      scene.add(keyLight);
 
-      // Build Ghosted Jaws & Scalloped Gingiva
-      buildJawAnatomy(maxillaGroup, true);
-      buildJawAnatomy(mandibleGroup, false);
+      const fillLight = new THREE.DirectionalLight(0xdbeafe, 0.45);
+      fillLight.position.set(-6, -4, 7);
+      scene.add(fillLight);
 
-      // Build High-Fidelity Teeth
-      buildArch('UR', true); buildArch('UL', true);
-      buildArch('LR', false); buildArch('LL', false);
+      const rimLight = new THREE.DirectionalLight(0xfde68a, 0.4);
+      rimLight.position.set(0, 6, -8);
+      scene.add(rimLight);
 
-      // Raycaster
-      const raycaster = new THREE.Raycaster();
-      const pointer = new THREE.Vector2();
+      // Dental Materials
+      naturalEnamelMaterial = new THREE.MeshPhysicalMaterial({
+        color: new THREE.Color('#E6DEC8'),
+        roughness: 0.24,
+        metalness: 0.02,
+        clearcoat: 0.85,
+        clearcoatRoughness: 0.15
+      });
 
-      canvas.addEventListener('pointerdown', (e) => {
-        const rect = canvas.getBoundingClientRect();
-        pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-        pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-        
-        raycaster.setFromCamera(pointer, camera);
-        const hits = raycaster.intersectObjects(teethMeshes);
-        if (hits.length > 0) {
-          handleToothClick(hits[0].object.userData.code);
+      preparedStumpMaterial = new THREE.MeshPhysicalMaterial({
+        color: new THREE.Color(STUMP_SHADE_HEX[currentStumpShade]),
+        roughness: 0.45,
+        metalness: 0.02,
+        clearcoat: 0.2
+      });
+
+      prostheticCeramicMaterial = new THREE.MeshPhysicalMaterial({
+        color: new THREE.Color(VITA_SHADE_HEX[currentFinalShade]),
+        roughness: 0.12,
+        metalness: 0.03,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.08
+      });
+
+      gumMaterial = new THREE.MeshPhysicalMaterial({
+        color: new THREE.Color('#D97E8A'),
+        roughness: 0.48,
+        metalness: 0.01,
+        clearcoat: 0.35,
+        clearcoatRoughness: 0.3
+      });
+
+      crownRingMat = new THREE.MeshBasicMaterial({ color: 0xFBBF24 });
+      veneerRingMat = new THREE.MeshBasicMaterial({ color: 0x2DD4BF });
+      bridgeRingMat = new THREE.MeshBasicMaterial({ color: 0x38BDF8 });
+
+      // Upper and Lower Jaw Groups ( hinged at TMJ condyles in back )
+      upperJawGroup = new THREE.Group();
+      lowerJawGroup = new THREE.Group();
+      bridgeConnectorGroup = new THREE.Group();
+
+      upperJawGroup.position.set(0, 0.55, 0);
+      lowerJawGroup.position.set(0, -0.55, 0);
+
+      scene.add(upperJawGroup);
+      scene.add(lowerJawGroup);
+      scene.add(bridgeConnectorGroup);
+
+      // Add Gingiva Arches
+      upperJawGroup.add(buildGingivaArchMesh(true));
+      lowerJawGroup.add(buildGingivaArchMesh(false));
+
+      // Build All 32 Anatomical Teeth
+      const quadrants = [
+        { q: 'UR', isUpper: true },
+        { q: 'UL', isUpper: true },
+        { q: 'LR', isUpper: false },
+        { q: 'LL', isUpper: false }
+      ];
+
+      quadrants.forEach(({ q, isUpper }) => {
+        for (let num = 1; num <= 8; num++) {
+          const code = `${q}${num}`;
+          const { x, z, rotY } = getArchCoordinates(q, num);
+
+          const toothRoot = new THREE.Group();
+          toothRoot.position.set(x, 0, z);
+          toothRoot.rotation.y = rotY;
+
+          // 1. Intact Natural Tooth Mesh
+          const natGeo = createAnatomicalToothGeometry(num, isUpper, 1.0);
+          const naturalMesh = new THREE.Mesh(natGeo, naturalEnamelMaterial);
+          naturalMesh.userData = { toothCode: code };
+          toothRoot.add(naturalMesh);
+          pickableMeshes.push(naturalMesh);
+
+          // 2. Prepared Inner Abutment Stump Mesh (Visible when Crown or Bridge is assigned)
+          const stumpGeo = createAnatomicalToothGeometry(num, isUpper, 0.66);
+          const stumpMesh = new THREE.Mesh(stumpGeo, preparedStumpMaterial);
+          stumpMesh.visible = false;
+          stumpMesh.userData = { toothCode: code };
+          toothRoot.add(stumpMesh);
+
+          // 3. Prosthetic Full-Coverage Crown / Bridge Unit Mesh
+          const crownGeo = createAnatomicalToothGeometry(num, isUpper, 1.04);
+          const crownMesh = new THREE.Mesh(crownGeo, prostheticCeramicMaterial);
+          crownMesh.visible = false;
+          crownMesh.userData = { toothCode: code };
+          toothRoot.add(crownMesh);
+          pickableMeshes.push(crownMesh);
+
+          // 4. Prosthetic Labial Porcelain Veneer Shell Mesh
+          const veneerGeo = createLabialVeneerGeometry(num, isUpper);
+          const veneerMesh = new THREE.Mesh(veneerGeo, prostheticCeramicMaterial);
+          veneerMesh.visible = false;
+          veneerMesh.userData = { toothCode: code };
+          toothRoot.add(veneerMesh);
+          pickableMeshes.push(veneerMesh);
+
+          // 5. Cervical Margin Collar Ring (Color-coded by Crown/Veneer/Bridge)
+          const ringGeo = new THREE.TorusGeometry(0.28, 0.032, 12, 32);
+          ringGeo.rotateX(Math.PI / 2);
+          const marginRing = new THREE.Mesh(ringGeo, crownRingMat);
+          marginRing.position.y = isUpper ? 0.35 : -0.35;
+          marginRing.visible = false;
+          toothRoot.add(marginRing);
+
+          // 6. 3D Anchor Point for Floating Palmer Notation Label above incisal/occlusal edge
+          const labelAnchor = new THREE.Object3D();
+          labelAnchor.position.set(0, isUpper ? -0.78 : 0.78, 0.25);
+          toothRoot.add(labelAnchor);
+
+          if (isUpper) upperJawGroup.add(toothRoot);
+          else lowerJawGroup.add(toothRoot);
+
+          // Ordered index along each arch (0..15 from Right 8 to Left 8) permits bridge span calculation
+          const archIdx = (q === 'UR' || q === 'LR') ? (8 - num) : (7 + num);
+
+          toothObjectsMap.set(code, {
+            code,
+            quadrant: q,
+            num,
+            isUpper,
+            archIdx,
+            toothRoot,
+            naturalMesh,
+            stumpMesh,
+            crownMesh,
+            veneerMesh,
+            marginRing,
+            labelAnchor
+          });
         }
       });
 
-      window.addEventListener('resize', () => {
-        camera.aspect = canvas.clientWidth / canvas.clientHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+      // Set initial comfortable jaw opening
+      setJawOpeningAngle(28);
+
+      // Pointer Hover & Click Listeners on 3D Canvas
+      let pointerDownPos = { x: 0, y: 0 };
+      renderer.domElement.addEventListener('pointerdown', (e) => {
+        pointerDownPos = { x: e.clientX, y: e.clientY };
       });
 
-      animate();
-    }
+      renderer.domElement.addEventListener('pointermove', onMouthPointerMove);
 
-    // Procedural Ghosted Jaw & Gingiva (Image 1 Guide)
-    function buildJawAnatomy(parentGroup, isUpper) {
-      const curvePts = [];
-      for(let i=-10; i<=10; i++) {
-        const u = Math.abs(i)/10;
-        const sign = i<0 ? -1 : 1;
-        curvePts.push(new THREE.Vector3(sign*(u*4.2), isUpper?0.8:-0.8, Math.pow(u, 1.5)*5.5 - 1.5));
-      }
-      const curve = new THREE.CatmullRomCurve3(curvePts);
-      
-      // Gingiva
-      const gumGeo = new THREE.TubeGeometry(curve, 32, 0.9, 16, false);
-      const gum = new THREE.Mesh(gumGeo, gingivaMaterial);
-      parentGroup.add(gum);
-
-      // Translucent Bone
-      const boneGeo = new THREE.TubeGeometry(curve, 32, 1.4, 16, false);
-      const bone = new THREE.Mesh(boneGeo, jawMaterial);
-      bone.position.y = isUpper ? 1.0 : -1.0;
-      parentGroup.add(bone);
-    }
-
-    // High-Fidelity Procedural Tooth Generation (Dual Layer: Dentin Core + Enamel Shell)
-    function buildArch(quadrant, isUpper) {
-      for (let num=1; num<=8; num++) {
-        const code = `${quadrant}${num}`;
-        const u = num / 8;
-        const sign = (quadrant === 'UR' || quadrant === 'LR') ? -1 : 1;
-        
-        // Arch Positioning Math
-        const x = sign * (u * 3.8);
-        const z = Math.pow(u, 1.5) * 5.0 - 1.2;
-        const rotY = sign * (u * 1.1);
-
-        const group = new THREE.Group();
-        group.position.set(x, 0, z);
-        group.rotation.y = rotY;
-
-        // Base geometry mapped to tooth shapes
-        const geo = new THREE.CylinderGeometry(1, 1, 1, 32, 32);
-        const pos = geo.attributes.position;
-        
-        // Dentin Core (Prepared Stump)
-        const dentinGeo = geo.clone();
-        const dPos = dentinGeo.attributes.position;
-        
-        for(let i=0; i<pos.count; i++) {
-          let vx = pos.getX(i), vy = pos.getY(i), vz = pos.getZ(i);
-          const t = vy + 0.5; // 0 (root tip) to 1 (crown edge)
-          
-          // Root tapering
-          let r = 1.0;
-          if (t < 0.4) r = (t/0.4); 
-          else if (t > 0.8) r = 1.0 - (t-0.8)*0.5;
-
-          // Anatomical width scaling (incisors vs molars)
-          const width = num <= 3 ? 0.8 : (num <= 5 ? 1.0 : 1.4);
-          const depth = num <= 3 ? 0.6 : 1.2;
-          
-          let nx = vx * r * width;
-          let nz = vz * r * depth;
-          let ny = (t - 0.5) * 2.8; // Total height
-
-          if (isUpper) ny = -ny;
-
-          pos.setXYZ(i, nx, ny, nz);
-          
-          // Dentin is smaller in the crown area (prepared)
-          let dx = nx, dy = ny, dz = nz;
-          if (t >= 0.4) { dx *= 0.75; dz *= 0.75; if(isUpper) dy += 0.2; else dy -= 0.2; }
-          dPos.setXYZ(i, dx, dy, dz);
+      renderer.domElement.addEventListener('pointerup', (e) => {
+        const dist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
+        if (dist < 6) {
+          onMouthClick(e);
         }
-        
-        geo.computeVertexNormals();
-        dentinGeo.computeVertexNormals();
+      });
 
-        const dentinMesh = new THREE.Mesh(dentinGeo, dentinMaterial);
-        const enamelMesh = new THREE.Mesh(geo, ceramicMaterial);
-        
-        // Raycast target attached to enamel
-        enamelMesh.userData = { code };
-        teethMeshes.push(enamelMesh);
+      renderer.domElement.addEventListener('pointerleave', () => {
+        document.getElementById('mouth-hover-tooltip').classList.add('hidden');
+      });
 
-        group.add(dentinMesh);
-        group.add(enamelMesh);
-        
-        toothRegistry.set(code, { group, dentin: dentinMesh, enamel: enamelMesh, quadrant, num, isUpper });
-        
-        if (isUpper) maxillaGroup.add(group);
-        else mandibleGroup.add(group);
+      window.addEventListener('resize', onMouthResize);
+
+      // Start Render Loop
+      animateMouth3D();
+    }
+
+    function onMouthPointerMove(e) {
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+      raycaster.setFromCamera(pointer, camera);
+      const intersects = raycaster.intersectObjects(pickableMeshes, false);
+      const tooltip = document.getElementById('mouth-hover-tooltip');
+
+      if (intersects.length > 0) {
+        const code = intersects[0].object.userData.toothCode;
+        const tObj = toothObjectsMap.get(code);
+        if (tObj) {
+          renderer.domElement.style.cursor = 'pointer';
+          const palmerSym = formatPalmerAscii(tObj.quadrant, tObj.num);
+          const currentAssign = selectedTeeth.get(code);
+          tooltip.innerHTML = `<span class="font-bold">${palmerSym}</span> (${code} · ${TOOTH_NAMES[tObj.num]}) ${currentAssign ? `<span class="text-amber-700 font-semibold">[${currentAssign.product}]</span>` : `→ Click to assign ${activeProductTool}`}`;
+          tooltip.style.left = `${e.clientX - rect.left}px`;
+          tooltip.style.top = `${e.clientY - rect.top - 12}px`;
+          tooltip.classList.remove('hidden');
+          return;
+        }
+      }
+      renderer.domElement.style.cursor = 'grab';
+      tooltip.classList.add('hidden');
+    }
+
+    function onMouthClick(e) {
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+      raycaster.setFromCamera(pointer, camera);
+      const intersects = raycaster.intersectObjects(pickableMeshes, false);
+      if (intersects.length > 0) {
+        const code = intersects[0].object.userData.toothCode;
+        toggleToothAssignment(code);
       }
     }
 
-    // Handle 3D Interaction
-    function handleToothClick(code) {
-      const tooth = toothRegistry.get(code);
-      if (!tooth) return;
+    function toggleToothAssignment(code, forcedProduct = null) {
+      const tObj = toothObjectsMap.get(code);
+      if (!tObj) return;
 
-      if (activeProduct === 'Remove') {
+      const toolToApply = forcedProduct || activeProductTool;
+      const existing = selectedTeeth.get(code);
+
+      if (toolToApply === 'Remove' || (existing && existing.product === toolToApply && !forcedProduct)) {
+        // Restore tooth to healthy natural state
         selectedTeeth.delete(code);
-        // Reset to natural state (enamel down, dentin unchanged)
-        gsap.to(tooth.enamel.position, { y: 0, duration: 0.4, ease: 'power2.out' });
-        tooth.enamel.material = ceramicMaterial; // Default
+        tObj.naturalMesh.visible = true;
+        tObj.stumpMesh.visible = false;
+        tObj.crownMesh.visible = false;
+        tObj.veneerMesh.visible = false;
+        tObj.marginRing.visible = false;
       } else {
-        const mat = document.getElementById('rx-material-select').value;
-        const shade = document.getElementById('rx-shade-select').value;
-        
-        selectedTeeth.set(code, { product: activeProduct, material: mat, shade: shade, toothRef: tooth });
-        
-        // Explode seating animation if in exploded view, else just snap/wobble
-        const dir = tooth.isUpper ? -1 : 1;
-        if (isExploded) {
-          gsap.to(tooth.enamel.position, { y: dir * 1.5, duration: 0.5, ease: 'back.out(1.5)' });
-        } else {
-          gsap.fromTo(tooth.enamel.position, { y: dir * 0.3 }, { y: 0, duration: 0.4, ease: 'bounce.out' });
+        const palmerText = formatPalmerAscii(tObj.quadrant, tObj.num);
+        selectedTeeth.set(code, {
+          code,
+          quadrant: tObj.quadrant,
+          num: tObj.num,
+          product: toolToApply,
+          palmerText
+        });
+
+        const dir = tObj.isUpper ? -1 : 1;
+        const targetOffset = isExplodedSeating ? dir * 0.42 : 0;
+
+        if (toolToApply === 'Crown' || toolToApply === 'Bridge') {
+          tObj.naturalMesh.visible = false;
+          tObj.stumpMesh.visible = true;
+          tObj.veneerMesh.visible = false;
+          tObj.crownMesh.visible = true;
+          tObj.marginRing.visible = true;
+          tObj.marginRing.material = toolToApply === 'Crown' ? crownRingMat : bridgeRingMat;
+
+          // Animate prosthetic crown/bridge unit seating onto the prepared tooth stump
+          gsap.fromTo(
+            tObj.crownMesh.position,
+            { y: dir * 0.52 },
+            { y: targetOffset, duration: 0.55, ease: 'back.out(1.4)' }
+          );
+        } else if (toolToApply === 'Veneer') {
+          tObj.naturalMesh.visible = true;
+          tObj.stumpMesh.visible = false;
+          tObj.crownMesh.visible = false;
+          tObj.veneerMesh.visible = true;
+          tObj.marginRing.visible = true;
+          tObj.marginRing.material = veneerRingMat;
+
+          gsap.fromTo(
+            tObj.veneerMesh.position,
+            { z: 0.42, y: 0 },
+            { z: isExplodedSeating ? 0.32 : 0, y: 0, duration: 0.5, ease: 'power3.out' }
+          );
         }
       }
-      
-      updateLogistics();
+
+      rebuildBridgeConnectors();
+      rebuildFloatingPalmerDOMPins();
+      updateToothSummaryUI();
+      autoSyncRestorationCheckboxes();
+      validatePrescriptionForm();
     }
 
-    function toggleExplode() {
-      isExploded = !isExploded;
-      selectedTeeth.forEach((data) => {
-        const t = data.toothRef;
-        const dir = t.isUpper ? -1 : 1;
-        gsap.to(t.enamel.position, { y: isExploded ? dir * 1.5 : 0, duration: 0.6, ease: 'power2.inOut' });
+    // Build 3D interproximal ceramic connectors between Bridge units on the same arch
+    function rebuildBridgeConnectors() {
+      while (bridgeConnectorGroup.children.length > 0) {
+        bridgeConnectorGroup.remove(bridgeConnectorGroup.children[0]);
+      }
+
+      ['upper', 'lower'].forEach((arch) => {
+        const isUpper = arch === 'upper';
+        const bridgeUnits = Array.from(selectedTeeth.values())
+          .filter((item) => item.product === 'Bridge')
+          .map((item) => toothObjectsMap.get(item.code))
+          .filter((tObj) => tObj.isUpper === isUpper)
+          .sort((a, b) => a.archIdx - b.archIdx);
+
+        for (let i = 0; i < bridgeUnits.length - 1; i++) {
+          const unitA = bridgeUnits[i];
+          const unitB = bridgeUnits[i + 1];
+          // Connect adjacent or 1-tooth-span bridge units
+          if (unitB.archIdx - unitA.archIdx <= 2) {
+            const worldA = new THREE.Vector3();
+            const worldB = new THREE.Vector3();
+            unitA.crownMesh.getWorldPosition(worldA);
+            unitB.crownMesh.getWorldPosition(worldB);
+
+            const distance = worldA.distanceTo(worldB);
+            const connectorGeo = new THREE.CylinderGeometry(0.16, 0.16, distance, 16);
+            connectorGeo.rotateX(Math.PI / 2);
+
+            const connectorMesh = new THREE.Mesh(connectorGeo, prostheticCeramicMaterial);
+            connectorMesh.position.copy(worldA).lerp(worldB, 0.5);
+            connectorMesh.lookAt(worldB);
+            bridgeConnectorGroup.add(connectorMesh);
+          }
+        }
       });
     }
 
-    function setCam(view) {
-      const pos = { anterior: [0,0,14], upper: [0,10,6], lower: [0,-10,6] }[view];
-      gsap.to(camera.position, { x: pos[0], y: pos[1], z: pos[2], duration: 1, ease: 'power3.inOut' });
-      gsap.to(controls.target, { x: 0, y: 0, z: 0, duration: 1, ease: 'power3.inOut' });
+    // Rebuild Floating Palmer Notation DOM Pins above selected teeth
+    function rebuildFloatingPalmerDOMPins() {
+      const container = document.getElementById('palmer-floating-labels');
+      container.innerHTML = '';
+
+      selectedTeeth.forEach((info, code) => {
+        const pin = document.createElement('div');
+        pin.id = `palmer-pin-${code}`;
+        pin.className = 'palmer-pin rounded-lg bg-ink/95 text-white border border-white/25 px-2 py-1 text-[10px] font-mono whitespace-nowrap flex items-center gap-1.5';
+
+        const badgeColor =
+          info.product === 'Crown'
+            ? 'bg-amber-400 text-ink'
+            : info.product === 'Veneer'
+            ? 'bg-teal-400 text-ink'
+            : 'bg-sky-400 text-ink';
+
+        pin.innerHTML = `
+          <span class="palmer-q-${info.quadrant} font-bold text-white">${info.num}</span>
+          <span class="text-white/75">${code}</span>
+          <span class="rounded px-1 py-0.2 text-[9px] font-bold uppercase ${badgeColor}">${info.product}</span>
+        `;
+        container.appendChild(pin);
+      });
     }
 
-    // -------------------------------------------------------------------------
-    // RENDER LOOP & NON-OCCLUDING PALMER LABELS (SVG LEADER LINES)
-    // -------------------------------------------------------------------------
-    function animate() {
-      requestAnimationFrame(animate);
-      if(controls) controls.update();
-      if(renderer) {
-        renderer.render(scene, camera);
-        updateFloatingLabels();
-      }
-    }
-
-    function getPalmerAscii(q, n) {
-      if (q === 'UR') return `${n}┘`; if (q === 'UL') return `└${n}`;
-      if (q === 'LR') return `${n}┐`; return `┌${n}`;
-    }
-
-    function updateFloatingLabels() {
-      const container = document.getElementById('palmer-labels-container');
-      const svg = document.getElementById('leader-lines-svg');
-      if (!container || !svg || !camera) return;
-
+    function updateFloatingPalmerPinPositions() {
+      if (!renderer || selectedTeeth.size === 0) return;
       const width = renderer.domElement.clientWidth;
       const height = renderer.domElement.clientHeight;
-      
-      let html = '';
-      let svgLines = '';
+      const tempV = new THREE.Vector3();
 
-      selectedTeeth.forEach((data, code) => {
-        const t = data.toothRef;
-        const vec = new THREE.Vector3();
-        // Get world position of the crown
-        t.enamel.getWorldPosition(vec);
-        vec.project(camera);
+      selectedTeeth.forEach((info, code) => {
+        const pin = document.getElementById(`palmer-pin-${code}`);
+        const tObj = toothObjectsMap.get(code);
+        if (!pin || !tObj) return;
 
-        if (vec.z > 1) return; // Behind camera
+        tObj.labelAnchor.getWorldPosition(tempV);
+        tempV.project(camera);
 
-        const sx = (vec.x * 0.5 + 0.5) * width;
-        const sy = (-(vec.y * 0.5) + 0.5) * height;
+        if (tempV.z > 1) {
+          pin.style.opacity = '0';
+          return;
+        }
 
-        // Offset the DOM label significantly to prevent occlusion (Image 1 guidance)
-        const offsetY = t.isUpper ? -70 : 70; 
-        const lx = sx;
-        const ly = sy + offsetY;
+        const x = (tempV.x * 0.5 + 0.5) * width;
+        const y = (-(tempV.y * 0.5) + 0.5) * height;
 
-        // Badge Styling based on product
-        const badgeColor = data.product === 'Crown' ? 'bg-amber-400 text-ink' : (data.product === 'Veneer' ? 'bg-teal-400 text-ink' : 'bg-sky-400 text-ink');
-
-        html += `
-          <div class="palmer-pin rounded-lg bg-ink/95 text-white border border-borderWarm px-2 py-1.5 flex items-center gap-1.5" style="left: ${lx}px; top: ${ly}px;">
-            <span class="palmer-q-${t.quadrant} font-bold text-sm">${t.num}</span>
-            <span class="text-white/60 text-[10px]">${code}</span>
-            <span class="rounded px-1 text-[9px] font-bold uppercase ${badgeColor}">${data.product}</span>
-          </div>
-        `;
-
-        // SVG Leader Line from Label (lx, ly) to Tooth (sx, sy)
-        svgLines += `<line x1="${lx}" y1="${t.isUpper ? ly+15 : ly-15}" x2="${sx}" y2="${sy}" class="leader-line" />`;
+        pin.style.opacity = '1';
+        pin.style.left = `${x}px`;
+        pin.style.top = `${y}px`;
       });
-
-      container.innerHTML = html;
-      svg.innerHTML = svgLines;
     }
 
-    // -------------------------------------------------------------------------
-    // FORM SUBMISSION TO MODAL
-    // -------------------------------------------------------------------------
-    function submitPrescription(e) {
-      e.preventDefault();
-      
-      const rxId = 'KDD-' + Date.now().toString().slice(-6);
-      const dentist = document.getElementById('rx-dentist').value;
-      const practice = document.getElementById('rx-practice').value;
-      const patient = document.getElementById('rx-patient').value;
-      const gender = document.getElementById('rx-gender').value;
-      const notes = document.getElementById('rx-notes').value;
-      const encls = Array.from(document.querySelectorAll('input[name="rx_encl"]:checked')).map(el => el.value).join(', ');
-      
-      const dispatch = document.getElementById('calc-date').textContent;
+    function animateMouth3D() {
+      requestAnimationFrame(animateMouth3D);
+      if (controls) controls.update();
+      if (renderer && scene && camera) {
+        renderer.render(scene, camera);
+        updateFloatingPalmerPinPositions();
+      }
+    }
 
-      let teethHTML = '';
-      selectedTeeth.forEach((data, code) => {
-        teethHTML += `<span class="inline-block bg-canvas border border-borderWarm rounded px-2 py-1 mr-2 mb-2 font-mono text-xs">
-          <strong>${getPalmerAscii(data.toothRef.quadrant, data.toothRef.num)} (${code})</strong>: ${data.product} · ${data.material} · Vita ${data.shade}
-        </span>`;
+    function onMouthResize() {
+      const container = document.getElementById('mouth-3d-canvas');
+      if (!container || !renderer || !camera) return;
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+
+    // ---------------------------------------------------------------------
+    // 3. 3D VIEWER CONTROLS (PRODUCTS, CAMERA PRESETS, SHADE & EXPLODE)
+    // ---------------------------------------------------------------------
+    function setActiveProductTool(tool) {
+      activeProductTool = tool;
+      ['Crown', 'Veneer', 'Bridge', 'Remove'].forEach((t) => {
+        const btn = document.getElementById(`tool-btn-${t}`);
+        if (!btn) return;
+        if (t === tool) {
+          btn.className = 'product-tool-btn rounded-full border-2 border-amber-400 bg-amber-400 text-ink px-4 py-2 text-xs font-semibold flex items-center gap-2 transition-all shadow-md';
+        } else {
+          btn.className = 'product-tool-btn rounded-full border border-white/25 bg-white/5 hover:bg-white/15 text-white px-4 py-2 text-xs font-medium flex items-center gap-2 transition-all';
+        }
       });
+    }
+
+    function setJawOpeningAngle(val) {
+      if (!upperJawGroup || !lowerJawGroup) return;
+      const deg = Number(val);
+      const spread = (deg / 48) * 0.88;
+      upperJawGroup.position.y = 0.35 + spread;
+      lowerJawGroup.position.y = -0.35 - spread;
+      upperJawGroup.rotation.x = -(deg * 0.0045);
+      lowerJawGroup.rotation.x = deg * 0.0065;
+      setTimeout(rebuildBridgeConnectors, 20);
+    }
+
+    function setMouthCamera(view) {
+      if (!camera || !controls) return;
+      const presets = {
+        anterior: { pos: [0, 0.5, 11.2], target: [0, 0, 0.8] },
+        upper:    { pos: [0, 9.2, 3.2],  target: [0, 0.5, 0] },
+        lower:    { pos: [0, -9.2, 3.2], target: [0, -0.5, 0] },
+        buccal:   { pos: [9.8, 0.6, 4.2], target: [0, 0, 0.4] }
+      };
+      const p = presets[view] || presets.anterior;
+      gsap.to(camera.position, { x: p.pos[0], y: p.pos[1], z: p.pos[2], duration: 0.75, ease: 'power2.out' });
+      gsap.to(controls.target, { x: p.target[0], y: p.target[1], z: p.target[2], duration: 0.75, ease: 'power2.out' });
+    }
+
+    function toggleProsthesisSeating() {
+      isExplodedSeating = !isExplodedSeating;
+      const btn = document.getElementById('explode-prosthesis-btn');
+      btn.textContent = isExplodedSeating ? '⇅ Seat Prosthetics on Abutments' : '⇅ Lift / Seat Prosthetics';
+
+      selectedTeeth.forEach((info, code) => {
+        const tObj = toothObjectsMap.get(code);
+        if (!tObj) return;
+        const dir = tObj.isUpper ? -1 : 1;
+        if (info.product === 'Crown' || info.product === 'Bridge') {
+          gsap.to(tObj.crownMesh.position, {
+            y: isExplodedSeating ? dir * 0.45 : 0,
+            duration: 0.5,
+            ease: 'power2.inOut',
+            onUpdate: rebuildBridgeConnectors
+          });
+        } else if (info.product === 'Veneer') {
+          gsap.to(tObj.veneerMesh.position, {
+            z: isExplodedSeating ? 0.34 : 0,
+            duration: 0.5,
+            ease: 'power2.inOut'
+          });
+        }
+      });
+    }
+
+    function loadDemoBridgeAndCrown() {
+      clearAllTeeth();
+      // Mirrors the reference video: a 3-unit Posterior Bridge (LR5-LR6-LR7) + Single Anterior/Premolar Crown (UL1 & UR4)
+      toggleToothAssignment('LR5', 'Bridge');
+      toggleToothAssignment('LR6', 'Bridge');
+      toggleToothAssignment('LR7', 'Bridge');
+      toggleToothAssignment('UR1', 'Crown');
+      toggleToothAssignment('UL1', 'Veneer');
+      setMouthCamera('buccal');
+    }
+
+    function syncFinalShadeFromForm(shadeCode) {
+      if (!shadeCode) {
+        validatePrescriptionForm();
+        return;
+      }
+      currentFinalShade = shadeCode;
+      const hex = VITA_SHADE_HEX[shadeCode] || '#EFECE4';
+      document.getElementById('3d-shade-select').value = shadeCode;
+      document.getElementById('rx-shade-swatch').style.backgroundColor = hex;
+      document.getElementById('3d-shade-swatch').style.backgroundColor = hex;
+      document.getElementById('rx-selected-shade-readout').textContent = `Final Shade: Vita ${shadeCode}`;
+      if (prostheticCeramicMaterial) {
+        prostheticCeramicMaterial.color.set(hex);
+      }
+      validatePrescriptionForm();
+    }
+
+    function syncFinalShadeFrom3D(shadeCode) {
+      document.getElementById('rx-shade').value = shadeCode;
+      syncFinalShadeFromForm(shadeCode);
+    }
+
+    function syncStumpShade(stumpCode) {
+      if (!stumpCode) {
+        validatePrescriptionForm();
+        return;
+      }
+      currentStumpShade = stumpCode;
+      const hex = STUMP_SHADE_HEX[stumpCode] || '#EFE8D5';
+      if (preparedStumpMaterial) {
+        preparedStumpMaterial.color.set(hex);
+      }
+      validatePrescriptionForm();
+    }
+
+    function clearAllTeeth() {
+      Array.from(selectedTeeth.keys()).forEach((code) => {
+        toggleToothAssignment(code, 'Remove');
+      });
+    }
+
+    function updateToothSummaryUI() {
+      const count = selectedTeeth.size;
+      const badge = document.getElementById('rx-selected-teeth-badge');
+      const pillsContainer = document.getElementById('rx-selected-teeth-pills');
+
+      badge.textContent = `${count} Unit${count === 1 ? '' : 's'} Selected`;
+
+      if (count === 0) {
+        pillsContainer.innerHTML = `<span class="text-xs text-white/50 italic">No teeth selected yet. Click any tooth on the 3D mouth model above to prescribe a Crown, Veneer, or Bridge.</span>`;
+        return;
+      }
+
+      pillsContainer.innerHTML = '';
+      selectedTeeth.forEach((info, code) => {
+        const pill = document.createElement('span');
+        pill.className = 'inline-flex items-center gap-1.5 rounded-full bg-white/10 border border-white/20 px-3 py-1 text-xs font-mono text-white';
+        pill.innerHTML = `
+          <strong class="text-amber-300">${info.palmerText}</strong>
+          <span>(${code})</span>
+          <span class="text-white/70">· ${info.product}</span>
+          <button type="button" onclick="toggleToothAssignment('${code}', 'Remove')" class="ml-1 text-white/50 hover:text-rose-300" title="Remove ${code}">✕</button>
+        `;
+        pillsContainer.appendChild(pill);
+      });
+    }
+
+    function autoSyncRestorationCheckboxes() {
+      if (selectedTeeth.size > 0) {
+        const anyChecked = document.querySelectorAll('input[name="rx_restoration"]:checked').length > 0;
+        if (!anyChecked) {
+          document.getElementById('rx-rest-emax').checked = true;
+        }
+      }
+    }
+
+    // ---------------------------------------------------------------------
+    // 4. STRICT 100% FORM VALIDATION GATE
+    // ---------------------------------------------------------------------
+    function validatePrescriptionForm() {
+      const dentist = document.getElementById('rx-dentist').value.trim();
+      const practice = document.getElementById('rx-practice').value.trim();
+      const email = document.getElementById('rx-email').value.trim();
+      const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      const phone = document.getElementById('rx-phone').value.trim();
+      const surname = document.getElementById('rx-patient-surname').value.trim();
+      const forename = document.getElementById('rx-patient-forename').value.trim();
+      const gender = document.querySelector('input[name="rx_gender"]:checked');
+      const prepDate = document.getElementById('rx-prep-date').value;
+      const returnDate = document.getElementById('rx-return-date').value;
+      const datesLogical = Boolean(prepDate && returnDate && returnDate >= prepDate);
+      const shade = document.getElementById('rx-shade').value.trim();
+      const stumpShade = document.getElementById('rx-stump-shade').value.trim();
+      const shadeLoc = document.querySelector('input[name="rx_shade_location"]:checked');
+
+      const restorations = document.querySelectorAll('input[name="rx_restoration"]:checked');
+      const otherCeramicChecked = document.getElementById('rx-rest-ceramic-other').checked;
+      const otherRestChecked = document.getElementById('rx-rest-other').checked;
+      const otherSpecifyWrap = document.getElementById('rx-other-specify-wrap');
+      const otherSpecifyInput = document.getElementById('rx-other-specify');
+
+      const needsOtherSpecify = otherCeramicChecked || otherRestChecked;
+      otherSpecifyWrap.classList.toggle('hidden', !needsOtherSpecify);
+      const otherSpecifyValid = !needsOtherSpecify || otherSpecifyInput.value.trim().length > 0;
+
+      const workingTime = document.querySelector('input[name="rx_working_time"]:checked');
+      const teethSelected = selectedTeeth.size > 0;
+      const enclosures = document.querySelectorAll('input[name="rx_enclosure"]:checked');
+      const instructions = document.getElementById('rx-instructions').value.trim();
+      const coshh = document.getElementById('rx-coshh-confirm').checked;
+
+      const checks = [
+        { ok: dentist.length > 0, label: 'Dentist Name' },
+        { ok: practice.length > 0, label: 'Practice Name' },
+        { ok: emailValid, label: 'Valid Practice Email' },
+        { ok: phone.length > 0, label: 'Practice Phone' },
+        { ok: surname.length > 0, label: 'Patient Surname' },
+        { ok: forename.length > 0, label: 'Patient Forename' },
+        { ok: Boolean(gender), label: 'Patient Gender' },
+        { ok: datesLogical, label: 'Prep & Return Dates' },
+        { ok: shade.length > 0, label: 'Final Shade Dropdown' },
+        { ok: stumpShade.length > 0, label: 'Stump Shade Dropdown' },
+        { ok: Boolean(shadeLoc), label: 'Shade Location' },
+        { ok: restorations.length > 0 && otherSpecifyValid, label: 'Material System (Sec 7)' },
+        { ok: Boolean(workingTime), label: 'Working Time (Sec 10)' },
+        { ok: teethSelected, label: '3D Mouth Tooth Selection (Sec 9)' },
+        { ok: enclosures.length > 0, label: 'Enclosures (Sec 11)' },
+        { ok: instructions.length > 0, label: 'Special Instructions' },
+        { ok: coshh, label: 'COSHH Declaration' }
+      ];
+
+      const completedCount = checks.filter((c) => c.ok).length;
+      const pct = Math.round((completedCount / checks.length) * 100);
+      const missing = checks.filter((c) => !c.ok).map((c) => c.label);
+
+      document.getElementById('rx-progress-pct').textContent = `${pct}%`;
+      document.getElementById('rx-progress-bar').style.width = `${pct}%`;
+
+      const submitBtn = document.getElementById('rx-submit-btn');
+      const banner = document.getElementById('rx-validation-banner');
+      const hint = document.getElementById('rx-missing-hint');
+
+      if (missing.length === 0) {
+        submitBtn.disabled = false;
+        banner.className = 'text-xs font-mono text-emerald-800 bg-emerald-500/15 border border-emerald-600/30 rounded-xl px-4 py-3';
+        banner.textContent = '✓ All 17 prescription requirements verified (including 3D Palmer Notation). Ready to submit.';
+        hint.textContent = '100% Complete — Ready to submit.';
+      } else {
+        submitBtn.disabled = true;
+        banner.className = 'text-xs font-mono text-amber-800 bg-amber-500/10 border border-amber-600/25 rounded-xl px-4 py-3';
+        banner.textContent = `⚠ Incomplete (${missing.length} remaining): ${missing.slice(0, 4).join(', ')}${missing.length > 4 ? '...' : ''}`;
+        hint.textContent = `Missing: ${missing.slice(0, 3).join(', ')}${missing.length > 3 ? ` +${missing.length - 3} more` : ''}`;
+      }
+
+      return missing.length === 0;
+    }
+
+    // Submit Digital Prescription & Open M.D.D. Compliant Printable Docket Modal
+    function submitDigitalPrescription(e) {
+      e.preventDefault();
+      if (!validatePrescriptionForm()) return;
+
+      const rxId = 'KDD-' + Date.now().toString().slice(-6);
+      const dentist = document.getElementById('rx-dentist').value.trim();
+      const practice = document.getElementById('rx-practice').value.trim();
+      const email = document.getElementById('rx-email').value.trim();
+      const phone = document.getElementById('rx-phone').value.trim();
+      const patient = `${document.getElementById('rx-patient-forename').value.trim()} ${document.getElementById('rx-patient-surname').value.trim()}`;
+      const gender = document.querySelector('input[name="rx_gender"]:checked').value;
+      const prepDate = document.getElementById('rx-prep-date').value;
+      const returnDate = document.getElementById('rx-return-date').value;
+      const shade = document.getElementById('rx-shade').value.trim();
+      const stumpShade = document.getElementById('rx-stump-shade').value.trim();
+      const shadeLoc = document.querySelector('input[name="rx_shade_location"]:checked').value;
+
+      const restList = Array.from(document.querySelectorAll('input[name="rx_restoration"]:checked')).map((el) => el.value);
+      const otherSpec = document.getElementById('rx-other-specify').value.trim();
+      if (otherSpec) restList.push(`Spec: ${otherSpec}`);
+
+      const workingTime = document.querySelector('input[name="rx_working_time"]:checked').value;
+      const teethDetailedList = Array.from(selectedTeeth.values())
+        .map((info) => `${info.palmerText} (${info.code}: ${info.product})`)
+        .join(' · ');
+
+      const enclosureList = Array.from(document.querySelectorAll('input[name="rx_enclosure"]:checked')).map((el) => el.value).join(', ');
+      const instructions = document.getElementById('rx-instructions').value.trim();
 
       const modal = document.getElementById('kdd-modal');
-      document.getElementById('modal-body').innerHTML = `
-        <div class="border-b border-borderWarm pb-4 mb-5">
-          <span class="text-xs font-mono uppercase tracking-widest text-emerald-700 font-semibold">✓ 3D Prescription Logged · Ref ${rxId}</span>
-          <h3 class="text-2xl font-medium mt-1">Digital Prescription Summary</h3>
+      const body = document.getElementById('modal-body');
+
+      body.innerHTML = `
+        <div class="border-b border-borderWarm pb-4 flex items-center justify-between">
+          <div>
+            <span class="text-xs font-mono uppercase tracking-widest text-emerald-700 font-semibold block">✓ 3D Digital Prescription Logged · Ref ${rxId}</span>
+            <h3 class="text-2xl font-medium mt-0.5">Knight Dental Design — Digital Prescription Summary</h3>
+          </div>
+          <span class="text-xs font-mono text-muted">MHRA Reg. CA 003175</span>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-          <div><strong class="text-xs uppercase text-muted block mb-0.5">Prescriber</strong>${dentist}<br/>${practice}</div>
-          <div><strong class="text-xs uppercase text-muted block mb-0.5">Patient</strong>${patient} (${gender})</div>
-          <div class="sm:col-span-2"><strong class="text-xs uppercase text-muted block mb-1">3D Restorations (${selectedTeeth.size} Units)</strong>${teethHTML}</div>
-          <div><strong class="text-xs uppercase text-muted block mb-0.5">Est. Dispatch</strong>${dispatch}</div>
-          <div><strong class="text-xs uppercase text-muted block mb-0.5">Enclosures</strong>${encls}</div>
-          <div class="sm:col-span-2"><strong class="text-xs uppercase text-muted block mb-0.5">Clinical Notes</strong>${notes}</div>
+
+        <div class="my-5 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-canvas rounded-2xl p-5 border border-borderWarm">
+          <div><span class="text-muted block font-mono uppercase text-[10px]">1. Dentist &amp; 2. Practice</span><strong class="text-ink">${dentist} — ${practice}</strong><br/><span class="text-muted">${email} · ${phone}</span></div>
+          <div><span class="text-muted block font-mono uppercase text-[10px]">3. Patient</span><strong class="text-ink">${patient} (${gender})</strong></div>
+          <div><span class="text-muted block font-mono uppercase text-[10px]">4. Prep Date &amp; 5. Return Date</span><strong class="text-ink">Prep: ${prepDate} → Return: ${returnDate}</strong></div>
+          <div><span class="text-muted block font-mono uppercase text-[10px]">6. Final Shade &amp; Stump Shade</span><strong class="text-ink">Final: Vita ${shade} | Stump: ${stumpShade}</strong><br/><span class="text-muted">${shadeLoc}</span></div>
+          <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">9. 3D Palmer Notation &amp; Product Schedule (${selectedTeeth.size} Units)</span><strong class="text-ink font-mono">${teethDetailedList}</strong></div>
+          <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">7. Alloy / Ceramic System</span><strong class="text-ink">${restList.join(' · ')}</strong></div>
+          <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">10. Working Times</span><strong class="text-ink">${workingTime}</strong></div>
+          <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">11. Enclosures</span><strong class="text-ink">${enclosureList}</strong></div>
+          <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">Special Instructions</span><p class="text-ink mt-0.5">${instructions}</p></div>
         </div>
-        <div class="mt-6 pt-4 border-t border-borderWarm flex justify-end gap-3 no-print">
-          <button onclick="window.print()" class="rounded-full border border-ink px-5 py-2 text-xs font-semibold hover:bg-canvas">Print / Save PDF</button>
-          <button onclick="closeModal()" class="rounded-full bg-ink text-white px-5 py-2 text-xs font-semibold">Done</button>
+
+        <p class="text-[11px] text-muted leading-relaxed mb-5">
+          A copy of this document may be offered to the patient to comply with the M.D.D. Patient Statement Regulations 2007. Knight Dental Design Ltd, 92 Swingate Lane, Plumstead Common, London SE18 2HL (Tel: 020 8316 6248 · info@kdduk.net).
+        </p>
+
+        <div class="no-print flex flex-wrap items-center justify-end gap-3">
+          <button onclick="window.print()" class="rounded-full border border-ink px-5 py-2.5 text-xs font-semibold text-ink hover:bg-canvas transition-colors">
+            Print / Save M.D.D. Statement PDF
+          </button>
+          <button onclick="closeModal()" class="rounded-full bg-ink text-white px-6 py-2.5 text-xs font-semibold hover:bg-ink/90 transition-colors">
+            Done
+          </button>
         </div>
       `;
-      modal.classList.remove('hidden'); modal.classList.add('flex');
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    // ---------------------------------------------------------------------
+    // 5. PAGE ANIMATIONS, HERO PILLS & WORKING TIMES CALCULATOR
+    // ---------------------------------------------------------------------
+    const lenis = new Lenis({
+      duration: 1.15,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+    });
+
+    gsap.registerPlugin(ScrollTrigger);
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add((time) => lenis.raf(time * 1000));
+    gsap.ticker.lagSmoothing(0);
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initMouth3DViewer();
+
+      document.querySelectorAll('#kdd-rx-form .rx-input').forEach((input) => {
+        input.addEventListener('input', validatePrescriptionForm);
+        input.addEventListener('change', validatePrescriptionForm);
+      });
+      validatePrescriptionForm();
+
+      gsap.from('.hero-reveal', {
+        y: 32,
+        opacity: 0,
+        duration: 1,
+        stagger: 0.14,
+        ease: 'power3.out',
+      });
+
+      gsap.to('#hero-bg', {
+        scale: 1.14,
+        yPercent: 6,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: 'header',
+          start: 'top top',
+          end: 'bottom top',
+          scrub: true,
+        }
+      });
+
+      gsap.utils.toArray('.reveal-up').forEach((el) => {
+        gsap.from(el, {
+          y: 36,
+          opacity: 0,
+          duration: 0.85,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: el,
+            start: 'top 86%',
+          }
+        });
+      });
+
+      updateDispatchDate(7);
+    });
+
+    document.querySelectorAll('.spotlight-card').forEach((card) => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        card.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+        card.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+      });
+    });
+
+    document.querySelectorAll('[data-magnetic]').forEach((btn) => {
+      btn.addEventListener('mousemove', (e) => {
+        const rect = btn.getBoundingClientRect();
+        const x = (e.clientX - rect.left - rect.width / 2) * 0.22;
+        const y = (e.clientY - rect.top - rect.height / 2) * 0.22;
+        btn.style.transform = `translate(${x}px, ${y}px)`;
+      });
+      btn.addEventListener('mouseleave', () => {
+        btn.style.transform = 'translate(0px, 0px)';
+      });
+    });
+
+    const HERO_SERVICES = {
+      veneers: {
+        tag: '01 / PORCELAIN VENEERS',
+        text: 'Hand-layered porcelain & IPS e.max veneers crafted with digital smile simulation and in-studio colour matching for natural translucency.'
+      },
+      implants: {
+        tag: '02 / IMPLANT DENTISTRY',
+        text: 'Dental implants are surgically placed in your jawbone as the roots of missing teeth—restored by our lab across 9 major implant systems.'
+      },
+      crowns: {
+        tag: '03 / ALL-CERAMIC CROWNS',
+        text: 'High-strength Zirconia, IPS e.max, and precious metal-ceramic crowns engineered for optimal marginal fit and lifelike emergence profiles.'
+      },
+      bridges: {
+        tag: '04 / RESTORATIVE BRIDGES',
+        text: 'Precision tooth-borne and implant-supported bridgework designed with CAD-CAM frameworks and master ceramist aesthetics.'
+      },
+      digital: {
+        tag: '05 / DIGITAL DENTISTRY',
+        text: 'Direct chairside connection via 3Shape Communicate, Sirona Connect, iTero, and Carestream to advise on preps and digital impressions.'
+      }
+    };
+
+    function selectHeroService(key) {
+      const data = HERO_SERVICES[key];
+      if (!data) return;
+
+      document.querySelectorAll('.hero-pill').forEach((btn) => {
+        const isMatch = btn.getAttribute('data-pill') === key;
+        btn.className = isMatch
+          ? 'hero-pill rounded-full border border-white bg-white text-ink px-5 py-2 text-xs sm:text-sm font-medium transition-all'
+          : 'hero-pill rounded-full border border-white/50 bg-black/15 text-white/90 hover:border-white hover:bg-white/15 px-5 py-2 text-xs sm:text-sm font-normal backdrop-blur-sm transition-all';
+      });
+
+      const leftGlass = document.getElementById('hero-left-glass');
+      gsap.fromTo(leftGlass, { opacity: 0.6, y: 4 }, { opacity: 1, y: 0, duration: 0.3 });
+      document.getElementById('glass-service-tag').textContent = data.tag;
+      document.getElementById('glass-service-text').textContent = data.text;
+    }
+
+    const HERO_SPOTLIGHTS = [
+      {
+        label: 'Intro Offer',
+        overline: 'FOR NEW CLIENT DENTISTS',
+        metric: 'Up to £500',
+        desc: 'Claim a 15% introductory discount (up to £500) on your first aesthetic, implant, or digital restorations with Knight Dental Design.',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80'
+      },
+      {
+        label: 'LifeTime Lingual™',
+        overline: 'CAD-CAM CERAMIC RETAINER',
+        metric: '1.0mm Thin',
+        desc: 'Developed with Inman Orthodontics. No wires or metal pads—precision milled in high-strength ceramic hybrid with Essix location jig.',
+        avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80'
+      },
+      {
+        label: 'Paula Hamilton',
+        overline: 'PATIENT CASE STUDY',
+        metric: '6× Lab Winner',
+        desc: 'Full smile rejuvenation combining studio macro shade photography, trial smile planning, and bespoke hand-layered porcelain.',
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80'
+      }
+    ];
+    let spotlightIdx = 0;
+
+    function cycleHeroSpotlight() {
+      spotlightIdx = (spotlightIdx + 1) % HERO_SPOTLIGHTS.length;
+      const item = HERO_SPOTLIGHTS[spotlightIdx];
+      const rightGlass = document.getElementById('hero-right-glass');
+      gsap.fromTo(rightGlass, { opacity: 0.65, scale: 0.98 }, { opacity: 1, scale: 1, duration: 0.3 });
+
+      document.getElementById('spotlight-pill-label').textContent = item.label;
+      document.getElementById('spotlight-overline').textContent = item.overline;
+      document.getElementById('spotlight-metric').textContent = item.metric;
+      document.getElementById('spotlight-desc').textContent = item.desc;
+      document.getElementById('spotlight-avatar').src = item.avatar;
+    }
+
+    let essixVisible = true;
+    function setLtlShade(code, hex, title) {
+      document.getElementById('ltl-ceramic-bar').setAttribute('stroke', hex);
+      document.getElementById('ltl-shade-title').textContent = title;
+    }
+
+    function toggleEssixJig() {
+      essixVisible = !essixVisible;
+      const jig = document.getElementById('svg-essix-jig');
+      const btn = document.getElementById('jig-toggle-btn');
+      jig.style.opacity = essixVisible ? '1' : '0.12';
+      btn.textContent = `Essix Location Jig: ${essixVisible ? 'ON' : 'OFF'}`;
+    }
+
+    let currentCaseSize = 'small';
+    let currentExpress = 'standard';
+
+    function setTurnaround(size) {
+      currentCaseSize = size;
+      ['small', 'large', 'implant'].forEach((k) => {
+        const btn = document.getElementById(`turn-btn-${k}`);
+        btn.className = k === size
+          ? 'turn-btn rounded-2xl border border-ink bg-ink text-white p-3.5 text-left transition-all'
+          : 'turn-btn rounded-2xl border border-borderWarm bg-canvas text-ink p-3.5 text-left hover:border-ink transition-all';
+      });
+      if (size !== 'small') setExpressTier('standard');
+      else recalculateTurnaround();
+    }
+
+    function setExpressTier(tier) {
+      currentExpress = tier;
+      ['standard', '5day', '3day'].forEach((k) => {
+        const btn = document.getElementById(`exp-${k}`);
+        btn.className = k === tier
+          ? 'exp-btn rounded-full bg-ink text-white px-3.5 py-1 font-medium transition-all'
+          : 'exp-btn rounded-full text-muted px-3.5 py-1 font-medium transition-all';
+      });
+      recalculateTurnaround();
+    }
+
+    function recalculateTurnaround() {
+      let days = 7;
+      let dispatchLabel = 'Day 8';
+
+      if (currentCaseSize === 'small') {
+        if (currentExpress === '5day') { days = 5; dispatchLabel = 'Day 6 (+25%)'; }
+        else if (currentExpress === '3day') { days = 3; dispatchLabel = 'Day 4 (+50%)'; }
+        else { days = 7; dispatchLabel = 'Day 8'; }
+      } else if (currentCaseSize === 'large') {
+        days = 9;
+        dispatchLabel = 'Day 10';
+      } else {
+        days = 10;
+        dispatchLabel = 'Day 11';
+      }
+
+      document.getElementById('calc-days').textContent = `${days} Working Days`;
+      document.getElementById('calc-dispatch').textContent = dispatchLabel;
+      updateDispatchDate(days + 1);
+    }
+
+    function updateDispatchDate(workingDaysToAdd) {
+      const date = new Date();
+      let added = 0;
+      while (added < workingDaysToAdd) {
+        date.setDate(date.getDate() + 1);
+        const day = date.getDay();
+        if (day !== 0 && day !== 6) added++;
+      }
+      const formatted = date.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+      document.getElementById('calc-date').textContent = formatted;
+    }
+
+    function handleDentistFinder(e) {
+      e.preventDefault();
+      const pc = document.getElementById('finder-postcode').value.trim().toUpperCase();
+      const msg = document.getElementById('finder-feedback');
+      msg.textContent = `✓ Thank you. Our team at 92 Swingate Lane (SE18) will match your postcode (${pc}) with our nearest client dental practice.`;
+      msg.classList.remove('hidden');
+    }
+
+    function openModal(type) {
+      const modal = document.getElementById('kdd-modal');
+      const body = document.getElementById('modal-body');
+      if (type === 'dentist') {
+        body.innerHTML = `
+          <span class="text-xs font-mono uppercase tracking-widest text-gold block">Clinician Dispatch &amp; Logistics</span>
+          <h3 class="text-2xl font-medium mt-1">Send a Digital Scan or Impression</h3>
+          <p class="text-xs text-muted mt-2 leading-relaxed">
+            Connect directly via <strong>3Shape Communicate</strong> or <strong>Sirona Connect</strong> (search <em>Knight Dental Design / info@kdduk.net</em>), complete our 3D online prescription form, or download our Freepost White Box label below.
+          </p>
+          <div class="mt-5 space-y-2.5 text-xs">
+            <a href="#digital-prescription" onclick="closeModal()" class="flex justify-between rounded-xl border border-ink bg-ink text-white p-3.5 font-semibold hover:bg-ink/90">
+              <span>1. Complete 3D Online Digital Prescription Form</span><span>→</span>
+            </a>
+            <a href="https://www.knightdentaldesign.co.uk/what-we-do/dentist-information/downloads/" target="_blank" class="flex justify-between rounded-xl border border-borderWarm bg-canvas p-3.5 font-semibold hover:border-ink">
+              <span>2. Download Royal Mail FREEPOST White Box Label</span><span>↓</span>
+            </a>
+            <div class="rounded-xl border border-borderWarm bg-canvas p-3.5">
+              <strong>3. Book Free UPS Next-Day Brown Box Courier:</strong>
+              <p class="text-muted mt-1">Call the Lab Admin Team on <strong>020 8316 6248</strong> for facebow or multi-unit collections.</p>
+            </div>
+          </div>
+        `;
+      }
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function openCaseModal(person) {
+      const stories = {
+        paula: {
+          name: 'Paula Hamilton — Smile Makeover',
+          detail: 'Paula visited Knight Dental Design’s London studio for portrait & macro shade photography, diagnostic trial smile planning, and hand-layered ceramic restorations crafted to restore natural facial support.'
+        },
+        jade: {
+          name: 'Jade — Porcelain Veneers & Digital Smile Design',
+          detail: 'Using Digital Smile Analysis and Golden Proportion calibration, Jade’s smile was transformed with minimal-prep translucent porcelain veneers matched in our in-house studio.'
+        },
+        elliot: {
+          name: 'Elliot — Reconstructive Crowns',
+          detail: 'Elliot’s worn anterior teeth were rehabilitated using high-strength all-ceramic crowns, restoring occlusal harmony, incisal length, and natural enamel characterization.'
+        }
+      };
+      const item = stories[person];
+      const modal = document.getElementById('kdd-modal');
+      const body = document.getElementById('modal-body');
+      body.innerHTML = `
+        <span class="text-xs font-mono uppercase tracking-widest text-gold block">Knight Dental Case Study</span>
+        <h3 class="text-2xl font-medium mt-1">${item.name}</h3>
+        <p class="text-sm text-muted mt-3 leading-relaxed">${item.detail}</p>
+        <div class="mt-6 flex justify-end">
+          <button onclick="closeModal(); document.getElementById('find-dentist').scrollIntoView({behavior:'smooth'});" class="rounded-full bg-ink text-white px-6 py-2.5 text-xs font-semibold">
+            Enquire About a Similar Smile →
+          </button>
+        </div>
+      `;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
     }
 
     function closeModal() {
-      document.getElementById('kdd-modal').classList.add('hidden');
-      document.getElementById('kdd-modal').classList.remove('flex');
+      const modal = document.getElementById('kdd-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
     }
-
-    // Init
-    window.addEventListener('DOMContentLoaded', () => {
-      init3D();
-      validateForm();
-    });
   </script>
 </body>
 </html>
