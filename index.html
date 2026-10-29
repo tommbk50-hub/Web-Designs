@@ -918,7 +918,7 @@
     .dental-planner-section {
       position: relative;
       color: var(--ink);
-      font-family: inherit;
+      font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
     /* Floating tooth context menu (click-to-edit material/shade) */
@@ -1399,7 +1399,7 @@
             <input id="tooth-return-date" type="date" />
           </div>
           <div class="tooth-context-menu-row">
-            <label for="tooth-shade-select">Final Tooth Shade (Vita) *</label>
+            <label for="tooth-shade-select">Final Tooth Shade (Vita; optional if taken at lab)</label>
             <select id="tooth-shade-select">
               <option value="">Select shade...</option>
               <optgroup label="Vita Bleach">
@@ -1592,6 +1592,7 @@
             }
 
             viewer.addEventListener('click', (event) => {
+              if (typeof viewer.materialFromPoint !== 'function') return;
               const material = viewer.materialFromPoint(event.clientX, event.clientY);
               const tooth = toothFromMaterial(material);
               if (!tooth) {
@@ -1643,6 +1644,7 @@
               if (!menu.contains(event.target) && !viewer.contains(event.target)) menu.style.display = 'none';
             });
             viewer.addEventListener('mousemove', (event) => {
+              if (typeof viewer.materialFromPoint !== 'function') return;
               const material = viewer.materialFromPoint(event.clientX, event.clientY);
               if (material === hoveredMaterial) return;
               const previous = hoveredMaterial;
@@ -2360,28 +2362,7 @@
       const surname = document.getElementById('rx-patient-surname').value.trim();
       const forename = document.getElementById('rx-patient-forename').value.trim();
       const gender = document.querySelector('input[name="rx_gender"]:checked');
-      const prepDate = document.getElementById('rx-prep-date').value;
-      const returnDate = document.getElementById('rx-return-date').value;
-      const datesLogical = Boolean(prepDate && returnDate && returnDate >= prepDate);
-      const shade = document.getElementById('rx-shade').value.trim();
-      const stumpShade = document.getElementById('rx-stump-shade').value.trim();
-      const shadeLoc = document.querySelector('input[name="rx_shade_location"]:checked');
-
-      const restorations = document.querySelectorAll('input[name="rx_restoration"]:checked');
-      const otherCeramicChecked = document.getElementById('rx-rest-ceramic-other').checked;
-      const otherRestChecked = document.getElementById('rx-rest-other').checked;
-      const otherSpecifyWrap = document.getElementById('rx-other-specify-wrap');
-      const otherSpecifyInput = document.getElementById('rx-other-specify');
-
-      const needsOtherSpecify = otherCeramicChecked || otherRestChecked;
-      otherSpecifyWrap.classList.toggle('hidden', !needsOtherSpecify);
-      const otherSpecifyValid = !needsOtherSpecify || otherSpecifyInput.value.trim().length > 0;
-
-      const workingTime = document.querySelector('input[name="rx_working_time"]:checked');
-      const teethSelected = selectedTeeth.size > 0;
-      const enclosures = document.querySelectorAll('input[name="rx_enclosure"]:checked');
-      const instructions = document.getElementById('rx-instructions').value.trim();
-      const coshh = document.getElementById('rx-coshh-confirm').checked;
+      const plans = prescribedTeeth();
 
       const checks = [
         { ok: dentist.length > 0, label: 'Dentist Name' },
@@ -2391,16 +2372,8 @@
         { ok: surname.length > 0, label: 'Patient Surname' },
         { ok: forename.length > 0, label: 'Patient Forename' },
         { ok: Boolean(gender), label: 'Patient Gender' },
-        { ok: datesLogical, label: 'Prep & Return Dates' },
-        { ok: shade.length > 0, label: 'Final Shade Dropdown' },
-        { ok: stumpShade.length > 0, label: 'Stump Shade Dropdown' },
-        { ok: Boolean(shadeLoc), label: 'Shade Location' },
-        { ok: restorations.length > 0 && otherSpecifyValid, label: 'Material System (Sec 7)' },
-        { ok: Boolean(workingTime), label: 'Working Time (Sec 10)' },
-        { ok: teethSelected, label: '3D Mouth Tooth Selection (Sec 9)' },
-        { ok: enclosures.length > 0, label: 'Enclosures (Sec 11)' },
-        { ok: instructions.length > 0, label: 'Special Instructions' },
-        { ok: coshh, label: 'COSHH Declaration' }
+        { ok: plans.length > 0, label: 'Tooth Treatment' },
+        { ok: plans.length > 0 && plans.every(isToothPlanComplete), label: 'Treatment, Dates & Shades for Each Tooth' }
       ];
 
       const completedCount = checks.filter((c) => c.ok).length;
@@ -2417,8 +2390,8 @@
       if (missing.length === 0) {
         submitBtn.disabled = false;
         banner.className = 'text-xs font-mono text-emerald-800 bg-emerald-500/15 border border-emerald-600/30 rounded-xl px-4 py-3';
-        banner.textContent = '✓ All 17 prescription requirements verified (including 3D Palmer Notation). Ready to submit.';
-        hint.textContent = '100% Complete — Ready to submit.';
+        banner.textContent = `✓ All ${checks.length} prescription requirements verified. Ready to review.`;
+        hint.textContent = '100% Complete — Ready to review.';
       } else {
         submitBtn.disabled = true;
         banner.className = 'text-xs font-mono text-amber-800 bg-amber-500/10 border border-amber-600/25 rounded-xl px-4 py-3';
@@ -2429,35 +2402,30 @@
       return missing.length === 0;
     }
 
-    // Submit Digital Prescription & Open M.D.D. Compliant Printable Docket Modal
+    // Review the prescription in a printable docket modal
     function submitDigitalPrescription(e) {
       e.preventDefault();
       if (!validatePrescriptionForm()) return;
 
       const rxId = 'KDD-' + Date.now().toString().slice(-6);
-      const dentist = document.getElementById('rx-dentist').value.trim();
-      const practice = document.getElementById('rx-practice').value.trim();
-      const email = document.getElementById('rx-email').value.trim();
-      const phone = document.getElementById('rx-phone').value.trim();
-      const patient = `${document.getElementById('rx-patient-forename').value.trim()} ${document.getElementById('rx-patient-surname').value.trim()}`;
-      const gender = document.querySelector('input[name="rx_gender"]:checked').value;
-      const prepDate = document.getElementById('rx-prep-date').value;
-      const returnDate = document.getElementById('rx-return-date').value;
-      const shade = document.getElementById('rx-shade').value.trim();
-      const stumpShade = document.getElementById('rx-stump-shade').value.trim();
-      const shadeLoc = document.querySelector('input[name="rx_shade_location"]:checked').value;
-
-      const restList = Array.from(document.querySelectorAll('input[name="rx_restoration"]:checked')).map((el) => el.value);
-      const otherSpec = document.getElementById('rx-other-specify').value.trim();
-      if (otherSpec) restList.push(`Spec: ${otherSpec}`);
-
-      const workingTime = document.querySelector('input[name="rx_working_time"]:checked').value;
-      const teethDetailedList = Array.from(selectedTeeth.values())
-        .map((info) => `${info.palmerText} (${info.code}: ${info.product})`)
-        .join(' · ');
-
-      const enclosureList = Array.from(document.querySelectorAll('input[name="rx_enclosure"]:checked')).map((el) => el.value).join(', ');
-      const instructions = document.getElementById('rx-instructions').value.trim();
+      const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (char) =>
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+      const value = (id) => escapeHtml(document.getElementById(id).value.trim());
+      const dentist = value('rx-dentist');
+      const practice = value('rx-practice');
+      const email = value('rx-email');
+      const phone = value('rx-phone');
+      const patient = `${value('rx-patient-forename')} ${value('rx-patient-surname')}`;
+      const gender = escapeHtml(document.querySelector('input[name="rx_gender"]:checked').value);
+      const plans = prescribedTeeth();
+      const planRows = plans.map((plan) => `
+        <div class="sm:col-span-2 border-t border-borderWarm pt-3">
+          <strong class="text-ink">${escapeHtml(plan.label)} (${escapeHtml(plan.code)}) · ${escapeHtml(plan.product)}</strong>
+          <p class="text-muted mt-1">Material: ${escapeHtml(plan.material)} · Final shade: ${escapeHtml(plan.shade ? `Vita ${plan.shade}` : 'Taken at lab')} · Stump: ${escapeHtml(plan.stumpShade)}</p>
+          <p class="text-muted">Prep: ${escapeHtml(plan.prepDate)} → Laboratory return: ${escapeHtml(plan.returnDate)} · ${escapeHtml(plan.shadeLocation)}</p>
+          ${plan.notes ? `<p class="text-ink whitespace-pre-wrap mt-1">Clinical notes: ${escapeHtml(plan.notes)}</p>` : ''}
+        </div>
+      `).join('');
 
       const modal = document.getElementById('kdd-modal');
       const body = document.getElementById('modal-body');
@@ -2465,7 +2433,7 @@
       body.innerHTML = `
         <div class="border-b border-borderWarm pb-4 flex items-center justify-between">
           <div>
-            <span class="text-xs font-mono uppercase tracking-widest text-emerald-700 font-semibold block">✓ 3D Digital Prescription Logged · Ref ${rxId}</span>
+            <span class="text-xs font-mono uppercase tracking-widest text-emerald-700 font-semibold block">3D Digital Prescription Review · Ref ${rxId}</span>
             <h3 class="text-2xl font-medium mt-0.5">Knight Dental Design — Digital Prescription Summary</h3>
           </div>
           <span class="text-xs font-mono text-muted">MHRA Reg. CA 003175</span>
@@ -2474,13 +2442,8 @@
         <div class="my-5 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-canvas rounded-2xl p-5 border border-borderWarm">
           <div><span class="text-muted block font-mono uppercase text-[10px]">1. Dentist &amp; 2. Practice</span><strong class="text-ink">${dentist} — ${practice}</strong><br/><span class="text-muted">${email} · ${phone}</span></div>
           <div><span class="text-muted block font-mono uppercase text-[10px]">3. Patient</span><strong class="text-ink">${patient} (${gender})</strong></div>
-          <div><span class="text-muted block font-mono uppercase text-[10px]">4. Prep Date &amp; 5. Return Date</span><strong class="text-ink">Prep: ${prepDate} → Return: ${returnDate}</strong></div>
-          <div><span class="text-muted block font-mono uppercase text-[10px]">6. Final Shade &amp; Stump Shade</span><strong class="text-ink">Final: Vita ${shade} | Stump: ${stumpShade}</strong><br/><span class="text-muted">${shadeLoc}</span></div>
-          <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">9. 3D Palmer Notation &amp; Product Schedule (${selectedTeeth.size} Units)</span><strong class="text-ink font-mono">${teethDetailedList}</strong></div>
-          <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">7. Alloy / Ceramic System</span><strong class="text-ink">${restList.join(' · ')}</strong></div>
-          <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">10. Working Times</span><strong class="text-ink">${workingTime}</strong></div>
-          <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">11. Enclosures</span><strong class="text-ink">${enclosureList}</strong></div>
-          <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">Special Instructions</span><p class="text-ink mt-0.5">${instructions}</p></div>
+          <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">Upper Arch Treatment Plan (${plans.length} Units)</span></div>
+          ${planRows}
         </div>
 
         <p class="text-[11px] text-muted leading-relaxed mb-5">
@@ -2504,24 +2467,32 @@
     // ---------------------------------------------------------------------
     // 5. PAGE ANIMATIONS, HERO PILLS & WORKING TIMES CALCULATOR
     // ---------------------------------------------------------------------
-    const lenis = new Lenis({
-      duration: 1.15,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      smoothWheel: true,
-    });
-
-    gsap.registerPlugin(ScrollTrigger);
-    lenis.on('scroll', ScrollTrigger.update);
-    gsap.ticker.add((time) => lenis.raf(time * 1000));
-    gsap.ticker.lagSmoothing(0);
-
     window.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('#kdd-rx-form .rx-input').forEach((input) => {
         input.addEventListener('input', validatePrescriptionForm);
         input.addEventListener('change', validatePrescriptionForm);
       });
       validatePrescriptionForm();
+    });
 
+    if (typeof Lenis !== 'undefined' && typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+      const lenis = new Lenis({
+        duration: 1.15,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        smoothWheel: true,
+      });
+
+      gsap.registerPlugin(ScrollTrigger);
+      lenis.on('scroll', ScrollTrigger.update);
+      gsap.ticker.add((time) => lenis.raf(time * 1000));
+      gsap.ticker.lagSmoothing(0);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (typeof gsap === 'undefined') {
+        updateDispatchDate(7);
+        return;
+      }
       gsap.from('.hero-reveal', {
         y: 32,
         opacity: 0,
