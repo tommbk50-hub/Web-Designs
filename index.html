@@ -1361,6 +1361,8 @@
             });
 
             viewer.addEventListener('load', function () {
+              const center = viewer.getBoundingBoxCenter();
+              viewer.setAttribute('camera-target', `${center.x}m ${center.y}m ${center.z}m`);
               console.log('[model-viewer] Model loaded successfully:', viewer.src);
             });
           })();
@@ -1446,109 +1448,214 @@
         </div>
 
         <script>
-          // Click-to-edit tooth materials + hover glow effect.
-          (function () {
-            // Currently hovered material, used to drive the hover glow effect.
+          document.addEventListener('DOMContentLoaded', () => {
+            const viewer = document.getElementById('mouth-glb-viewer');
+            const card = viewer.parentElement;
+            const menu = document.getElementById('tooth-context-menu');
+            const notes = document.getElementById('ui-clinical-notes');
+            const planList = document.getElementById('plan-items-list');
+            const fields = {
+              product: document.getElementById('tooth-procedure-select'),
+              material: document.getElementById('tooth-material-select'),
+              prepDate: document.getElementById('tooth-prep-date'),
+              returnDate: document.getElementById('tooth-return-date'),
+              shade: document.getElementById('tooth-shade-select'),
+              stumpShade: document.getElementById('tooth-stump-shade-select'),
+              shadeLocation: document.getElementById('tooth-shade-location')
+            };
+            const materialLabels = { gold: 'Gold Alloy', npm: 'Non-Precious Metal', emax: 'IPS e.max', zirconia: 'Zirconia' };
+            const originals = new WeakMap();
+            let activeCode = null;
+            let activeMaterial = null;
             let hoveredMaterial = null;
 
-            var viewer = document.getElementById('mouth-glb-viewer');
-            var section = document.getElementById('section-9');
-            var contextMenu = document.getElementById('tooth-context-menu');
-            var materialSelect = document.getElementById('tooth-material-select');
-            var shadeSelect = document.getElementById('tooth-shade-select');
-            var applyBtn = document.getElementById('tooth-context-apply-btn');
-            var closeBtn = document.getElementById('tooth-context-close-btn');
-            if (!viewer || !section || !contextMenu || !applyBtn || !closeBtn) return;
-
-            // Globally scoped reference to the material last clicked by the user.
-            window.activeToothMaterial = null;
-            var activeToothMaterial = null;
-
-            var SHADE_COLORS = {
-              A1: '#EFECE4',
-              A2: '#E8E0CE',
-              A3: '#DFD3BA',
-              B1: '#F0EEE6'
-            };
-
-            function hideContextMenu() {
-              contextMenu.style.display = 'none';
+            function toothFromMaterial(material) {
+              const match = /^ToothMaterial_(\d+)$/.exec(material?.name || '');
+              if (!match) return null;
+              const index = Number(match[1]);
+              if (index < 0 || index > 13) return null;
+              const right = index < 7;
+              const num = right ? 7 - index : index - 6;
+              return { code: `U${right ? 'R' : 'L'}${num}`, label: `Upper ${num} · ${right ? 'Right' : 'Left'}` };
             }
 
-            function showContextMenuAt(clientX, clientY) {
-              var sectionRect = section.getBoundingClientRect();
-              var menuX = clientX - sectionRect.left + 12;
-              var menuY = clientY - sectionRect.top + 12;
-              contextMenu.style.left = menuX + 'px';
-              contextMenu.style.top = menuY + 'px';
-              contextMenu.style.display = 'block';
+            function setHighlight(material) {
+              if (material) {
+                material.setEmissiveFactor(material === activeMaterial ? [0.35, 0.23, 0.06] :
+                  material === hoveredMaterial ? [0.12, 0.09, 0.03] : [0, 0, 0]);
+              }
             }
 
-            viewer.addEventListener('click', function (event) {
-              const clickedMaterial = event.target.materialFromPoint(event.clientX, event.clientY);
-              if (clickedMaterial) {
-                activeToothMaterial = clickedMaterial;
-                window.activeToothMaterial = clickedMaterial;
-                showContextMenuAt(event.clientX, event.clientY);
+            function resetMaterial(material) {
+              const original = originals.get(material);
+              if (!original) return;
+              const pbr = material.pbrMetallicRoughness;
+              pbr.setBaseColorFactor(original.color);
+              pbr.setMetallicFactor(original.metallic);
+              pbr.setRoughnessFactor(original.roughness);
+            }
+
+            function updateMaterial(plan) {
+              const material = plan.modelMaterial;
+              if (!material) return;
+              const pbr = material.pbrMetallicRoughness;
+              if (!originals.has(material)) {
+                originals.set(material, {
+                  color: [...pbr.baseColorFactor],
+                  metallic: pbr.metallicFactor,
+                  roughness: pbr.roughnessFactor
+                });
               }
-            });
-
-            applyBtn.addEventListener('click', function () {
-              if (activeToothMaterial) {
-                var pbr = activeToothMaterial.pbrMetallicRoughness;
-                var shadeColor = SHADE_COLORS[shadeSelect.value];
-
-                switch (materialSelect.value) {
-                  case 'gold':
-                    pbr.setBaseColorFactor('#d4af37');
-                    pbr.setMetallicFactor(1.0);
-                    pbr.setRoughnessFactor(0.25);
-                    break;
-                  case 'npm':
-                    pbr.setBaseColorFactor('#a8a9ad');
-                    pbr.setMetallicFactor(1.0);
-                    pbr.setRoughnessFactor(0.3);
-                    break;
-                  case 'emax':
-                    pbr.setMetallicFactor(0.0);
-                    pbr.setRoughnessFactor(0.1);
-                    pbr.setBaseColorFactor(shadeColor);
-                    break;
-                  case 'zirconia':
-                    pbr.setMetallicFactor(0.0);
-                    pbr.setRoughnessFactor(0.25);
-                    pbr.setBaseColorFactor(shadeColor);
-                    break;
-                }
+              resetMaterial(material);
+              if (!plan.material) return;
+              const shadeColor = VITA_SHADE_HEX[plan.shade];
+              if (plan.material === 'gold' || plan.material === 'npm') {
+                pbr.setBaseColorFactor(plan.material === 'gold' ? '#d4af37' : '#a8a9ad');
+                pbr.setMetallicFactor(1);
+                pbr.setRoughnessFactor(plan.material === 'gold' ? 0.25 : 0.3);
+              } else {
+                if (shadeColor) pbr.setBaseColorFactor(shadeColor);
+                pbr.setMetallicFactor(0);
+                pbr.setRoughnessFactor(plan.material === 'emax' ? 0.1 : 0.25);
               }
-              hideContextMenu();
-            });
+            }
 
-            closeBtn.addEventListener('click', function () {
-              hideContextMenu();
-            });
-
-            // Hover glow: highlight the tooth currently under the cursor.
-            viewer.addEventListener('mousemove', function (event) {
-              var material = event.target.materialFromPoint(event.clientX, event.clientY);
-              if (material !== hoveredMaterial) {
-                if (hoveredMaterial) {
-                  hoveredMaterial.setEmissiveFactor([0, 0, 0]);
-                }
-                if (material) {
-                  material.setEmissiveFactor([0.2, 0.6, 0.8]);
-                }
-                hoveredMaterial = material;
+            function renderPlan() {
+              planList.replaceChildren();
+              const plans = prescribedTeeth();
+              if (!plans.length) {
+                const empty = document.createElement('div');
+                empty.className = 'text-sm text-muted text-center p-4';
+                empty.textContent = 'No treatments selected yet.';
+                planList.appendChild(empty);
               }
+              plans.forEach((plan) => {
+                const item = document.createElement('div');
+                item.className = 'plan-item';
+                const details = document.createElement('div');
+                details.className = 'plan-item-meta';
+                const heading = document.createElement('strong');
+                heading.textContent = `${plan.label} · ${plan.product || 'Treatment pending'}`;
+                details.appendChild(heading);
+                const lines = [
+                  materialLabels[plan.material],
+                  plan.shade ? `Vita ${plan.shade}` : plan.shadeLocation === 'Shade to be taken at Lab' ? 'Shade at lab' : null,
+                  plan.stumpShade ? `Stump ${plan.stumpShade}` : null,
+                  plan.prepDate || plan.returnDate ? `Prep ${plan.prepDate || '—'} → Return ${plan.returnDate || '—'}` : null,
+                  plan.notes ? `Notes: ${plan.notes}` : null,
+                  isToothPlanComplete(plan) ? null : 'Details incomplete'
+                ];
+                lines.filter(Boolean).forEach((text) => {
+                  const detail = document.createElement('span');
+                  detail.textContent = text;
+                  details.appendChild(detail);
+                });
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'plan-remove-btn';
+                remove.textContent = '✕';
+                remove.setAttribute('aria-label', `Remove treatment for ${plan.label}`);
+                remove.addEventListener('click', () => removePlan(plan.code));
+                item.append(details, remove);
+                planList.appendChild(item);
+              });
+              validatePrescriptionForm();
+            }
+
+            function clearSelection() {
+              const previous = activeMaterial;
+              activeCode = null;
+              activeMaterial = null;
+              hoveredMaterial = null;
+              setHighlight(previous);
+              document.getElementById('ui-tooth-code').textContent = 'NO TOOTH SELECTED';
+              document.getElementById('ui-tooth-name').textContent = 'Click a tooth on the 3D model';
+              notes.value = '';
+              notes.disabled = true;
+              menu.style.display = 'none';
+            }
+
+            function removePlan(code) {
+              const plan = toothPlans.get(code);
+              if (!plan) return;
+              if (plan.modelMaterial) resetMaterial(plan.modelMaterial);
+              toothPlans.delete(code);
+              if (activeCode === code) clearSelection();
+              renderPlan();
+            }
+
+            function showMenu(clientX, clientY) {
+              menu.style.display = 'block';
+              const rect = card.getBoundingClientRect();
+              menu.style.left = `${Math.max(8, Math.min(clientX - rect.left + 12, card.clientWidth - menu.offsetWidth - 8))}px`;
+              menu.style.top = `${Math.max(8, Math.min(clientY - rect.top + 12, card.clientHeight - menu.offsetHeight - 8))}px`;
+            }
+
+            viewer.addEventListener('click', (event) => {
+              const material = viewer.materialFromPoint(event.clientX, event.clientY);
+              const tooth = toothFromMaterial(material);
+              if (!tooth) {
+                menu.style.display = 'none';
+                return;
+              }
+              const previous = activeMaterial;
+              activeCode = tooth.code;
+              activeMaterial = material;
+              setHighlight(previous);
+              setHighlight(activeMaterial);
+              const plan = toothPlans.get(tooth.code) || {
+                ...tooth, product: '', material: '', prepDate: '', returnDate: '',
+                shade: '', stumpShade: '', shadeLocation: 'Provided by Practice', notes: ''
+              };
+              plan.modelMaterial = material;
+              toothPlans.set(tooth.code, plan);
+              document.getElementById('ui-tooth-code').textContent = tooth.code;
+              document.getElementById('ui-tooth-name').textContent = tooth.label;
+              document.getElementById('tooth-menu-title').textContent = `${tooth.label} · Treatment details`;
+              Object.entries(fields).forEach(([key, field]) => { field.value = plan[key]; });
+              notes.disabled = false;
+              notes.value = plan.notes;
+              showMenu(event.clientX, event.clientY);
             });
 
-            viewer.addEventListener('mouseleave', function () {
-              if (hoveredMaterial) {
-                hoveredMaterial.setEmissiveFactor([0, 0, 0]);
-                hoveredMaterial = null;
-              }
+            Object.entries(fields).forEach(([key, field]) => {
+              field.addEventListener('change', () => {
+                if (!activeCode) return;
+                const plan = toothPlans.get(activeCode);
+                plan[key] = field.value;
+                if (key === 'material' || key === 'shade') updateMaterial(plan);
+                renderPlan();
+              });
             });
-          })();
+            notes.addEventListener('input', () => {
+              if (!activeCode) return;
+              toothPlans.get(activeCode).notes = notes.value;
+              renderPlan();
+            });
+            document.getElementById('btn-clear-plan').addEventListener('click', () => {
+              Array.from(toothPlans.keys()).forEach(removePlan);
+              clearSelection();
+            });
+            document.getElementById('tooth-context-close-btn').addEventListener('click', () => {
+              menu.style.display = 'none';
+            });
+            document.addEventListener('pointerdown', (event) => {
+              if (!menu.contains(event.target) && !viewer.contains(event.target)) menu.style.display = 'none';
+            });
+            viewer.addEventListener('mousemove', (event) => {
+              const material = viewer.materialFromPoint(event.clientX, event.clientY);
+              if (material === hoveredMaterial) return;
+              const previous = hoveredMaterial;
+              hoveredMaterial = toothFromMaterial(material) ? material : null;
+              setHighlight(previous);
+              setHighlight(hoveredMaterial);
+            });
+            viewer.addEventListener('mouseleave', () => {
+              const previous = hoveredMaterial;
+              hoveredMaterial = null;
+              setHighlight(previous);
+            });
+          });
         </script>
       </div>
 
@@ -1738,6 +1845,16 @@
 
     // Map of selected teeth: toothCode (e.g. 'UR1') -> { product: 'Crown'|'Veneer'|'Bridge', quadrant: 'UR', num: 1, palmerText: '1┘' }
     const selectedTeeth = new Map();
+    const toothPlans = new Map();
+    function prescribedTeeth() {
+      return Array.from(toothPlans.values()).filter((plan) =>
+        plan.product || plan.material || plan.prepDate || plan.returnDate || plan.shade || plan.stumpShade || plan.notes);
+    }
+    function isToothPlanComplete(plan) {
+      return Boolean(plan.product && plan.material && plan.prepDate && plan.returnDate &&
+        plan.returnDate >= plan.prepDate && plan.stumpShade &&
+        (plan.shade || plan.shadeLocation === 'Shade to be taken at Lab'));
+    }
     let activeProductTool = 'Crown';
     let currentFinalShade = 'A1';
     let currentStumpShade = 'ND1';
