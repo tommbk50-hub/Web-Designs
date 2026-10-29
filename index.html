@@ -917,10 +917,8 @@
   <style>
     .dental-planner-section {
       position: relative;
-      padding: 4rem 1.5rem;
-      background: #0f172a;
-      color: #f8fafc;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: var(--ink);
+      font-family: inherit;
     }
 
     /* Floating tooth context menu (click-to-edit material/shade) */
@@ -1262,6 +1260,71 @@
       font-weight: 700;
       font-size: 0.95rem;
     }
+
+    .dental-planner-header h2 { color: var(--ink); font-weight: 500; letter-spacing: -0.035em; }
+    .dental-planner-header p, .tooth-context-menu-row label { color: #6E675F; }
+    .dental-viewport-card {
+      height: 560px;
+      background: #EAE5DD;
+      border-color: #D8D2C7;
+      box-shadow: none;
+    }
+    .tooth-context-menu {
+      width: min(310px, calc(100% - 1rem));
+      min-width: 0;
+      max-height: calc(100% - 1rem);
+      overflow-y: auto;
+      box-sizing: border-box;
+      background: #F4F1EA;
+      border-color: #C59B47;
+      color: var(--ink);
+      box-shadow: 0 15px 35px rgba(28, 25, 23, 0.2);
+      font-family: inherit;
+    }
+    .tooth-context-menu-row { margin-bottom: 0.65rem; }
+    .tooth-context-menu-row label, .tooth-menu-title {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.7rem;
+    }
+    .tooth-menu-title { display: block; color: #98722B; margin-bottom: 0.75rem; font-weight: 600; }
+    .tooth-context-menu-row select, .tooth-context-menu-row input {
+      width: 100%;
+      box-sizing: border-box;
+      background: #EAE5DD;
+      border: 1px solid #D8D2C7;
+      color: var(--ink);
+      border-radius: 8px;
+      padding: 0.45rem 0.6rem;
+      font: inherit;
+      font-size: 0.8rem;
+    }
+    .tooth-context-menu-row select:focus, .tooth-context-menu-row input:focus,
+    .treatment-notes:focus { outline: 2px solid #C59B47; outline-offset: 1px; }
+    .tooth-context-menu-actions button, #tooth-context-close-btn {
+      background: var(--ink);
+      color: #fff;
+      border-color: var(--ink);
+    }
+    #tooth-context-close-btn:hover { background: #6E675F; border-color: #6E675F; }
+    .treatment-sidebar { background: #EAE5DD; border-color: #D8D2C7; }
+    .selected-tooth-banner { background: #F4F1EA; border-color: #D8D2C7; }
+    .selected-tooth-banner .tooth-num { color: #98722B; }
+    .selected-tooth-banner h3, .plan-list-header h4, .plan-item-meta strong { color: var(--ink); }
+    .treatment-notes, .plan-item {
+      background: #F4F1EA;
+      border-color: #D8D2C7;
+      color: var(--ink);
+      font-family: inherit;
+    }
+    .plan-item { border-left-color: #C59B47; gap: 0.5rem; }
+    .plan-item-meta { min-width: 0; overflow-wrap: anywhere; }
+    .plan-item-meta span { color: #6E675F; }
+    .plan-list-container { border-color: #D8D2C7; }
+    .plan-items { max-height: 320px; }
+    .vp-btn { background: #F4F1EA; border-color: #D8D2C7; color: var(--ink); }
+    .vp-btn:hover { background: #EAE5DD; border-color: #C59B47; }
+    .plan-remove-btn { color: #8A392F; font-size: 1rem; }
+    .plan-remove-btn:hover { color: #B22319; }
   </style>
 
   <div class="dental-planner-container">
@@ -1271,15 +1334,15 @@
     </div>
 
     <div class="dental-planner-grid">
-      <!-- Left: 3D STL Viewport -->
+      <!-- Left: 3D Upper Arch -->
       <div class="dental-viewport-card">
         <model-viewer
           id="mouth-glb-viewer"
-          src="https://tommbk50-hub.github.io/Web-Designs/Models/upper_mouth_model.glb"
+          src="Models/upper_mouth_model.glb"
           camera-controls
           auto-rotate
           shadow-intensity="1"
-          style="width: 100%; height: 500px; background-color: #f5f5f5; border-radius: 8px;"
+          style="width: 100%; height: 100%; background-color: #EAE5DD;"
         ></model-viewer>
         <script>
           // Diagnostic logging for the GLB model load. Open DevTools > Console
@@ -1303,29 +1366,82 @@
           })();
         </script>
 
-        <!-- Floating click-to-edit context menu for individual tooth materials -->
-        <div id="tooth-context-menu" class="tooth-context-menu" style="display: none;">
+        <!-- Tooth-specific prescription fields -->
+        <div id="tooth-context-menu" class="tooth-context-menu" role="dialog" aria-label="Tooth treatment options" style="display: none;">
+          <strong id="tooth-menu-title" class="tooth-menu-title"></strong>
           <div class="tooth-context-menu-row">
-            <label for="tooth-material-select">Material</label>
+            <label for="tooth-procedure-select">Treatment *</label>
+            <select id="tooth-procedure-select">
+              <option value="">Select treatment...</option>
+              <option value="Crown">Crown</option>
+              <option value="Veneer">Veneer</option>
+              <option value="Bridge">Bridge</option>
+            </select>
+          </div>
+          <div class="tooth-context-menu-row">
+            <label for="tooth-material-select">Material *</label>
             <select id="tooth-material-select">
+              <option value="">Select material...</option>
               <option value="gold">Gold Alloy</option>
               <option value="npm">Non-Precious Metal</option>
-              <option value="emax">Emax</option>
+              <option value="emax">IPS e.max</option>
               <option value="zirconia">Zirconia</option>
             </select>
           </div>
           <div class="tooth-context-menu-row">
-            <label for="tooth-shade-select">Shade</label>
+            <label for="tooth-prep-date">Prep Date *</label>
+            <input id="tooth-prep-date" type="date" />
+          </div>
+          <div class="tooth-context-menu-row">
+            <label for="tooth-return-date">Laboratory Return Date * (not appointment date)</label>
+            <input id="tooth-return-date" type="date" />
+          </div>
+          <div class="tooth-context-menu-row">
+            <label for="tooth-shade-select">Final Tooth Shade (Vita) *</label>
             <select id="tooth-shade-select">
-              <option value="A1">A1</option>
-              <option value="A2">A2</option>
-              <option value="A3">A3</option>
-              <option value="B1">B1</option>
+              <option value="">Select shade...</option>
+              <optgroup label="Vita Bleach">
+                <option value="BL1">BL1</option><option value="BL2">BL2</option>
+                <option value="BL3">BL3</option><option value="BL4">BL4</option>
+              </optgroup>
+              <optgroup label="Vita A">
+                <option value="A1">A1</option><option value="A2">A2</option>
+                <option value="A3">A3</option><option value="A3.5">A3.5</option><option value="A4">A4</option>
+              </optgroup>
+              <optgroup label="Vita B">
+                <option value="B1">B1</option><option value="B2">B2</option>
+                <option value="B3">B3</option><option value="B4">B4</option>
+              </optgroup>
+              <optgroup label="Vita C">
+                <option value="C1">C1</option><option value="C2">C2</option>
+                <option value="C3">C3</option><option value="C4">C4</option>
+              </optgroup>
+              <optgroup label="Vita D">
+                <option value="D2">D2</option><option value="D3">D3</option><option value="D4">D4</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="tooth-context-menu-row">
+            <label for="tooth-stump-shade-select">Prepared Stump Shade *</label>
+            <select id="tooth-stump-shade-select">
+              <option value="">Select stump shade...</option>
+              <option value="N/A (Unprepared / Non-Ceramic)">N/A (Unprepared / Metal Ceramic)</option>
+              <option value="ND1">ND1</option><option value="ND2">ND2</option>
+              <option value="ND3">ND3</option><option value="ND4">ND4</option>
+              <option value="ND5">ND5</option><option value="ND6">ND6</option>
+              <option value="ND7">ND7</option><option value="ND8">ND8</option>
+              <option value="ND9">ND9</option>
+            </select>
+          </div>
+          <div class="tooth-context-menu-row">
+            <label for="tooth-shade-location">Shade Consultation *</label>
+            <select id="tooth-shade-location">
+              <option value="Provided by Practice">Provided by Practice</option>
+              <option value="Shade to be taken at Lab">Shade to be taken at Lab (92 Swingate Lane)</option>
             </select>
           </div>
           <div class="tooth-context-menu-actions">
-            <button type="button" id="tooth-context-apply-btn">Apply</button>
-            <button type="button" id="tooth-context-close-btn">Close</button>
+            <button type="button" id="tooth-context-close-btn">Done</button>
           </div>
         </div>
 
@@ -1444,32 +1560,21 @@
         </div>
 
         <div>
-          <label style="font-size: 0.8rem; color: #94a3b8; display: block; margin-bottom: 0.5rem;">
+          <label for="ui-clinical-notes" class="block text-xs font-mono uppercase text-muted mb-2">
             Clinical Notes (Optional)
           </label>
-          <textarea id="ui-clinical-notes" class="treatment-notes" placeholder="e.g., Mesial caries, porcelain zirconia crown..."></textarea>
-        </div>
-
-        <div>
-          <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.5rem;">
-            Assign Treatment Procedure
-          </div>
-          <div class="treatment-options-grid" id="treatment-buttons-container"></div>
+          <textarea id="ui-clinical-notes" class="treatment-notes" placeholder="Select a tooth to add clinical notes..." disabled></textarea>
         </div>
 
         <div class="plan-list-container">
           <div class="plan-list-header">
             <h4>Active Treatment Plan</h4>
-            <button class="vp-btn" id="btn-clear-plan" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;">Clear All</button>
+            <button type="button" class="vp-btn" id="btn-clear-plan" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;">Clear All</button>
           </div>
           <div class="plan-items" id="plan-items-list">
-            <div style="color: #64748b; font-size: 0.85rem; text-align: center; padding: 1rem 0;">
-              No procedures scheduled yet.
+            <div class="text-sm text-muted text-center p-4">
+              No treatments selected yet.
             </div>
-          </div>
-          <div class="plan-total-bar">
-            <span>Estimated Total</span>
-            <span id="plan-total-cost">$0</span>
           </div>
         </div>
       </div>
@@ -1477,6 +1582,18 @@
   </div>
 
 </section>
+
+        <div class="border-t border-borderWarm pt-6 space-y-4">
+          <p id="rx-validation-banner" class="text-xs font-mono text-amber-800 bg-amber-500/10 border border-amber-600/25 rounded-xl px-4 py-3" role="status">
+            Complete all required fields and at least one tooth treatment.
+          </p>
+          <button type="submit" id="rx-submit-btn" disabled class="rounded-full bg-ink text-white px-7 py-3 text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed">
+            Review &amp; Print Prescription →
+          </button>
+        </div>
+      </form>
+    </div>
+  </section>
 
   <!-- ===================================================================== -->
   <!-- 8. FIND A DENTIST (PATIENT POSTCODE MATCHER) & FOOTER                 -->
