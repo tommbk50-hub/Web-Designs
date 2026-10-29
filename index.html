@@ -822,7 +822,7 @@
             Online Laboratory <span class="font-serif italic font-normal text-gold">Prescription Form</span>
           </h2>
           <p class="text-xs sm:text-sm text-muted mt-2 max-w-2xl">
-            Complete your digital prescription below. Use the rotatable 3D mouth model in Section 9 to assign <strong class="text-ink">Crowns, Veneers, or Bridges</strong> to individual teeth with live floating Palmer Notation verification and real-time Vita shade rendering.
+            Complete your digital prescription below. Click a tooth on the 3D upper arch to assign its treatment, dates and shades.
           </p>
         </div>
 
@@ -912,116 +912,7 @@
 
         </div>
 
-        <!-- ROW 2: DATES & STANDARD TOOTH SHADE DROPDOWNS (SECTIONS 4, 5, 6) -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-          <!-- 4. Prep Date & 5. Return Date -->
-          <div class="lg:col-span-6 rounded-[24px] border border-borderWarm bg-canvas p-6 sm:p-7 space-y-5">
-            <div class="flex items-center justify-between border-b border-borderWarm pb-3">
-              <span class="text-xs font-mono uppercase tracking-widest text-gold font-semibold">Sections 4 &amp; 5 · Schedule &amp; Dates</span>
-              <span class="text-[11px] font-mono text-muted">Refer to Section 10</span>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label for="rx-prep-date" class="block text-xs font-mono uppercase text-ink mb-1.5">4. Prep Date *</label>
-                <input id="rx-prep-date" type="date" required class="rx-input w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
-              </div>
-              <div>
-                <label for="rx-return-date" class="block text-xs font-mono uppercase text-ink mb-1.5">5. Return Date *</label>
-                <input id="rx-return-date" type="date" required class="rx-input w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
-              </div>
-            </div>
-
-            <p class="text-xs text-muted leading-relaxed bg-surface rounded-xl p-3.5 border border-borderWarm">
-              <strong class="text-ink">Note on Section 5 (Return Date):</strong> Please refer to working times in Section 10. Enter the required laboratory return date, <em>not</em> the date of the patient’s appointment.
-            </p>
-          </div>
-
-          <!-- 6. Final Shade Dropdown & Stump Shade Dropdown -->
-          <div class="lg:col-span-6 rounded-[24px] border border-borderWarm bg-canvas p-6 sm:p-7 space-y-5">
-            <div class="flex items-center justify-between border-b border-borderWarm pb-3">
-              <span class="text-xs font-mono uppercase tracking-widest text-gold font-semibold">Section 6 · Final Tooth Shade &amp; Stump Shade</span>
-              <span class="text-[11px] font-mono text-muted">Live 3D Sync *</span>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label for="rx-shade" class="block text-xs font-mono uppercase text-ink mb-1.5">6. Final Shade (Vita Standard) *</label>
-                <div class="flex items-center gap-2">
-                  <span id="rx-shade-swatch" class="w-8 h-10 rounded-lg border border-borderWarm shrink-0 shadow-inner" style="background-color:#EFECE4;"></span>
-                  <select id="rx-shade" required onchange="syncFinalShadeFromForm(this.value)" class="rx-input w-full rounded-xl border border-borderWarm bg-surface px-3.5 py-3 text-sm focus:outline-none focus:border-ink">
-                    <option value="">Select Final Shade...</option>
-                    <optgroup label="Vita Bleach Shades">
-                      <option value="BL1">BL1 — Extra Bleach White</option>
-                      <option value="BL2">BL2 — Natural Bleach Bright</option>
-                      <option value="BL3">BL3 — Soft Bleach Ivory</option>
-                      <option value="BL4">BL4 — Warm Bleach Enamel</option>
-                    </optgroup>
-                    <optgroup label="Vita Classical A (Reddish-Brownish)">
-                      <option value="A1" selected>A1 — Warm Ivory Pearl</option>
-                      <option value="A2">A2 — Classic Natural Enamel</option>
-                      <option value="A3">A3 — Warm Dentine</option>
-                      <option value="A3.5">A3.5 — Deep Warm Dentine</option>
-                      <option value="A4">A4 — Mature Cervical</option>
-                    </optgroup>
-                    <optgroup label="Vita Classical B (Reddish-Yellowish)">
-                      <option value="B1">B1 — Translucent Bright Pearl</option>
-                      <option value="B2">B2 — Creamy Light Enamel</option>
-                      <option value="B3">B3 — Golden Ivory</option>
-                      <option value="B4">B4 — Deep Amber Dentine</option>
-                    </optgroup>
-                    <optgroup label="Vita Classical C (Greyish Shades)">
-                      <option value="C1">C1 — Cool Light Enamel</option>
-                      <option value="C2">C2 — Medium Cool Enamel</option>
-                      <option value="C3">C3 — Muted Grey Dentine</option>
-                      <option value="C4">C4 — Deep Cool Dentine</option>
-                    </optgroup>
-                    <optgroup label="Vita Classical D (Reddish-Grey)">
-                      <option value="D2">D2 — Soft Rose Enamel</option>
-                      <option value="D3">D3 — Warm Grey-Rose</option>
-                      <option value="D4">D4 — Deep Neutral Dentine</option>
-                    </optgroup>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label for="rx-stump-shade" class="block text-xs font-mono uppercase text-ink mb-1.5">Prepared Stump Shade *</label>
-                <select id="rx-stump-shade" required onchange="syncStumpShade(this.value)" class="rx-input w-full rounded-xl border border-borderWarm bg-surface px-3.5 py-3 text-sm focus:outline-none focus:border-ink">
-                  <option value="">Select Stump Shade...</option>
-                  <option value="N/A (Unprepared / Non-Ceramic)">N/A (Unprepared / Metal Ceramic)</option>
-                  <option value="ND1" selected>ND1 — Light Natural Die</option>
-                  <option value="ND2">ND2 — Warm Ivory Die</option>
-                  <option value="ND3">ND3 — Medium Chromatic Die</option>
-                  <option value="ND4">ND4 — Deep Yellow-Brown Die</option>
-                  <option value="ND5">ND5 — Greyish Discoloured Die</option>
-                  <option value="ND6">ND6 — Dark Chromatic Die</option>
-                  <option value="ND7">ND7 — Tetracycline Dark Die</option>
-                  <option value="ND8">ND8 — Endodontic Darkened Die</option>
-                  <option value="ND9">ND9 — Severe Discolouration Die</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <span class="block text-xs font-mono uppercase text-ink mb-2">Shade Consultation at Laboratory (92 Swingate Lane, SE18) *</span>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <label class="flex items-center gap-3 rounded-xl border border-borderWarm bg-surface px-4 py-3 cursor-pointer hover:border-ink transition-colors">
-                  <input type="radio" name="rx_shade_location" value="Provided by Practice" checked class="rx-input accent-ink w-4 h-4" />
-                  <span class="text-xs sm:text-sm font-medium">Shade Selected Above</span>
-                </label>
-                <label class="flex items-center gap-3 rounded-xl border border-borderWarm bg-surface px-4 py-3 cursor-pointer hover:border-ink transition-colors">
-                  <input type="radio" name="rx_shade_location" value="Shade to be taken at Lab" class="rx-input accent-ink w-4 h-4" />
-                  <span class="text-xs sm:text-sm font-medium">Shade to be taken at Lab</span>
-                </label>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- ==================== SECTION 9: INTERACTIVE 3D MOUTH & TREATMENT PLANNER ==================== -->
+        <!-- INTERACTIVE 3D MOUTH & TREATMENT PLANNER -->
 <section id="section-9" class="dental-planner-section">
   <style>
     .dental-planner-section {
