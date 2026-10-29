@@ -1798,6 +1798,7 @@
               <span id="tooth-stump-preview" class="rx-shade-preview" aria-hidden="true"></span>
               <select id="tooth-stump-shade-select">
                 <option value="">Select stump shade...</option>
+                <option value="N/A (Unprepared)">No prepared stump (e.g. unprepared veneer)</option>
                 <option value="ND1">ND1</option><option value="ND2">ND2</option>
                 <option value="ND3">ND3</option><option value="ND4">ND4</option>
                 <option value="ND5">ND5</option><option value="ND6">ND6</option>
@@ -2029,7 +2030,7 @@
     };
 
     const STUMP_SHADE_HEX = {
-      'N/A (Unprepared / Non-Ceramic)': '#E8DFCA',
+      'N/A (Unprepared)': '#E8DFCA',
       'ND1': '#EFE8D5',
       'ND2': '#E6DAC0',
       'ND3': '#DCCAA6',
@@ -2064,7 +2065,7 @@
     }
     function isToothPlanComplete(plan) {
       return Boolean(plan.product && plan.material && plan.returnDate &&
-        (!isCeramicMaterial(plan.material) || /^ND[1-9]$/.test(plan.stumpShade)) &&
+        (!isCeramicMaterial(plan.material) || /^ND[1-9]$/.test(plan.stumpShade) || plan.stumpShade === 'N/A (Unprepared)') &&
         (plan.shade || plan.shadeLocation === 'Shade to be taken at Lab'));
     }
     function turnaroundCategory(product) {
@@ -2689,7 +2690,7 @@
       const hint = document.getElementById('rx-missing-hint');
 
       if (missing.length === 0) {
-        submitBtn.disabled = false;
+        submitBtn.disabled = currentRxStep !== 3;
         banner.className = 'text-xs font-mono text-emerald-800 bg-emerald-500/15 border border-emerald-600/30 rounded-xl px-4 py-3';
         banner.textContent = `✓ All ${checks.length} prescription requirements verified. Ready to review.`;
         hint.textContent = currentRxStep === 3 ? '100% Complete — Ready to review and print.' : 'All requirements complete — continue to review.';
@@ -2719,6 +2720,10 @@
     // Review the prescription in a printable docket modal
     function submitDigitalPrescription(e) {
       e.preventDefault();
+      if (currentRxStep !== 3) {
+        goToPrescriptionStep(currentRxStep + 1);
+        return;
+      }
       const dispatch = updatePrescriptionDispatch();
       if (!validatePrescriptionForm()) return;
 
