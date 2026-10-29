@@ -41,9 +41,7 @@
   <script src="https://unpkg.com/lenis@1.1.20/dist/lenis.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@3.4.0/dist/model-viewer.min.js"></script>
 
   <style>
     :root {
@@ -1544,17 +1542,6 @@
     // ---------------------------------------------------------------------
     // 2. THREE.JS 3D ROTATABLE MOUTH & PROSTHETIC INSTALLATION VIEWER
     // ---------------------------------------------------------------------
-    let scene, camera, renderer, controls;
-    let upperJawGroup, lowerJawGroup, bridgeConnectorGroup;
-    const toothObjectsMap = new Map(); // code -> { rootGroup, naturalMesh, stumpMesh, crownMesh, veneerMesh, labelAnchor, isUpper, archIdx, quadrant, num }
-    const raycaster = new THREE.Raycaster();
-    const pointer = new THREE.Vector2();
-    const pickableMeshes = [];
-
-    // Shared Materials
-    let naturalEnamelMaterial, preparedStumpMaterial, prostheticCeramicMaterial, gumMaterial;
-    let crownRingMat, veneerRingMat, bridgeRingMat;
-
     function formatPalmerAscii(quadrant, num) {
       if (quadrant === 'UR') return `${num}┘`;
       if (quadrant === 'UL') return `└${num}`;
@@ -1672,210 +1659,6 @@
       // Slightly scale vertically for natural alveolar ridge contour
       tubeGeo.scale(1, 0.82, 1);
       return new THREE.Mesh(tubeGeo, gumMaterial);
-    }
-
-    function initMouth3DViewer() {
-      const container = document.getElementById('mouth-3d-canvas');
-      if (!container) return;
-
-      const width = container.clientWidth;
-      const height = container.clientHeight;
-
-      scene = new THREE.Scene();
-
-      camera = new THREE.PerspectiveCamera(36, width / height, 0.1, 100);
-      camera.position.set(0, 0.6, 11.2);
-
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-      renderer.setSize(width, height);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      renderer.outputEncoding = THREE.sRGBEncoding;
-      container.appendChild(renderer.domElement);
-
-      controls = new THREE.OrbitControls(camera, renderer.domElement);
-      controls.enableDamping = true;
-      controls.dampingFactor = 0.07;
-      controls.minDistance = 5.5;
-      controls.maxDistance = 17;
-      controls.target.set(0, 0, 0.6);
-
-      // Studio Clinical Lighting
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
-      scene.add(ambientLight);
-
-      const keyLight = new THREE.DirectionalLight(0xfffbf2, 0.95);
-      keyLight.position.set(5, 8, 9);
-      scene.add(keyLight);
-
-      const fillLight = new THREE.DirectionalLight(0xdbeafe, 0.45);
-      fillLight.position.set(-6, -4, 7);
-      scene.add(fillLight);
-
-      const rimLight = new THREE.DirectionalLight(0xfde68a, 0.4);
-      rimLight.position.set(0, 6, -8);
-      scene.add(rimLight);
-
-      // Dental Materials
-      naturalEnamelMaterial = new THREE.MeshPhysicalMaterial({
-        color: new THREE.Color('#E6DEC8'),
-        roughness: 0.24,
-        metalness: 0.02,
-        clearcoat: 0.85,
-        clearcoatRoughness: 0.15
-      });
-
-      preparedStumpMaterial = new THREE.MeshPhysicalMaterial({
-        color: new THREE.Color(STUMP_SHADE_HEX[currentStumpShade]),
-        roughness: 0.45,
-        metalness: 0.02,
-        clearcoat: 0.2
-      });
-
-      prostheticCeramicMaterial = new THREE.MeshPhysicalMaterial({
-        color: new THREE.Color(VITA_SHADE_HEX[currentFinalShade]),
-        roughness: 0.12,
-        metalness: 0.03,
-        clearcoat: 1.0,
-        clearcoatRoughness: 0.08
-      });
-
-      gumMaterial = new THREE.MeshPhysicalMaterial({
-        color: new THREE.Color('#D97E8A'),
-        roughness: 0.48,
-        metalness: 0.01,
-        clearcoat: 0.35,
-        clearcoatRoughness: 0.3
-      });
-
-      crownRingMat = new THREE.MeshBasicMaterial({ color: 0xFBBF24 });
-      veneerRingMat = new THREE.MeshBasicMaterial({ color: 0x2DD4BF });
-      bridgeRingMat = new THREE.MeshBasicMaterial({ color: 0x38BDF8 });
-
-      // Upper and Lower Jaw Groups ( hinged at TMJ condyles in back )
-      upperJawGroup = new THREE.Group();
-      lowerJawGroup = new THREE.Group();
-      bridgeConnectorGroup = new THREE.Group();
-
-      upperJawGroup.position.set(0, 0.55, 0);
-      lowerJawGroup.position.set(0, -0.55, 0);
-
-      scene.add(upperJawGroup);
-      scene.add(lowerJawGroup);
-      scene.add(bridgeConnectorGroup);
-
-      // Add Gingiva Arches
-      upperJawGroup.add(buildGingivaArchMesh(true));
-      lowerJawGroup.add(buildGingivaArchMesh(false));
-
-      // Build All 32 Anatomical Teeth
-      const quadrants = [
-        { q: 'UR', isUpper: true },
-        { q: 'UL', isUpper: true },
-        { q: 'LR', isUpper: false },
-        { q: 'LL', isUpper: false }
-      ];
-
-      quadrants.forEach(({ q, isUpper }) => {
-        for (let num = 1; num <= 8; num++) {
-          const code = `${q}${num}`;
-          const { x, z, rotY } = getArchCoordinates(q, num);
-
-          const toothRoot = new THREE.Group();
-          toothRoot.position.set(x, 0, z);
-          toothRoot.rotation.y = rotY;
-
-          // 1. Intact Natural Tooth Mesh
-          const natGeo = createAnatomicalToothGeometry(num, isUpper, 1.0);
-          const naturalMesh = new THREE.Mesh(natGeo, naturalEnamelMaterial);
-          naturalMesh.userData = { toothCode: code };
-          toothRoot.add(naturalMesh);
-          pickableMeshes.push(naturalMesh);
-
-          // 2. Prepared Inner Abutment Stump Mesh (Visible when Crown or Bridge is assigned)
-          const stumpGeo = createAnatomicalToothGeometry(num, isUpper, 0.66);
-          const stumpMesh = new THREE.Mesh(stumpGeo, preparedStumpMaterial);
-          stumpMesh.visible = false;
-          stumpMesh.userData = { toothCode: code };
-          toothRoot.add(stumpMesh);
-
-          // 3. Prosthetic Full-Coverage Crown / Bridge Unit Mesh
-          const crownGeo = createAnatomicalToothGeometry(num, isUpper, 1.04);
-          const crownMesh = new THREE.Mesh(crownGeo, prostheticCeramicMaterial);
-          crownMesh.visible = false;
-          crownMesh.userData = { toothCode: code };
-          toothRoot.add(crownMesh);
-          pickableMeshes.push(crownMesh);
-
-          // 4. Prosthetic Labial Porcelain Veneer Shell Mesh
-          const veneerGeo = createLabialVeneerGeometry(num, isUpper);
-          const veneerMesh = new THREE.Mesh(veneerGeo, prostheticCeramicMaterial);
-          veneerMesh.visible = false;
-          veneerMesh.userData = { toothCode: code };
-          toothRoot.add(veneerMesh);
-          pickableMeshes.push(veneerMesh);
-
-          // 5. Cervical Margin Collar Ring (Color-coded by Crown/Veneer/Bridge)
-          const ringGeo = new THREE.TorusGeometry(0.28, 0.032, 12, 32);
-          ringGeo.rotateX(Math.PI / 2);
-          const marginRing = new THREE.Mesh(ringGeo, crownRingMat);
-          marginRing.position.y = isUpper ? 0.35 : -0.35;
-          marginRing.visible = false;
-          toothRoot.add(marginRing);
-
-          // 6. 3D Anchor Point for Floating Palmer Notation Label above incisal/occlusal edge
-          const labelAnchor = new THREE.Object3D();
-          labelAnchor.position.set(0, isUpper ? -0.78 : 0.78, 0.25);
-          toothRoot.add(labelAnchor);
-
-          if (isUpper) upperJawGroup.add(toothRoot);
-          else lowerJawGroup.add(toothRoot);
-
-          // Ordered index along each arch (0..15 from Right 8 to Left 8) permits bridge span calculation
-          const archIdx = (q === 'UR' || q === 'LR') ? (8 - num) : (7 + num);
-
-          toothObjectsMap.set(code, {
-            code,
-            quadrant: q,
-            num,
-            isUpper,
-            archIdx,
-            toothRoot,
-            naturalMesh,
-            stumpMesh,
-            crownMesh,
-            veneerMesh,
-            marginRing,
-            labelAnchor
-          });
-        }
-      });
-
-      // Set initial comfortable jaw opening
-      setJawOpeningAngle(28);
-
-      // Pointer Hover & Click Listeners on 3D Canvas
-      let pointerDownPos = { x: 0, y: 0 };
-      renderer.domElement.addEventListener('pointerdown', (e) => {
-        pointerDownPos = { x: e.clientX, y: e.clientY };
-      });
-
-      renderer.domElement.addEventListener('pointermove', onMouthPointerMove);
-
-      renderer.domElement.addEventListener('pointerup', (e) => {
-        const dist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
-        if (dist < 6) {
-          onMouthClick(e);
-        }
-      });
-
-      renderer.domElement.addEventListener('pointerleave', () => {
-        document.getElementById('mouth-hover-tooltip').classList.add('hidden');
-      });
-
-      window.addEventListener('resize', onMouthResize);
-
-      // Start Render Loop
-      animateMouth3D();
     }
 
     function onMouthPointerMove(e) {
@@ -2412,8 +2195,6 @@
     gsap.ticker.lagSmoothing(0);
 
     window.addEventListener('DOMContentLoaded', () => {
-      initMouth3DViewer();
-
       document.querySelectorAll('#kdd-rx-form .rx-input').forEach((input) => {
         input.addEventListener('input', validatePrescriptionForm);
         input.addEventListener('change', validatePrescriptionForm);
