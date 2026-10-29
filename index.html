@@ -537,12 +537,6 @@
               <div class="text-xs text-white/65 mt-1">Vita shades with TePe access</div>
             </div>
           </div>
-          <div class="selected-tooth-banner" aria-live="polite">
-            <div class="tooth-num">Expected dispatch date</div>
-            <h3 id="rx-expected-dispatch">Select a treatment</h3>
-            <p id="rx-dispatch-days" class="text-xs text-muted mt-2"></p>
-            <p id="rx-dispatch-note" class="text-xs text-muted mt-2">Working days are Monday–Friday, excluding weekends; bank holidays and shipping time are not included. The requested delivery date is an estimate based on dispatch, not an appointment guarantee.</p>
-          </div>
         </div>
 
         <div class="lg:col-span-6 reveal-up">
@@ -725,37 +719,43 @@
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-            <button onclick="setTurnaround('small')" id="turn-btn-small" class="turn-btn rounded-2xl border border-ink bg-ink text-white p-3.5 text-left transition-all">
-              <div class="text-xs font-mono opacity-75">STANDARD CASE</div>
-              <div class="text-sm font-semibold mt-0.5">6 Units or Less</div>
+            <button onclick="setTurnaround('crown')" id="turn-btn-crown" class="turn-btn rounded-2xl border border-ink bg-ink text-white p-3.5 text-left transition-all">
+              <div class="text-xs font-mono opacity-75">CROWN &amp; BRIDGEWORK</div>
+              <div class="text-sm font-semibold mt-0.5">Crowns / Bridges / Veneers</div>
             </button>
-            <button onclick="setTurnaround('large')" id="turn-btn-large" class="turn-btn rounded-2xl border border-borderWarm bg-canvas text-ink p-3.5 text-left hover:border-ink transition-all">
-              <div class="text-xs font-mono text-muted">LARGE CASE</div>
-              <div class="text-sm font-semibold mt-0.5">7 Units or More</div>
+            <button onclick="setTurnaround('complex')" id="turn-btn-complex" class="turn-btn rounded-2xl border border-borderWarm bg-canvas text-ink p-3.5 text-left hover:border-ink transition-all">
+              <div class="text-xs font-mono text-muted">COMPLEX CASE</div>
+              <div class="text-sm font-semibold mt-0.5">Implant / Attachment / Combination / Occlusal</div>
             </button>
-            <button onclick="setTurnaround('implant')" id="turn-btn-implant" class="turn-btn rounded-2xl border border-borderWarm bg-canvas text-ink p-3.5 text-left hover:border-ink transition-all">
-              <div class="text-xs font-mono text-muted">COMPLEX REHAB</div>
-              <div class="text-sm font-semibold mt-0.5">Implant / Occlusal</div>
+            <button onclick="setTurnaround('waxup')" id="turn-btn-waxup" class="turn-btn rounded-2xl border border-borderWarm bg-canvas text-ink p-3.5 text-left hover:border-ink transition-all">
+              <div class="text-xs font-mono text-muted">DIAGNOSTIC</div>
+              <div class="text-sm font-semibold mt-0.5">Wax-ups</div>
             </button>
           </div>
 
+          <div>
+            <label for="calc-units" class="text-xs text-muted">Number of units</label>
+            <input id="calc-units" type="number" min="1" step="1" value="1" oninput="recalculateTurnaround()" onchange="this.value = Math.max(1, Math.floor(Number(this.value) || 1)); recalculateTurnaround()" class="block w-24 mt-1 rounded-xl border border-borderWarm bg-canvas px-3 py-2 text-sm" />
+            <p class="text-xs text-muted mt-2">Standard dispatch: crowns/bridges/veneers — up to 6 units: 9 working days; 7+: 11. Implants, attachments, combination and occlusal rehabilitation — up to 3: 13; 4+: 16. Diagnostic wax-ups — up to 6: 6; 7+: 9. Weekends excluded; bank holidays and shipping not included.</p>
+          </div>
+
           <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
-            <span class="text-xs text-muted">Pre-Booked Express Service (≤6 units by arrangement):</span>
+            <span class="text-xs text-muted">Pre-booked express for crowns/bridges/veneers (≤6 units, by arrangement; 5/3 days in lab plus dispatch day; calculator only):</span>
             <div class="inline-flex rounded-full border border-borderWarm bg-canvas p-1 text-xs">
               <button onclick="setExpressTier('standard')" id="exp-standard" class="exp-btn rounded-full bg-ink text-white px-3.5 py-1 font-medium transition-all">Standard</button>
-              <button onclick="setExpressTier('5day')" id="exp-5day" class="exp-btn rounded-full text-muted px-3.5 py-1 font-medium transition-all">5-Day (+25%)</button>
-              <button onclick="setExpressTier('3day')" id="exp-3day" class="exp-btn rounded-full text-muted px-3.5 py-1 font-medium transition-all">3-Day (+50%)</button>
+              <button onclick="setExpressTier('5day')" id="exp-5day" class="exp-btn rounded-full text-muted px-3.5 py-1 font-medium transition-all disabled:opacity-40">5-Day (+25%)</button>
+              <button onclick="setExpressTier('3day')" id="exp-3day" class="exp-btn rounded-full text-muted px-3.5 py-1 font-medium transition-all disabled:opacity-40">3-Day (+50%)</button>
             </div>
           </div>
 
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 rounded-2xl bg-canvas border border-borderWarm p-5">
             <div>
-              <span class="text-[11px] font-mono uppercase text-muted block">Time in Lab</span>
-              <span id="calc-days" class="text-2xl sm:text-3xl font-semibold text-ink mt-1 block">7 Working Days</span>
+              <span class="text-[11px] font-mono uppercase text-muted block">Working Days to Dispatch</span>
+              <span id="calc-days" class="text-2xl sm:text-3xl font-semibold text-ink mt-1 block">9 Working Days</span>
             </div>
             <div>
               <span class="text-[11px] font-mono uppercase text-muted block">Dispatch Schedule</span>
-              <span id="calc-dispatch" class="text-2xl sm:text-3xl font-semibold text-gold mt-1 block">Day 8</span>
+              <span id="calc-dispatch" class="text-2xl sm:text-3xl font-semibold text-gold mt-1 block">Day 9</span>
             </div>
             <div class="col-span-2 sm:col-span-1 border-t sm:border-t-0 sm:border-l border-borderWarm pt-3 sm:pt-0 sm:pl-4">
               <span class="text-[11px] font-mono uppercase text-muted block">Est. Dispatch Date</span>
@@ -1446,8 +1446,7 @@
             }
 
             function renderPlan() {
-              const dispatch = updatePrescriptionDispatch();
-              document.getElementById('tooth-return-date').value = dispatch ? dispatch.date : '';
+              updatePrescriptionDispatch();
               planList.replaceChildren();
               const plans = prescribedTeeth();
               if (!plans.length) {
@@ -1610,6 +1609,12 @@
           <div class="tooth-num" id="ui-tooth-code">NO TOOTH SELECTED</div>
           <h3 id="ui-tooth-name">Click a tooth on the 3D model</h3>
         </div>
+        <div class="selected-tooth-banner" aria-live="polite">
+          <div class="tooth-num">Expected dispatch date</div>
+          <h3 id="rx-expected-dispatch">Select a treatment</h3>
+          <p id="rx-dispatch-days" class="text-xs text-muted mt-2"></p>
+          <p id="rx-dispatch-note" class="text-xs text-muted mt-2">Working days are Monday–Friday; bank holidays are not accounted for. Requested delivery assumes next-working-day shipping after dispatch; transit is not guaranteed, so do not use this as an appointment date.</p>
+        </div>
 
         <div id="tooth-context-menu" class="tooth-context-menu" role="group" aria-label="Selected tooth treatment options" style="display: none;">
           <strong id="tooth-menu-title" class="tooth-menu-title"></strong>
@@ -1638,7 +1643,7 @@
             </select>
           </div>
           <div class="tooth-context-menu-row">
-            <label for="tooth-return-date">Requested delivery date (calculated)</label>
+            <label for="tooth-return-date">Requested delivery date (earliest estimate)</label>
             <input id="tooth-return-date" type="date" readonly aria-describedby="rx-dispatch-note" />
           </div>
           <div class="tooth-context-menu-row">
@@ -1908,19 +1913,19 @@
       });
       const days = Math.max(...Object.entries(counts).map(([category, units]) =>
         units ? workingDaysFor(category, units) : 0));
-      const date = days ? dateAfterWorkingDays(days) : null;
-      const dateValue = date ? dateInputValue(date) : '';
-      toothPlans.forEach((plan) => { plan.returnDate = dateValue; });
-      document.getElementById('tooth-return-date').value = dateValue;
-      document.getElementById('rx-expected-dispatch').textContent = date
-        ? date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+      const dispatchDate = days ? dateAfterWorkingDays(days) : null;
+      const deliveryDate = dispatchDate ? dateInputValue(dateAfterWorkingDays(days + 1)) : '';
+      toothPlans.forEach((plan) => { plan.returnDate = deliveryDate; });
+      document.getElementById('tooth-return-date').value = deliveryDate;
+      document.getElementById('rx-expected-dispatch').textContent = dispatchDate
+        ? dispatchDate.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
         : 'Select a treatment';
       const labels = { crown: 'crown/bridge/veneer', complex: 'implant/rehab', waxup: 'diagnostic wax-up' };
-      document.getElementById('rx-dispatch-days').textContent = date
+      document.getElementById('rx-dispatch-days').textContent = dispatchDate
         ? `${days} working days after today · ${Object.entries(counts).filter(([, units]) => units)
           .map(([category, units]) => `${units} ${labels[category]} unit${units === 1 ? '' : 's'}`).join(', ')}`
         : '';
-      return date ? { date: dateValue, days } : null;
+      return dispatchDate ? { date: dateInputValue(dispatchDate), days } : null;
     }
     let activeProductTool = 'Crown';
     let currentFinalShade = 'A1';
@@ -2419,6 +2424,7 @@
     // 4. STRICT 100% FORM VALIDATION GATE
     // ---------------------------------------------------------------------
     function validatePrescriptionForm() {
+      updatePrescriptionDispatch();
       const dentist = document.getElementById('rx-dentist').value.trim();
       const practice = document.getElementById('rx-practice').value.trim();
       const email = document.getElementById('rx-email').value.trim();
@@ -2470,6 +2476,7 @@
     // Review the prescription in a printable docket modal
     function submitDigitalPrescription(e) {
       e.preventDefault();
+      const dispatch = updatePrescriptionDispatch();
       if (!validatePrescriptionForm()) return;
 
       const rxId = 'KDD-' + Date.now().toString().slice(-6);
@@ -2487,7 +2494,7 @@
         <div class="sm:col-span-2 border-t border-borderWarm pt-3">
           <strong class="text-ink">${escapeHtml(plan.label)} (${escapeHtml(plan.code)}) · ${escapeHtml(plan.product)}</strong>
           <p class="text-muted mt-1">Material: ${escapeHtml(plan.material)} · Final shade: ${escapeHtml(plan.shade ? `Vita ${plan.shade}` : 'Taken at lab')} · Stump: ${escapeHtml(plan.stumpShade)}</p>
-          <p class="text-muted">Prep: ${escapeHtml(plan.prepDate)} → Laboratory return: ${escapeHtml(plan.returnDate)} · ${escapeHtml(plan.shadeLocation)}</p>
+          <p class="text-muted">Requested delivery date (estimate): ${escapeHtml(plan.returnDate)} · ${escapeHtml(plan.shadeLocation)}</p>
           ${plan.notes ? `<p class="text-ink whitespace-pre-wrap mt-1">Clinical notes: ${escapeHtml(plan.notes)}</p>` : ''}
         </div>
       `).join('');
@@ -2507,6 +2514,7 @@
         <div class="my-5 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-canvas rounded-2xl p-5 border border-borderWarm">
           <div><span class="text-muted block font-mono uppercase text-[10px]">1. Dentist &amp; 2. Practice</span><strong class="text-ink">${dentist} — ${practice}</strong><br/><span class="text-muted">${email} · ${phone}</span></div>
           <div><span class="text-muted block font-mono uppercase text-[10px]">3. Patient</span><strong class="text-ink">${patient} (${gender})</strong></div>
+          <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">Expected dispatch date (${dispatch.days} working days after today)</span><strong class="text-ink">${escapeHtml(dispatch.date)}</strong><span class="text-muted block">Working days exclude weekends; bank holidays are not accounted for. Requested delivery assumes next-working-day shipping and is not guaranteed.</span></div>
           <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">Upper Arch Treatment Plan (${plans.length} Units)</span></div>
           ${planRows}
         </div>
@@ -2555,7 +2563,7 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       if (typeof gsap === 'undefined') {
-        updateDispatchDate(7);
+        recalculateTurnaround();
         return;
       }
       gsap.from('.hero-reveal', {
@@ -2591,7 +2599,7 @@
         });
       });
 
-      updateDispatchDate(7);
+      recalculateTurnaround();
     });
 
     document.querySelectorAll('.spotlight-card').forEach((card) => {
@@ -2706,22 +2714,22 @@
       btn.textContent = `Essix Location Jig: ${essixVisible ? 'ON' : 'OFF'}`;
     }
 
-    let currentCaseSize = 'small';
+    let currentCaseCategory = 'crown';
     let currentExpress = 'standard';
 
-    function setTurnaround(size) {
-      currentCaseSize = size;
-      ['small', 'large', 'implant'].forEach((k) => {
+    function setTurnaround(category) {
+      currentCaseCategory = category;
+      ['crown', 'complex', 'waxup'].forEach((k) => {
         const btn = document.getElementById(`turn-btn-${k}`);
-        btn.className = k === size
+        btn.className = k === category
           ? 'turn-btn rounded-2xl border border-ink bg-ink text-white p-3.5 text-left transition-all'
           : 'turn-btn rounded-2xl border border-borderWarm bg-canvas text-ink p-3.5 text-left hover:border-ink transition-all';
       });
-      if (size !== 'small') setExpressTier('standard');
-      else recalculateTurnaround();
+      recalculateTurnaround();
     }
 
     function setExpressTier(tier) {
+      if (tier !== 'standard' && (currentCaseCategory !== 'crown' || Number(document.getElementById('calc-units').value) > 6)) return;
       currentExpress = tier;
       ['standard', '5day', '3day'].forEach((k) => {
         const btn = document.getElementById(`exp-${k}`);
@@ -2733,35 +2741,26 @@
     }
 
     function recalculateTurnaround() {
-      let days = 7;
-      let dispatchLabel = 'Day 8';
-
-      if (currentCaseSize === 'small') {
-        if (currentExpress === '5day') { days = 5; dispatchLabel = 'Day 6 (+25%)'; }
-        else if (currentExpress === '3day') { days = 3; dispatchLabel = 'Day 4 (+50%)'; }
-        else { days = 7; dispatchLabel = 'Day 8'; }
-      } else if (currentCaseSize === 'large') {
-        days = 9;
-        dispatchLabel = 'Day 10';
-      } else {
-        days = 10;
-        dispatchLabel = 'Day 11';
+      const units = Math.max(1, Math.floor(Number(document.getElementById('calc-units').value) || 1));
+      const expressAvailable = currentCaseCategory === 'crown' && units <= 6;
+      ['5day', '3day'].forEach((tier) => {
+        document.getElementById(`exp-${tier}`).disabled = !expressAvailable;
+      });
+      if (!expressAvailable && currentExpress !== 'standard') {
+        setExpressTier('standard');
+        return;
       }
 
+      const days = currentExpress === '5day' ? 6 : currentExpress === '3day' ? 4 :
+        workingDaysFor(currentCaseCategory, units);
+      const dispatchLabel = `Day ${days}${currentExpress === '5day' ? ' (+25%)' : currentExpress === '3day' ? ' (+50%)' : ''}`;
       document.getElementById('calc-days').textContent = `${days} Working Days`;
       document.getElementById('calc-dispatch').textContent = dispatchLabel;
-      updateDispatchDate(days + 1);
+      updateDispatchDate(days);
     }
 
     function updateDispatchDate(workingDaysToAdd) {
-      const date = new Date();
-      let added = 0;
-      while (added < workingDaysToAdd) {
-        date.setDate(date.getDate() + 1);
-        const day = date.getDay();
-        if (day !== 0 && day !== 6) added++;
-      }
-      const formatted = date.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+      const formatted = dateAfterWorkingDays(workingDaysToAdd).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
       document.getElementById('calc-date').textContent = formatted;
     }
 
