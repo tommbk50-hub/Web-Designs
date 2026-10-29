@@ -127,6 +127,84 @@
       animation: spinSlow 18s linear infinite;
     }
 
+    .rx-step[hidden], #rx-completion-bar[hidden], #tooth-stump-row[hidden],
+    #rx-back-btn[hidden], #rx-next-btn[hidden], #rx-submit-btn[hidden] {
+      display: none !important;
+    }
+    .rx-step:not([hidden]) {
+      animation: rxStepEnter 0.3s ease-out;
+    }
+    @keyframes rxStepEnter {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .rx-step-tab[aria-current="step"] {
+      background: #1C1917;
+      border-color: #1C1917;
+      color: white;
+    }
+    #rx-completion-bar {
+      position: fixed;
+      bottom: max(0.75rem, env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 40;
+      width: min(94vw, 780px);
+      background: rgba(244, 241, 234, 0.88);
+      backdrop-filter: blur(20px) saturate(140%);
+      -webkit-backdrop-filter: blur(20px) saturate(140%);
+      box-shadow: 0 16px 48px rgba(28, 25, 23, 0.22);
+    }
+    #rx-progress-bar {
+      transition: width 0.35s ease-out;
+    }
+    #rx-completion-bar.is-ready #rx-submit-btn {
+      box-shadow: 0 0 0 3px rgba(197, 155, 71, 0.28), 0 0 24px rgba(197, 155, 71, 0.7);
+    }
+    .rx-shade-select {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .rx-shade-select select { flex: 1; min-width: 0; }
+    .rx-shade-preview {
+      width: 1.8rem;
+      height: 1.8rem;
+      flex: none;
+      border: 1px solid #8B8072;
+      border-radius: 50%;
+      background: #F4F1EA;
+    }
+    .rx-shade-palette {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(65px, 1fr));
+      gap: 0.35rem;
+      margin-top: 0.5rem;
+    }
+    .rx-shade-option {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.35rem;
+      border: 1px solid #D8D2C7;
+      border-radius: 0.5rem;
+      background: #F4F1EA;
+      font-size: 0.7rem;
+      cursor: pointer;
+    }
+    .rx-shade-option[aria-pressed="true"] { border-color: #98722B; box-shadow: inset 0 0 0 1px #98722B; }
+    .rx-shade-option:focus-visible, .rx-step-tab:focus-visible { outline: 2px solid #98722B; outline-offset: 2px; }
+    .rx-shade-option span:first-child {
+      width: 1.25rem;
+      height: 1.25rem;
+      flex: none;
+      border: 1px solid #8B8072;
+      border-radius: 50%;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .rx-step:not([hidden]) { animation: none; }
+      #rx-progress-bar { transition: none; }
+    }
     @keyframes marqueeScroll {
       0% { transform: translateX(0%); }
       100% { transform: translateX(-50%); }
@@ -819,7 +897,7 @@
     <div class="rounded-[28px] sm:rounded-[36px] border-2 border-ink/15 bg-surface p-6 sm:p-10 lg:p-14 max-w-[1400px] mx-auto shadow-xl">
 
       <!-- Docket Header -->
-      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-8 border-b border-borderWarm">
+      <div class="pb-8 border-b border-borderWarm">
         <div>
           <div class="inline-flex items-center gap-2 rounded-full bg-ink text-white px-4 py-1.5 text-[11px] font-mono uppercase tracking-widest mb-3">
             <span>MHRA Reg. No. CA 003175 · M.D.D. Patient Statement Compliant</span>
@@ -832,23 +910,17 @@
           </p>
         </div>
 
-        <!-- Sticky Completion Status Pill -->
-        <div class="rounded-2xl border border-borderWarm bg-canvas p-5 min-w-[270px] shrink-0">
-          <div class="flex items-center justify-between text-xs font-mono uppercase mb-2">
-            <span class="text-muted">Form Completion</span>
-            <span id="rx-progress-pct" class="font-semibold text-ink">0%</span>
-          </div>
-          <div class="w-full h-2 rounded-full bg-borderWarm overflow-hidden">
-            <div id="rx-progress-bar" class="h-full bg-gold transition-all duration-300" style="width: 0%"></div>
-          </div>
-          <p id="rx-missing-hint" class="text-[11px] font-mono text-muted mt-2.5 leading-snug">
-            Complete all required fields below to enable submission.
-          </p>
-        </div>
       </div>
 
       <!-- Digital Prescription Form -->
-      <form id="kdd-rx-form" onsubmit="submitDigitalPrescription(event)" novalidate class="mt-10 space-y-10">
+      <form id="kdd-rx-form" onsubmit="submitDigitalPrescription(event)" novalidate class="mt-10">
+        <nav aria-label="Prescription steps" class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-8">
+          <button type="button" data-rx-step="1" aria-current="step" class="rx-step-tab rounded-xl border border-borderWarm bg-canvas px-4 py-3 text-left text-xs font-semibold transition-colors">1 · Patient &amp; Practice</button>
+          <button type="button" data-rx-step="2" class="rx-step-tab rounded-xl border border-borderWarm bg-canvas px-4 py-3 text-left text-xs font-semibold transition-colors">2 · 3D Treatments &amp; Materials</button>
+          <button type="button" data-rx-step="3" class="rx-step-tab rounded-xl border border-borderWarm bg-canvas px-4 py-3 text-left text-xs font-semibold transition-colors">3 · Schedule, Enclosures &amp; Review</button>
+        </nav>
+        <div id="rx-step-1" class="rx-step" role="group" aria-labelledby="rx-step-1-title">
+          <h3 id="rx-step-1-title" tabindex="-1" class="text-xl font-medium mb-6">Patient &amp; Practice Details</h3>
 
         <!-- ROW 1: CLINICIAN, PRACTICE & PATIENT DETAILS (SECTIONS 1, 2, 3) -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -917,8 +989,11 @@
           </div>
 
         </div>
+        </div>
 
         <!-- INTERACTIVE 3D MOUTH & TREATMENT PLANNER -->
+        <div id="rx-step-2" class="rx-step" role="group" aria-labelledby="rx-step-2-title" hidden>
+          <h3 id="rx-step-2-title" tabindex="-1" class="text-xl font-medium mb-6">3D Odontogram &amp; Material Selection</h3>
 <section id="section-9" class="dental-planner-section">
   <style>
     .dental-planner-section {
@@ -1389,10 +1464,51 @@
               shadeLocation: document.getElementById('tooth-shade-location')
             };
             const materialLabels = { gold: 'Gold Alloy', npm: 'Non-Precious Metal', emax: 'IPS e.max', zirconia: 'Zirconia' };
+            const dateInput = document.getElementById('tooth-return-date');
             const originals = new WeakMap();
             const activeCodes = new Set();
             let multiTooth = false;
             let hoveredMaterial = null;
+
+            function updateShadeControls() {
+              const ceramicSelected = Array.from(activeCodes).some((code) =>
+                isCeramicMaterial(toothPlans.get(code)?.material));
+              document.getElementById('tooth-stump-row').hidden = !ceramicSelected;
+              for (const [key, palette, preview] of [
+                ['shade', VITA_SHADE_HEX, 'tooth-shade-preview'],
+                ['stumpShade', STUMP_SHADE_HEX, 'tooth-stump-preview']
+              ]) {
+                document.getElementById(preview).style.backgroundColor = palette[fields[key].value] || '';
+                document.querySelectorAll(`#tooth-${key === 'shade' ? 'shade' : 'stump'}-swatches button`)
+                  .forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.shade === fields[key].value)));
+              }
+            }
+
+            function addShadeSwatches(key, palette, containerId) {
+              const container = document.getElementById(containerId);
+              Object.entries(palette).filter(([code]) => key !== 'stumpShade' || code.startsWith('ND'))
+                .forEach(([code, hex]) => {
+                  const button = document.createElement('button');
+                  button.type = 'button';
+                  button.className = 'rx-shade-option';
+                  button.dataset.shade = code;
+                  button.setAttribute('aria-label', `${key === 'shade' ? 'Vita' : 'Stump'} shade ${code}`);
+                  button.setAttribute('aria-pressed', 'false');
+                  const swatch = document.createElement('span');
+                  swatch.style.backgroundColor = hex;
+                  swatch.setAttribute('aria-hidden', 'true');
+                  const label = document.createElement('span');
+                  label.textContent = code;
+                  button.append(swatch, label);
+                  button.addEventListener('click', () => {
+                    fields[key].value = code;
+                    fields[key].dispatchEvent(new Event('change', { bubbles: true }));
+                  });
+                  container.appendChild(button);
+                });
+            }
+            addShadeSwatches('shade', VITA_SHADE_HEX, 'tooth-shade-swatches');
+            addShadeSwatches('stumpShade', STUMP_SHADE_HEX, 'tooth-stump-swatches');
 
             function toothFromMaterial(material) {
               const match = /^ToothMaterial_(\d+)$/.exec(material?.name || '');
@@ -1505,6 +1621,7 @@
                 ? plans[0].notes : '';
               notes.placeholder = plans.length > 1 ? 'Enter shared notes for the selected teeth...' : 'Select a tooth to add clinical notes...';
               menu.style.display = plans.length ? 'block' : 'none';
+              updateShadeControls();
             }
 
             function clearSelection() {
@@ -1551,12 +1668,20 @@
               field.addEventListener('change', () => {
                 activeCodes.forEach((code) => {
                   const plan = toothPlans.get(code);
-                  plan[key] = field.value;
+                  if (key !== 'stumpShade' || isCeramicMaterial(plan.material)) plan[key] = field.value;
+                  if (key === 'material' && !isCeramicMaterial(plan.material)) plan.stumpShade = '';
                   if (key === 'material' || key === 'shade') updateMaterial(plan);
                 });
+                if (key === 'material') {
+                  const plans = Array.from(activeCodes, (code) => toothPlans.get(code));
+                  fields.stumpShade.value = plans.length && plans.every((plan) => plan.stumpShade === plans[0].stumpShade)
+                    ? plans[0].stumpShade : '';
+                }
+                updateShadeControls();
                 renderPlan();
               });
             });
+            dateInput.addEventListener('change', renderPlan);
             notes.addEventListener('input', () => {
               activeCodes.forEach((code) => { toothPlans.get(code).notes = notes.value; });
               renderPlan();
@@ -1609,13 +1734,6 @@
           <div class="tooth-num" id="ui-tooth-code">NO TOOTH SELECTED</div>
           <h3 id="ui-tooth-name">Click a tooth on the 3D model</h3>
         </div>
-        <div class="selected-tooth-banner" aria-live="polite">
-          <div class="tooth-num">Expected dispatch date</div>
-          <h3 id="rx-expected-dispatch">Select a treatment</h3>
-          <p id="rx-dispatch-days" class="text-xs text-muted mt-2"></p>
-          <p id="rx-dispatch-note" class="text-xs text-muted mt-2">Working days are Monday–Friday; bank holidays are not accounted for. Requested delivery assumes next-working-day shipping after dispatch; transit is not guaranteed, so do not use this as an appointment date.</p>
-        </div>
-
         <div id="tooth-context-menu" class="tooth-context-menu" role="group" aria-label="Selected tooth treatment options" style="display: none;">
           <strong id="tooth-menu-title" class="tooth-menu-title"></strong>
           <div class="tooth-context-menu-row">
@@ -1643,12 +1761,10 @@
             </select>
           </div>
           <div class="tooth-context-menu-row">
-            <label for="tooth-return-date">Requested delivery date (earliest estimate)</label>
-            <input id="tooth-return-date" type="date" readonly aria-describedby="rx-dispatch-note" />
-          </div>
-          <div class="tooth-context-menu-row">
             <label for="tooth-shade-select">Final Tooth Shade (Vita; optional if taken at lab)</label>
-            <select id="tooth-shade-select">
+            <div class="rx-shade-select">
+              <span id="tooth-shade-preview" class="rx-shade-preview" aria-hidden="true"></span>
+              <select id="tooth-shade-select">
               <option value="">Select shade...</option>
               <optgroup label="Vita Bleach">
                 <option value="BL1">BL1</option><option value="BL2">BL2</option>
@@ -1669,19 +1785,31 @@
               <optgroup label="Vita D">
                 <option value="D2">D2</option><option value="D3">D3</option><option value="D4">D4</option>
               </optgroup>
-            </select>
+              </select>
+            </div>
+            <details>
+              <summary class="text-xs cursor-pointer text-muted">Compare Vita shade swatches</summary>
+              <div id="tooth-shade-swatches" class="rx-shade-palette" role="group" aria-label="Vita shade swatches"></div>
+            </details>
           </div>
-          <div class="tooth-context-menu-row">
+          <div id="tooth-stump-row" class="tooth-context-menu-row" hidden>
             <label for="tooth-stump-shade-select">Prepared Stump Shade *</label>
-            <select id="tooth-stump-shade-select">
-              <option value="">Select stump shade...</option>
-              <option value="N/A (Unprepared / Non-Ceramic)">N/A (Unprepared / Metal Ceramic)</option>
-              <option value="ND1">ND1</option><option value="ND2">ND2</option>
-              <option value="ND3">ND3</option><option value="ND4">ND4</option>
-              <option value="ND5">ND5</option><option value="ND6">ND6</option>
-              <option value="ND7">ND7</option><option value="ND8">ND8</option>
-              <option value="ND9">ND9</option>
-            </select>
+            <div class="rx-shade-select">
+              <span id="tooth-stump-preview" class="rx-shade-preview" aria-hidden="true"></span>
+              <select id="tooth-stump-shade-select">
+                <option value="">Select stump shade...</option>
+                <option value="N/A (Unprepared)">No prepared stump (e.g. unprepared veneer)</option>
+                <option value="ND1">ND1</option><option value="ND2">ND2</option>
+                <option value="ND3">ND3</option><option value="ND4">ND4</option>
+                <option value="ND5">ND5</option><option value="ND6">ND6</option>
+                <option value="ND7">ND7</option><option value="ND8">ND8</option>
+                <option value="ND9">ND9</option>
+              </select>
+            </div>
+            <details>
+              <summary class="text-xs cursor-pointer text-muted">Compare stump shade swatches</summary>
+              <div id="tooth-stump-swatches" class="rx-shade-palette" role="group" aria-label="Stump shade swatches"></div>
+            </details>
           </div>
           <div class="tooth-context-menu-row">
             <label for="tooth-shade-location">Shade Consultation *</label>
@@ -1718,16 +1846,69 @@
   </div>
 
 </section>
+        </div>
 
+        <div id="rx-step-3" class="rx-step space-y-6" role="group" aria-labelledby="rx-step-3-title" hidden>
+          <h3 id="rx-step-3-title" tabindex="-1" class="text-xl font-medium">Schedule, Enclosures &amp; Review</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="rounded-[24px] border border-borderWarm bg-canvas p-6 space-y-4">
+              <h4 class="text-xs font-mono uppercase tracking-widest text-gold font-semibold">Estimated Schedule</h4>
+              <div aria-live="polite">
+                <p class="text-xs text-muted">Expected dispatch date</p>
+                <strong id="rx-expected-dispatch" class="block text-lg">Select a treatment</strong>
+                <p id="rx-dispatch-days" class="text-xs text-muted mt-2"></p>
+              </div>
+              <div>
+                <label for="tooth-return-date" class="block text-xs font-mono uppercase mb-2">Requested delivery date *</label>
+                <input id="tooth-return-date" type="date" required aria-describedby="rx-dispatch-note" class="w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
+              </div>
+              <p id="rx-dispatch-note" class="text-xs text-muted">The earliest selectable date is one working day after dispatch, using the Section 10 standard working times. Weekends are not delivery dates. Bank holidays and transit delays are not accounted for; do not use this as an appointment date. Express requires prior arrangement and is not applied here.</p>
+            </div>
+            <fieldset class="rounded-[24px] border border-borderWarm bg-canvas p-6">
+              <legend class="sr-only">Enclosures</legend>
+              <h4 class="text-xs font-mono uppercase tracking-widest text-gold font-semibold mb-4">Enclosures (Optional)</h4>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <label><input type="checkbox" name="rx_enclosure" value="Digital scan" class="accent-ink mr-2" />Digital scan</label>
+                <label><input type="checkbox" name="rx_enclosure" value="Impressions" class="accent-ink mr-2" />Impressions</label>
+                <label><input type="checkbox" name="rx_enclosure" value="Bite registration" class="accent-ink mr-2" />Bite registration</label>
+                <label><input type="checkbox" name="rx_enclosure" value="Photographs" class="accent-ink mr-2" />Photographs</label>
+              </div>
+              <p class="text-xs text-muted mt-4">Mark what you will send with the case. This form generates a printable prescription; it does not transmit patient data online.</p>
+            </fieldset>
+          </div>
+          <div class="rounded-[24px] border border-borderWarm bg-canvas p-6 space-y-3" aria-live="polite">
+            <h4 class="text-xs font-mono uppercase tracking-widest text-gold font-semibold">Case Review</h4>
+            <p id="rx-review-practice" class="text-sm"></p>
+            <p id="rx-review-patient" class="text-sm"></p>
+            <p id="rx-review-treatments" class="text-sm"></p>
+            <p id="rx-review-enclosures" class="text-sm"></p>
+          </div>
         <div class="border-t border-borderWarm pt-6 space-y-4">
           <p id="rx-validation-banner" class="text-xs font-mono text-amber-800 bg-amber-500/10 border border-amber-600/25 rounded-xl px-4 py-3" role="status">
             Complete all required fields and at least one tooth treatment.
           </p>
-          <button type="submit" id="rx-submit-btn" disabled class="rounded-full bg-ink text-white px-7 py-3 text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed">
-            Review &amp; Print Prescription →
-          </button>
+        </div>
         </div>
       </form>
+    </div>
+    <div id="rx-completion-bar" class="no-print rounded-2xl border border-white/60 overflow-hidden px-4 py-3 sm:px-6 sm:py-4" hidden>
+      <div class="absolute top-0 inset-x-0 h-1 bg-borderWarm" role="progressbar" aria-label="Form completion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="rx-progress-track">
+        <div id="rx-progress-bar" class="h-full bg-gold" style="width: 0%"></div>
+      </div>
+      <div class="flex flex-wrap items-center justify-between gap-2 sm:gap-4">
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-2 text-xs font-mono uppercase">
+            <span id="rx-step-status" class="text-muted">Step 1 of 3</span>
+            <span id="rx-progress-pct" class="font-semibold text-ink">0%</span>
+          </div>
+          <p id="rx-missing-hint" class="text-[11px] font-mono text-muted mt-1 leading-snug">Complete the required fields to continue.</p>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <button type="button" id="rx-back-btn" class="rounded-full border border-ink px-3 sm:px-5 py-2 text-xs font-semibold" hidden>← Back</button>
+          <button type="button" id="rx-next-btn" class="rounded-full bg-ink text-white px-4 sm:px-6 py-2 text-xs font-semibold">Next →</button>
+          <button type="submit" form="kdd-rx-form" id="rx-submit-btn" disabled hidden class="rounded-full bg-ink text-white px-4 sm:px-6 py-2 text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed">Review &amp; Print →</button>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -1849,7 +2030,7 @@
     };
 
     const STUMP_SHADE_HEX = {
-      'N/A (Unprepared / Non-Ceramic)': '#E8DFCA',
+      'N/A (Unprepared)': '#E8DFCA',
       'ND1': '#EFE8D5',
       'ND2': '#E6DAC0',
       'ND3': '#DCCAA6',
@@ -1879,8 +2060,12 @@
       return Array.from(toothPlans.values()).filter((plan) =>
         plan.product || plan.material || plan.shade || plan.stumpShade || plan.notes);
     }
+    function isCeramicMaterial(material) {
+      return material === 'emax' || material === 'zirconia';
+    }
     function isToothPlanComplete(plan) {
-      return Boolean(plan.product && plan.material && plan.returnDate && plan.stumpShade &&
+      return Boolean(plan.product && plan.material && plan.returnDate &&
+        (!isCeramicMaterial(plan.material) || /^ND[1-9]$/.test(plan.stumpShade) || plan.stumpShade === 'N/A (Unprepared)') &&
         (plan.shade || plan.shadeLocation === 'Shade to be taken at Lab'));
     }
     function turnaroundCategory(product) {
@@ -1915,8 +2100,18 @@
         units ? workingDaysFor(category, units) : 0));
       const dispatchDate = days ? dateAfterWorkingDays(days) : null;
       const deliveryDate = dispatchDate ? dateInputValue(dateAfterWorkingDays(days + 1)) : '';
-      toothPlans.forEach((plan) => { plan.returnDate = deliveryDate; });
-      document.getElementById('tooth-return-date').value = deliveryDate;
+      const dateInput = document.getElementById('tooth-return-date');
+      dateInput.min = deliveryDate;
+      let requestedDate = deliveryDate && dateInput.value >= deliveryDate ? dateInput.value : deliveryDate;
+      if (requestedDate) {
+        const [year, month, day] = requestedDate.split('-').map(Number);
+        const requestedDay = new Date(year, month - 1, day);
+        if (requestedDay.getDay() === 6) requestedDay.setDate(requestedDay.getDate() + 2);
+        if (requestedDay.getDay() === 0) requestedDay.setDate(requestedDay.getDate() + 1);
+        requestedDate = dateInputValue(requestedDay);
+      }
+      dateInput.value = requestedDate;
+      toothPlans.forEach((plan) => { plan.returnDate = requestedDate; });
       document.getElementById('rx-expected-dispatch').textContent = dispatchDate
         ? dispatchDate.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
         : 'Select a treatment';
@@ -2423,8 +2618,8 @@
     // ---------------------------------------------------------------------
     // 4. STRICT 100% FORM VALIDATION GATE
     // ---------------------------------------------------------------------
-    function validatePrescriptionForm() {
-      updatePrescriptionDispatch();
+    let currentRxStep = 1;
+    function prescriptionChecks() {
       const dentist = document.getElementById('rx-dentist').value.trim();
       const practice = document.getElementById('rx-practice').value.trim();
       const email = document.getElementById('rx-email').value.trim();
@@ -2435,17 +2630,52 @@
       const gender = document.querySelector('input[name="rx_gender"]:checked');
       const plans = prescribedTeeth();
 
-      const checks = [
-        { ok: dentist.length > 0, label: 'Dentist Name' },
-        { ok: practice.length > 0, label: 'Practice Name' },
-        { ok: emailValid, label: 'Valid Practice Email' },
-        { ok: phone.length > 0, label: 'Practice Phone' },
-        { ok: surname.length > 0, label: 'Patient Surname' },
-        { ok: forename.length > 0, label: 'Patient Forename' },
-        { ok: Boolean(gender), label: 'Patient Gender' },
-        { ok: plans.length > 0, label: 'Tooth Treatment' },
-        { ok: plans.length > 0 && plans.every(isToothPlanComplete), label: 'Treatment, Requested Delivery Date & Shades for Each Tooth' }
+      return [
+        { ok: dentist.length > 0, label: 'Dentist Name', step: 1, selector: '#rx-dentist' },
+        { ok: practice.length > 0, label: 'Practice Name', step: 1, selector: '#rx-practice' },
+        { ok: emailValid, label: 'Valid Practice Email', step: 1, selector: '#rx-email' },
+        { ok: phone.length > 0, label: 'Practice Phone', step: 1, selector: '#rx-phone' },
+        { ok: surname.length > 0, label: 'Patient Surname', step: 1, selector: '#rx-patient-surname' },
+        { ok: forename.length > 0, label: 'Patient Forename', step: 1, selector: '#rx-patient-forename' },
+        { ok: Boolean(gender), label: 'Patient Gender', step: 1, selector: 'input[name="rx_gender"]' },
+        { ok: plans.length > 0, label: 'Tooth Treatment', step: 2, selector: '#rx-step-2-title' },
+        { ok: plans.length > 0 && plans.every(isToothPlanComplete), label: 'Treatment, Requested Delivery Date & Required Shades for Each Tooth', step: 2, selector: '#rx-step-2-title' }
       ];
+    }
+
+    function updatePrescriptionStepUI() {
+      for (let step = 1; step <= 3; step++) {
+        document.getElementById(`rx-step-${step}`).hidden = step !== currentRxStep;
+      }
+      document.querySelectorAll('[data-rx-step]').forEach((tab) => {
+        if (Number(tab.dataset.rxStep) === currentRxStep) tab.setAttribute('aria-current', 'step');
+        else tab.removeAttribute('aria-current');
+      });
+      document.getElementById('rx-step-status').textContent = `Step ${currentRxStep} of 3`;
+      document.getElementById('rx-back-btn').hidden = currentRxStep === 1;
+      document.getElementById('rx-next-btn').hidden = currentRxStep === 3;
+      document.getElementById('rx-submit-btn').hidden = currentRxStep !== 3;
+    }
+
+    function goToPrescriptionStep(step) {
+      if (step < 1 || step > 3) return;
+      updatePrescriptionDispatch();
+      const blocked = step > currentRxStep
+        ? prescriptionChecks().find((check) => check.step < step && !check.ok) : null;
+      currentRxStep = blocked ? blocked.step : step;
+      updatePrescriptionStepUI();
+      validatePrescriptionForm();
+      if (blocked) {
+        document.querySelector(blocked.selector)?.focus();
+      } else {
+        document.getElementById(`rx-step-${currentRxStep}-title`).focus({ preventScroll: true });
+        document.querySelector('#kdd-rx-form nav').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    function validatePrescriptionForm() {
+      updatePrescriptionDispatch();
+      const checks = prescriptionChecks();
 
       const completedCount = checks.filter((c) => c.ok).length;
       const pct = Math.round((completedCount / checks.length) * 100);
@@ -2453,22 +2683,36 @@
 
       document.getElementById('rx-progress-pct').textContent = `${pct}%`;
       document.getElementById('rx-progress-bar').style.width = `${pct}%`;
+      document.getElementById('rx-progress-track').setAttribute('aria-valuenow', String(pct));
 
       const submitBtn = document.getElementById('rx-submit-btn');
       const banner = document.getElementById('rx-validation-banner');
       const hint = document.getElementById('rx-missing-hint');
 
       if (missing.length === 0) {
-        submitBtn.disabled = false;
+        submitBtn.disabled = currentRxStep !== 3;
         banner.className = 'text-xs font-mono text-emerald-800 bg-emerald-500/15 border border-emerald-600/30 rounded-xl px-4 py-3';
         banner.textContent = `✓ All ${checks.length} prescription requirements verified. Ready to review.`;
-        hint.textContent = '100% Complete — Ready to review.';
+        hint.textContent = currentRxStep === 3 ? '100% Complete — Ready to review and print.' : 'All requirements complete — continue to review.';
       } else {
         submitBtn.disabled = true;
         banner.className = 'text-xs font-mono text-amber-800 bg-amber-500/10 border border-amber-600/25 rounded-xl px-4 py-3';
         banner.textContent = `⚠ Incomplete (${missing.length} remaining): ${missing.slice(0, 4).join(', ')}${missing.length > 4 ? '...' : ''}`;
-        hint.textContent = `Missing: ${missing.slice(0, 3).join(', ')}${missing.length > 3 ? ` +${missing.length - 3} more` : ''}`;
+        const stepMissing = checks.filter((check) => check.step === currentRxStep && !check.ok).map((check) => check.label);
+        hint.textContent = stepMissing.length
+          ? `Missing: ${stepMissing.slice(0, 2).join(', ')}${stepMissing.length > 2 ? ` +${stepMissing.length - 2} more` : ''}`
+          : 'This step is complete — continue to the next step.';
       }
+      document.getElementById('rx-completion-bar').classList.toggle('is-ready', missing.length === 0);
+      const selectedEnclosures = Array.from(document.querySelectorAll('input[name="rx_enclosure"]:checked'), (input) => input.value);
+      const readValue = (id) => document.getElementById(id).value.trim();
+      const plans = prescribedTeeth();
+      document.getElementById('rx-review-practice').textContent = `Prescriber: ${readValue('rx-dentist') || '—'} · ${readValue('rx-practice') || '—'}`;
+      document.getElementById('rx-review-patient').textContent = `Patient: ${readValue('rx-patient-forename') || '—'} ${readValue('rx-patient-surname') || '—'}`;
+      document.getElementById('rx-review-treatments').textContent = `Treatment plan: ${plans.length
+        ? plans.map((plan) => `${plan.code} ${plan.product || 'Pending'} (${plan.material || 'material pending'})`).join('; ')
+        : 'No treatments selected'}`;
+      document.getElementById('rx-review-enclosures').textContent = `Enclosures: ${selectedEnclosures.join(', ') || 'None specified'}`;
 
       return missing.length === 0;
     }
@@ -2476,6 +2720,10 @@
     // Review the prescription in a printable docket modal
     function submitDigitalPrescription(e) {
       e.preventDefault();
+      if (currentRxStep !== 3) {
+        goToPrescriptionStep(currentRxStep + 1);
+        return;
+      }
       const dispatch = updatePrescriptionDispatch();
       if (!validatePrescriptionForm()) return;
 
@@ -2493,7 +2741,7 @@
       const planRows = plans.map((plan) => `
         <div class="sm:col-span-2 border-t border-borderWarm pt-3">
           <strong class="text-ink">${escapeHtml(plan.label)} (${escapeHtml(plan.code)}) · ${escapeHtml(plan.product)}</strong>
-          <p class="text-muted mt-1">Material: ${escapeHtml(plan.material)} · Final shade: ${escapeHtml(plan.shade ? `Vita ${plan.shade}` : 'Taken at lab')} · Stump: ${escapeHtml(plan.stumpShade)}</p>
+          <p class="text-muted mt-1">Material: ${escapeHtml(plan.material)} · Final shade: ${escapeHtml(plan.shade ? `Vita ${plan.shade}` : 'Taken at lab')}${plan.stumpShade ? ` · Stump: ${escapeHtml(plan.stumpShade)}` : ''}</p>
           <p class="text-muted">Requested delivery date (estimate): ${escapeHtml(plan.returnDate)} · ${escapeHtml(plan.shadeLocation)}</p>
           ${plan.notes ? `<p class="text-ink whitespace-pre-wrap mt-1">Clinical notes: ${escapeHtml(plan.notes)}</p>` : ''}
         </div>
@@ -2501,6 +2749,7 @@
 
       const modal = document.getElementById('kdd-modal');
       const body = document.getElementById('modal-body');
+      const enclosures = Array.from(document.querySelectorAll('input[name="rx_enclosure"]:checked'), (input) => input.value);
 
       body.innerHTML = `
         <div class="border-b border-borderWarm pb-4 flex items-center justify-between">
@@ -2515,6 +2764,7 @@
           <div><span class="text-muted block font-mono uppercase text-[10px]">1. Dentist &amp; 2. Practice</span><strong class="text-ink">${dentist} — ${practice}</strong><br/><span class="text-muted">${email} · ${phone}</span></div>
           <div><span class="text-muted block font-mono uppercase text-[10px]">3. Patient</span><strong class="text-ink">${patient} (${gender})</strong></div>
           <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">Expected dispatch date (${dispatch.days} working days after today)</span><strong class="text-ink">${escapeHtml(dispatch.date)}</strong><span class="text-muted block">Working days exclude weekends; bank holidays are not accounted for. Requested delivery assumes next-working-day shipping and is not guaranteed.</span></div>
+          <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">Enclosures</span><strong class="text-ink">${enclosures.map(escapeHtml).join(', ') || 'None specified'}</strong></div>
           <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">Upper Arch Treatment Plan (${plans.length} Units)</span></div>
           ${planRows}
         </div>
@@ -2545,6 +2795,20 @@
         input.addEventListener('input', validatePrescriptionForm);
         input.addEventListener('change', validatePrescriptionForm);
       });
+      document.querySelectorAll('input[name="rx_enclosure"]').forEach((input) =>
+        input.addEventListener('change', validatePrescriptionForm));
+      document.querySelectorAll('[data-rx-step]').forEach((tab) =>
+        tab.addEventListener('click', () => goToPrescriptionStep(Number(tab.dataset.rxStep))));
+      document.getElementById('rx-back-btn').addEventListener('click', () => goToPrescriptionStep(currentRxStep - 1));
+      document.getElementById('rx-next-btn').addEventListener('click', () => goToPrescriptionStep(currentRxStep + 1));
+      const bar = document.getElementById('rx-completion-bar');
+      if (typeof IntersectionObserver !== 'undefined') {
+        new IntersectionObserver(([entry]) => { bar.hidden = !entry.isIntersecting; })
+          .observe(document.getElementById('digital-prescription'));
+      } else {
+        bar.hidden = false;
+      }
+      updatePrescriptionStepUI();
       validatePrescriptionForm();
     });
 
