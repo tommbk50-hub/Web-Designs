@@ -537,6 +537,12 @@
               <div class="text-xs text-white/65 mt-1">Vita shades with TePe access</div>
             </div>
           </div>
+          <div class="selected-tooth-banner" aria-live="polite">
+            <div class="tooth-num">Expected dispatch date</div>
+            <h3 id="rx-expected-dispatch">Select a treatment</h3>
+            <p id="rx-dispatch-days" class="text-xs text-muted mt-2"></p>
+            <p id="rx-dispatch-note" class="text-xs text-muted mt-2">Working days are Monday–Friday, excluding weekends; bank holidays and shipping time are not included. The requested delivery date is an estimate based on dispatch, not an appointment guarantee.</p>
+          </div>
         </div>
 
         <div class="lg:col-span-6 reveal-up">
@@ -822,7 +828,7 @@
             Online Laboratory <span class="font-serif italic font-normal text-gold">Prescription Form</span>
           </h2>
           <p class="text-xs sm:text-sm text-muted mt-2 max-w-2xl">
-            Complete your digital prescription below. Click a tooth on the 3D upper arch to assign its treatment, dates and shades.
+            Complete your digital prescription below. Select one or multiple teeth on the 3D upper arch to assign treatments and shades. Dispatch dates are calculated automatically.
           </p>
         </div>
 
@@ -1270,10 +1276,10 @@
       box-shadow: none;
     }
     .tooth-context-menu {
-      width: min(310px, calc(100% - 1rem));
+      position: static;
+      width: 100%;
       min-width: 0;
-      max-height: calc(100% - 1rem);
-      overflow-y: auto;
+      max-height: none;
       box-sizing: border-box;
       background: #F4F1EA;
       border-color: #C59B47;
@@ -1330,7 +1336,7 @@
   <div class="dental-planner-container">
     <div class="dental-planner-header">
       <h2>Interactive 3D Upper Arch &amp; Treatment Planner</h2>
-      <p>Explore the 3D upper mouth model below.</p>
+      <p>Click a tooth to prescribe a single unit, or enable multi-tooth selection to prescribe several units together.</p>
     </div>
 
     <div class="dental-planner-grid">
@@ -1368,8 +1374,244 @@
           })();
         </script>
 
-        <!-- Tooth-specific prescription fields -->
-        <div id="tooth-context-menu" class="tooth-context-menu" role="dialog" aria-label="Tooth treatment options" style="display: none;">
+        <script>
+          document.addEventListener('DOMContentLoaded', () => {
+            const viewer = document.getElementById('mouth-glb-viewer');
+            const menu = document.getElementById('tooth-context-menu');
+            const notes = document.getElementById('ui-clinical-notes');
+            const planList = document.getElementById('plan-items-list');
+            const multiButton = document.getElementById('btn-multi-tooth');
+            const fields = {
+              product: document.getElementById('tooth-procedure-select'),
+              material: document.getElementById('tooth-material-select'),
+              shade: document.getElementById('tooth-shade-select'),
+              stumpShade: document.getElementById('tooth-stump-shade-select'),
+              shadeLocation: document.getElementById('tooth-shade-location')
+            };
+            const materialLabels = { gold: 'Gold Alloy', npm: 'Non-Precious Metal', emax: 'IPS e.max', zirconia: 'Zirconia' };
+            const originals = new WeakMap();
+            const activeCodes = new Set();
+            let multiTooth = false;
+            let hoveredMaterial = null;
+
+            function toothFromMaterial(material) {
+              const match = /^ToothMaterial_(\d+)$/.exec(material?.name || '');
+              if (!match) return null;
+              const index = Number(match[1]);
+              if (index < 0 || index > 13) return null;
+              const right = index < 7;
+              const num = right ? 7 - index : index - 6;
+              return { code: `U${right ? 'R' : 'L'}${num}`, label: `Upper ${num} · ${right ? 'Right' : 'Left'}` };
+            }
+
+            function setHighlight(material) {
+              if (material) {
+                material.setEmissiveFactor(activeCodes.has(toothFromMaterial(material)?.code) ? [0.35, 0.23, 0.06] :
+                  material === hoveredMaterial ? [0.12, 0.09, 0.03] : [0, 0, 0]);
+              }
+            }
+
+            function resetMaterial(material) {
+              const original = originals.get(material);
+              if (!original) return;
+              const pbr = material.pbrMetallicRoughness;
+              pbr.setBaseColorFactor(original.color);
+              pbr.setMetallicFactor(original.metallic);
+              pbr.setRoughnessFactor(original.roughness);
+            }
+
+            function updateMaterial(plan) {
+              const material = plan.modelMaterial;
+              if (!material) return;
+              const pbr = material.pbrMetallicRoughness;
+              if (!originals.has(material)) {
+                originals.set(material, {
+                  color: [...pbr.baseColorFactor],
+                  metallic: pbr.metallicFactor,
+                  roughness: pbr.roughnessFactor
+                });
+              }
+              resetMaterial(material);
+              if (!plan.material) return;
+              const shadeColor = VITA_SHADE_HEX[plan.shade];
+              if (plan.material === 'gold' || plan.material === 'npm') {
+                pbr.setBaseColorFactor(plan.material === 'gold' ? '#d4af37' : '#a8a9ad');
+                pbr.setMetallicFactor(1);
+                pbr.setRoughnessFactor(plan.material === 'gold' ? 0.25 : 0.3);
+              } else {
+                if (shadeColor) pbr.setBaseColorFactor(shadeColor);
+                pbr.setMetallicFactor(0);
+                pbr.setRoughnessFactor(plan.material === 'emax' ? 0.1 : 0.25);
+              }
+            }
+
+            function renderPlan() {
+              const dispatch = updatePrescriptionDispatch();
+              document.getElementById('tooth-return-date').value = dispatch ? dispatch.date : '';
+              planList.replaceChildren();
+              const plans = prescribedTeeth();
+              if (!plans.length) {
+                const empty = document.createElement('div');
+                empty.className = 'text-sm text-muted text-center p-4';
+                empty.textContent = 'No treatments selected yet.';
+                planList.appendChild(empty);
+              }
+              plans.forEach((plan) => {
+                const item = document.createElement('div');
+                item.className = 'plan-item';
+                const details = document.createElement('div');
+                details.className = 'plan-item-meta';
+                const heading = document.createElement('strong');
+                heading.textContent = `${plan.label} · ${plan.product || 'Treatment pending'}`;
+                details.appendChild(heading);
+                const lines = [
+                  materialLabels[plan.material],
+                  plan.shade ? `Vita ${plan.shade}` : plan.shadeLocation === 'Shade to be taken at Lab' ? 'Shade at lab' : null,
+                  plan.stumpShade ? `Stump ${plan.stumpShade}` : null,
+                  plan.returnDate ? `Requested delivery date: ${plan.returnDate}` : null,
+                  plan.notes ? `Notes: ${plan.notes}` : null,
+                  isToothPlanComplete(plan) ? null : 'Details incomplete'
+                ];
+                lines.filter(Boolean).forEach((text) => {
+                  const detail = document.createElement('span');
+                  detail.textContent = text;
+                  details.appendChild(detail);
+                });
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'plan-remove-btn';
+                remove.textContent = '✕';
+                remove.setAttribute('aria-label', `Remove treatment for ${plan.label}`);
+                remove.addEventListener('click', () => removePlan(plan.code));
+                item.append(details, remove);
+                planList.appendChild(item);
+              });
+              validatePrescriptionForm();
+            }
+
+            function updateSelectionUI() {
+              const plans = Array.from(activeCodes, (code) => toothPlans.get(code));
+              document.getElementById('ui-tooth-code').textContent = plans.length
+                ? plans.map((plan) => plan.code).join(', ') : 'NO TOOTH SELECTED';
+              document.getElementById('ui-tooth-name').textContent = plans.length === 1
+                ? plans[0].label : plans.length ? `${plans.length} teeth selected` : 'Click a tooth on the 3D model';
+              document.getElementById('tooth-menu-title').textContent = plans.length === 1
+                ? `${plans[0].label} · Treatment details` : `${plans.length} teeth · Shared treatment details`;
+              Object.entries(fields).forEach(([key, field]) => {
+                field.value = plans.length && plans.every((plan) => plan[key] === plans[0][key])
+                  ? plans[0][key] : '';
+              });
+              notes.disabled = !plans.length;
+              notes.value = plans.length && plans.every((plan) => plan.notes === plans[0].notes)
+                ? plans[0].notes : '';
+              notes.placeholder = plans.length > 1 ? 'Enter shared notes for the selected teeth...' : 'Select a tooth to add clinical notes...';
+              menu.style.display = plans.length ? 'block' : 'none';
+            }
+
+            function clearSelection() {
+              const materials = Array.from(activeCodes, (code) => toothPlans.get(code)?.modelMaterial);
+              activeCodes.clear();
+              materials.forEach(setHighlight);
+              updateSelectionUI();
+            }
+
+            function removePlan(code) {
+              const plan = toothPlans.get(code);
+              if (!plan) return;
+              if (plan.modelMaterial) resetMaterial(plan.modelMaterial);
+              toothPlans.delete(code);
+              activeCodes.delete(code);
+              setHighlight(plan.modelMaterial);
+              updateSelectionUI();
+              renderPlan();
+            }
+
+            viewer.addEventListener('click', (event) => {
+              if (typeof viewer.materialFromPoint !== 'function') return;
+              const material = viewer.materialFromPoint(event.clientX, event.clientY);
+              const tooth = toothFromMaterial(material);
+              if (!tooth) return;
+              if (multiTooth && activeCodes.has(tooth.code)) {
+                activeCodes.delete(tooth.code);
+              } else {
+                if (!multiTooth) clearSelection();
+                const plan = toothPlans.get(tooth.code) || {
+                  ...tooth, product: '', material: '', returnDate: '',
+                  shade: '', stumpShade: '', shadeLocation: 'Provided by Practice', notes: ''
+                };
+                plan.modelMaterial = material;
+                toothPlans.set(tooth.code, plan);
+                activeCodes.add(tooth.code);
+              }
+              setHighlight(material);
+              updateSelectionUI();
+              renderPlan();
+            });
+
+            Object.entries(fields).forEach(([key, field]) => {
+              field.addEventListener('change', () => {
+                activeCodes.forEach((code) => {
+                  const plan = toothPlans.get(code);
+                  plan[key] = field.value;
+                  if (key === 'material' || key === 'shade') updateMaterial(plan);
+                });
+                renderPlan();
+              });
+            });
+            notes.addEventListener('input', () => {
+              activeCodes.forEach((code) => { toothPlans.get(code).notes = notes.value; });
+              renderPlan();
+            });
+            multiButton.addEventListener('click', () => {
+              multiTooth = !multiTooth;
+              multiButton.setAttribute('aria-pressed', String(multiTooth));
+              multiButton.textContent = `Select multiple teeth: ${multiTooth ? 'On' : 'Off'}`;
+              if (!multiTooth && activeCodes.size > 1) {
+                const lastCode = Array.from(activeCodes).pop();
+                Array.from(activeCodes).forEach((code) => {
+                  if (code !== lastCode) {
+                    activeCodes.delete(code);
+                    setHighlight(toothPlans.get(code).modelMaterial);
+                  }
+                });
+              }
+              updateSelectionUI();
+            });
+            document.getElementById('btn-clear-plan').addEventListener('click', () => {
+              Array.from(toothPlans.keys()).forEach(removePlan);
+              clearSelection();
+            });
+            document.getElementById('tooth-context-close-btn').addEventListener('click', () => {
+              menu.style.display = 'none';
+            });
+            viewer.addEventListener('mousemove', (event) => {
+              if (typeof viewer.materialFromPoint !== 'function') return;
+              const material = viewer.materialFromPoint(event.clientX, event.clientY);
+              if (material === hoveredMaterial) return;
+              const previous = hoveredMaterial;
+              hoveredMaterial = toothFromMaterial(material) ? material : null;
+              setHighlight(previous);
+              setHighlight(hoveredMaterial);
+            });
+            viewer.addEventListener('mouseleave', () => {
+              const previous = hoveredMaterial;
+              hoveredMaterial = null;
+              setHighlight(previous);
+            });
+          });
+        </script>
+      </div>
+
+      <!-- Right: Interactive Treatment Plan Interface -->
+      <div class="treatment-sidebar">
+        <button type="button" class="vp-btn" id="btn-multi-tooth" aria-pressed="false">Select multiple teeth: Off</button>
+        <p class="text-xs text-muted">In multi-tooth mode, click teeth to add or deselect them, then set shared treatment details below. Deselecting does not remove a prescribed treatment.</p>
+        <div class="selected-tooth-banner">
+          <div class="tooth-num" id="ui-tooth-code">NO TOOTH SELECTED</div>
+          <h3 id="ui-tooth-name">Click a tooth on the 3D model</h3>
+        </div>
+
+        <div id="tooth-context-menu" class="tooth-context-menu" role="group" aria-label="Selected tooth treatment options" style="display: none;">
           <strong id="tooth-menu-title" class="tooth-menu-title"></strong>
           <div class="tooth-context-menu-row">
             <label for="tooth-procedure-select">Treatment *</label>
@@ -1378,6 +1620,11 @@
               <option value="Crown">Crown</option>
               <option value="Veneer">Veneer</option>
               <option value="Bridge">Bridge</option>
+              <option value="Implant">Implant</option>
+              <option value="Attachment">Attachment</option>
+              <option value="Combination">Combination</option>
+              <option value="Occlusal Rehabilitation">Occlusal Rehabilitation</option>
+              <option value="Diagnostic Wax-up">Diagnostic Wax-up</option>
             </select>
           </div>
           <div class="tooth-context-menu-row">
@@ -1391,12 +1638,8 @@
             </select>
           </div>
           <div class="tooth-context-menu-row">
-            <label for="tooth-prep-date">Prep Date *</label>
-            <input id="tooth-prep-date" type="date" />
-          </div>
-          <div class="tooth-context-menu-row">
-            <label for="tooth-return-date">Laboratory Return Date * (not appointment date)</label>
-            <input id="tooth-return-date" type="date" />
+            <label for="tooth-return-date">Requested delivery date (calculated)</label>
+            <input id="tooth-return-date" type="date" readonly aria-describedby="rx-dispatch-note" />
           </div>
           <div class="tooth-context-menu-row">
             <label for="tooth-shade-select">Final Tooth Shade (Vita; optional if taken at lab)</label>
@@ -1445,227 +1688,6 @@
           <div class="tooth-context-menu-actions">
             <button type="button" id="tooth-context-close-btn">Done</button>
           </div>
-        </div>
-
-        <script>
-          document.addEventListener('DOMContentLoaded', () => {
-            const viewer = document.getElementById('mouth-glb-viewer');
-            const card = viewer.parentElement;
-            const menu = document.getElementById('tooth-context-menu');
-            const notes = document.getElementById('ui-clinical-notes');
-            const planList = document.getElementById('plan-items-list');
-            const fields = {
-              product: document.getElementById('tooth-procedure-select'),
-              material: document.getElementById('tooth-material-select'),
-              prepDate: document.getElementById('tooth-prep-date'),
-              returnDate: document.getElementById('tooth-return-date'),
-              shade: document.getElementById('tooth-shade-select'),
-              stumpShade: document.getElementById('tooth-stump-shade-select'),
-              shadeLocation: document.getElementById('tooth-shade-location')
-            };
-            const materialLabels = { gold: 'Gold Alloy', npm: 'Non-Precious Metal', emax: 'IPS e.max', zirconia: 'Zirconia' };
-            const originals = new WeakMap();
-            let activeCode = null;
-            let activeMaterial = null;
-            let hoveredMaterial = null;
-
-            function toothFromMaterial(material) {
-              const match = /^ToothMaterial_(\d+)$/.exec(material?.name || '');
-              if (!match) return null;
-              const index = Number(match[1]);
-              if (index < 0 || index > 13) return null;
-              const right = index < 7;
-              const num = right ? 7 - index : index - 6;
-              return { code: `U${right ? 'R' : 'L'}${num}`, label: `Upper ${num} · ${right ? 'Right' : 'Left'}` };
-            }
-
-            function setHighlight(material) {
-              if (material) {
-                material.setEmissiveFactor(material === activeMaterial ? [0.35, 0.23, 0.06] :
-                  material === hoveredMaterial ? [0.12, 0.09, 0.03] : [0, 0, 0]);
-              }
-            }
-
-            function resetMaterial(material) {
-              const original = originals.get(material);
-              if (!original) return;
-              const pbr = material.pbrMetallicRoughness;
-              pbr.setBaseColorFactor(original.color);
-              pbr.setMetallicFactor(original.metallic);
-              pbr.setRoughnessFactor(original.roughness);
-            }
-
-            function updateMaterial(plan) {
-              const material = plan.modelMaterial;
-              if (!material) return;
-              const pbr = material.pbrMetallicRoughness;
-              if (!originals.has(material)) {
-                originals.set(material, {
-                  color: [...pbr.baseColorFactor],
-                  metallic: pbr.metallicFactor,
-                  roughness: pbr.roughnessFactor
-                });
-              }
-              resetMaterial(material);
-              if (!plan.material) return;
-              const shadeColor = VITA_SHADE_HEX[plan.shade];
-              if (plan.material === 'gold' || plan.material === 'npm') {
-                pbr.setBaseColorFactor(plan.material === 'gold' ? '#d4af37' : '#a8a9ad');
-                pbr.setMetallicFactor(1);
-                pbr.setRoughnessFactor(plan.material === 'gold' ? 0.25 : 0.3);
-              } else {
-                if (shadeColor) pbr.setBaseColorFactor(shadeColor);
-                pbr.setMetallicFactor(0);
-                pbr.setRoughnessFactor(plan.material === 'emax' ? 0.1 : 0.25);
-              }
-            }
-
-            function renderPlan() {
-              planList.replaceChildren();
-              const plans = prescribedTeeth();
-              if (!plans.length) {
-                const empty = document.createElement('div');
-                empty.className = 'text-sm text-muted text-center p-4';
-                empty.textContent = 'No treatments selected yet.';
-                planList.appendChild(empty);
-              }
-              plans.forEach((plan) => {
-                const item = document.createElement('div');
-                item.className = 'plan-item';
-                const details = document.createElement('div');
-                details.className = 'plan-item-meta';
-                const heading = document.createElement('strong');
-                heading.textContent = `${plan.label} · ${plan.product || 'Treatment pending'}`;
-                details.appendChild(heading);
-                const lines = [
-                  materialLabels[plan.material],
-                  plan.shade ? `Vita ${plan.shade}` : plan.shadeLocation === 'Shade to be taken at Lab' ? 'Shade at lab' : null,
-                  plan.stumpShade ? `Stump ${plan.stumpShade}` : null,
-                  plan.prepDate || plan.returnDate ? `Prep ${plan.prepDate || '—'} → Return ${plan.returnDate || '—'}` : null,
-                  plan.notes ? `Notes: ${plan.notes}` : null,
-                  isToothPlanComplete(plan) ? null : 'Details incomplete'
-                ];
-                lines.filter(Boolean).forEach((text) => {
-                  const detail = document.createElement('span');
-                  detail.textContent = text;
-                  details.appendChild(detail);
-                });
-                const remove = document.createElement('button');
-                remove.type = 'button';
-                remove.className = 'plan-remove-btn';
-                remove.textContent = '✕';
-                remove.setAttribute('aria-label', `Remove treatment for ${plan.label}`);
-                remove.addEventListener('click', () => removePlan(plan.code));
-                item.append(details, remove);
-                planList.appendChild(item);
-              });
-              validatePrescriptionForm();
-            }
-
-            function clearSelection() {
-              const previous = activeMaterial;
-              activeCode = null;
-              activeMaterial = null;
-              hoveredMaterial = null;
-              setHighlight(previous);
-              document.getElementById('ui-tooth-code').textContent = 'NO TOOTH SELECTED';
-              document.getElementById('ui-tooth-name').textContent = 'Click a tooth on the 3D model';
-              notes.value = '';
-              notes.disabled = true;
-              menu.style.display = 'none';
-            }
-
-            function removePlan(code) {
-              const plan = toothPlans.get(code);
-              if (!plan) return;
-              if (plan.modelMaterial) resetMaterial(plan.modelMaterial);
-              toothPlans.delete(code);
-              if (activeCode === code) clearSelection();
-              renderPlan();
-            }
-
-            function showMenu(clientX, clientY) {
-              menu.style.display = 'block';
-              const rect = card.getBoundingClientRect();
-              menu.style.left = `${Math.max(8, Math.min(clientX - rect.left + 12, card.clientWidth - menu.offsetWidth - 8))}px`;
-              menu.style.top = `${Math.max(8, Math.min(clientY - rect.top + 12, card.clientHeight - menu.offsetHeight - 8))}px`;
-            }
-
-            viewer.addEventListener('click', (event) => {
-              if (typeof viewer.materialFromPoint !== 'function') return;
-              const material = viewer.materialFromPoint(event.clientX, event.clientY);
-              const tooth = toothFromMaterial(material);
-              if (!tooth) {
-                menu.style.display = 'none';
-                return;
-              }
-              const previous = activeMaterial;
-              activeCode = tooth.code;
-              activeMaterial = material;
-              setHighlight(previous);
-              setHighlight(activeMaterial);
-              const plan = toothPlans.get(tooth.code) || {
-                ...tooth, product: '', material: '', prepDate: '', returnDate: '',
-                shade: '', stumpShade: '', shadeLocation: 'Provided by Practice', notes: ''
-              };
-              plan.modelMaterial = material;
-              toothPlans.set(tooth.code, plan);
-              document.getElementById('ui-tooth-code').textContent = tooth.code;
-              document.getElementById('ui-tooth-name').textContent = tooth.label;
-              document.getElementById('tooth-menu-title').textContent = `${tooth.label} · Treatment details`;
-              Object.entries(fields).forEach(([key, field]) => { field.value = plan[key]; });
-              notes.disabled = false;
-              notes.value = plan.notes;
-              showMenu(event.clientX, event.clientY);
-            });
-
-            Object.entries(fields).forEach(([key, field]) => {
-              field.addEventListener('change', () => {
-                if (!activeCode) return;
-                const plan = toothPlans.get(activeCode);
-                plan[key] = field.value;
-                if (key === 'material' || key === 'shade') updateMaterial(plan);
-                renderPlan();
-              });
-            });
-            notes.addEventListener('input', () => {
-              if (!activeCode) return;
-              toothPlans.get(activeCode).notes = notes.value;
-              renderPlan();
-            });
-            document.getElementById('btn-clear-plan').addEventListener('click', () => {
-              Array.from(toothPlans.keys()).forEach(removePlan);
-              clearSelection();
-            });
-            document.getElementById('tooth-context-close-btn').addEventListener('click', () => {
-              menu.style.display = 'none';
-            });
-            document.addEventListener('pointerdown', (event) => {
-              if (!menu.contains(event.target) && !viewer.contains(event.target)) menu.style.display = 'none';
-            });
-            viewer.addEventListener('mousemove', (event) => {
-              if (typeof viewer.materialFromPoint !== 'function') return;
-              const material = viewer.materialFromPoint(event.clientX, event.clientY);
-              if (material === hoveredMaterial) return;
-              const previous = hoveredMaterial;
-              hoveredMaterial = toothFromMaterial(material) ? material : null;
-              setHighlight(previous);
-              setHighlight(hoveredMaterial);
-            });
-            viewer.addEventListener('mouseleave', () => {
-              const previous = hoveredMaterial;
-              hoveredMaterial = null;
-              setHighlight(previous);
-            });
-          });
-        </script>
-      </div>
-
-      <!-- Right: Interactive Treatment Plan Interface -->
-      <div class="treatment-sidebar">
-        <div class="selected-tooth-banner">
-          <div class="tooth-num" id="ui-tooth-code">NO TOOTH SELECTED</div>
-          <h3 id="ui-tooth-name">Click a tooth on the 3D model</h3>
         </div>
 
         <div>
@@ -1850,12 +1872,55 @@
     const toothPlans = new Map();
     function prescribedTeeth() {
       return Array.from(toothPlans.values()).filter((plan) =>
-        plan.product || plan.material || plan.prepDate || plan.returnDate || plan.shade || plan.stumpShade || plan.notes);
+        plan.product || plan.material || plan.shade || plan.stumpShade || plan.notes);
     }
     function isToothPlanComplete(plan) {
-      return Boolean(plan.product && plan.material && plan.prepDate && plan.returnDate &&
-        plan.returnDate >= plan.prepDate && plan.stumpShade &&
+      return Boolean(plan.product && plan.material && plan.returnDate && plan.stumpShade &&
         (plan.shade || plan.shadeLocation === 'Shade to be taken at Lab'));
+    }
+    function turnaroundCategory(product) {
+      if (product === 'Diagnostic Wax-up') return 'waxup';
+      if (['Implant', 'Attachment', 'Combination', 'Occlusal Rehabilitation'].includes(product)) return 'complex';
+      return 'crown';
+    }
+    function workingDaysFor(category, units) {
+      if (category === 'waxup') return units >= 7 ? 9 : 6;
+      if (category === 'complex') return units >= 4 ? 16 : 13;
+      return units >= 7 ? 11 : 9;
+    }
+    function dateAfterWorkingDays(days) {
+      const today = new Date();
+      const date = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      let added = 0;
+      while (added < days) {
+        date.setDate(date.getDate() + 1);
+        if (date.getDay() !== 0 && date.getDay() !== 6) added++;
+      }
+      return date;
+    }
+    function dateInputValue(date) {
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    }
+    function updatePrescriptionDispatch() {
+      const counts = { crown: 0, complex: 0, waxup: 0 };
+      toothPlans.forEach((plan) => {
+        if (plan.product) counts[turnaroundCategory(plan.product)]++;
+      });
+      const days = Math.max(...Object.entries(counts).map(([category, units]) =>
+        units ? workingDaysFor(category, units) : 0));
+      const date = days ? dateAfterWorkingDays(days) : null;
+      const dateValue = date ? dateInputValue(date) : '';
+      toothPlans.forEach((plan) => { plan.returnDate = dateValue; });
+      document.getElementById('tooth-return-date').value = dateValue;
+      document.getElementById('rx-expected-dispatch').textContent = date
+        ? date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+        : 'Select a treatment';
+      const labels = { crown: 'crown/bridge/veneer', complex: 'implant/rehab', waxup: 'diagnostic wax-up' };
+      document.getElementById('rx-dispatch-days').textContent = date
+        ? `${days} working days after today · ${Object.entries(counts).filter(([, units]) => units)
+          .map(([category, units]) => `${units} ${labels[category]} unit${units === 1 ? '' : 's'}`).join(', ')}`
+        : '';
+      return date ? { date: dateValue, days } : null;
     }
     let activeProductTool = 'Crown';
     let currentFinalShade = 'A1';
@@ -2373,7 +2438,7 @@
         { ok: forename.length > 0, label: 'Patient Forename' },
         { ok: Boolean(gender), label: 'Patient Gender' },
         { ok: plans.length > 0, label: 'Tooth Treatment' },
-        { ok: plans.length > 0 && plans.every(isToothPlanComplete), label: 'Treatment, Dates & Shades for Each Tooth' }
+        { ok: plans.length > 0 && plans.every(isToothPlanComplete), label: 'Treatment, Requested Delivery Date & Shades for Each Tooth' }
       ];
 
       const completedCount = checks.filter((c) => c.ok).length;
