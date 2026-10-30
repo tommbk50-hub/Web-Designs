@@ -1,0 +1,44 @@
+================================================================================
+FUTURE AI FEATURES FOR DENTAL LAB WEBSITE
+================================================================================
+
+QUESTION:
+What other features could be useful to add to the dental laboratory website? find some recent research papers that could be used to implement these ideas?
+
+--------------------------------------------------------------------------------
+RESPONSE:
+--------------------------------------------------------------------------------
+
+1. Automated Margin Line Extraction & Prep Analysis
+* The Feature: When a dentist uploads a crown or veneer preparation scan (STL/PLY), an AI engine instantly detects and draws the margin line, grading the preparation for undercuts, clearance, and margin clarity before the technician even looks at it.
+* Website Integration: This can be added as a "Prep Check" step in the digital prescription form. If the AI detects a poorly defined subgingival margin, it flags the dentist to re-scan immediately while the patient is still in the chair, drastically reducing lab rejections and turnaround delays.
+* Supporting Research: 
+  - Title: "Automatic margin line extraction using 3D deep learning on digital surface models of prepared teeth for crown generation"
+  - Authors: Ammar A. Alsheghri, et al.
+  - Journal: Computers in Biology and Medicine
+  - Link: https://pubmed.ncbi.nlm.nih.gov/36904928/
+  - DOI: 10.1016/j.compbiomed.2023.106806
+
+2. Generative AI Crown & Morphology Auto-Design
+* The Feature: Instead of relying solely on a technician to build a crown from scratch in CAD software, the platform uses generative AI to instantly propose an ideal 3D crown or veneer morphology based on the patient's adjacent teeth, opposing dentition, and occlusal contacts.
+* Website Integration: During the "Design Approval" stage, the website can automatically generate and display a preliminary 3D wax-up. The dentist can view this generative proposal in the browser and approve it instantly, accelerating the fabrication of monolithic zirconia or 3D-printed restorations. 
+* Supporting Research (Two Key Papers):
+  - Title: "Exploring the use of Generative Adversarial Networks for Automated Crown Design"
+  - Publisher: IEEE
+  - Link: https://ieeexplore.ieee.org/document/10980665/
+  - DOI: 10.1109/ISBI56570.2024.10635489
+
+  - Title: "Accuracy and Functional Performance of Artificial Intelligence-Based Automated Crown Design: A Systematic Review and Meta-Analysis" (2026)
+  - Journal: National Library of Medicine (PMC)
+  - Link: https://pmc.ncbi.nlm.nih.gov/articles/PMC13305636/
+
+3. Facial-Driven 3D Smile Simulation (Digital Smile Design)
+* The Feature: Moving beyond intraoral scans, this feature allows dentists or patients to upload a 2D portrait or 3D facial scan. The AI maps facial landmarks and generates a highly realistic 3D simulation of their new smile (e.g., customized veneers or full rehabilitation) directly onto their face.
+* Website Integration: Knight Dental Design already boasts a clinical photographic studio. You can integrate an "AI Smile Preview" portal tailored for the "For Patients" section, allowing prospective patients to upload a selfie and see a photorealistic prediction of a veneer case. This acts as a powerful lead-generation tool to funnel patients to Knight-affiliated dentists.
+* Supporting Research: 
+  - Title: "Digital Smile Design: A technology-driven approach in aesthetic dentistry" (Framework by C. Coachman et al.)
+  - Note on AI Evolution: Recent integrations of this framework utilize 3D facial scanning and ML algorithms to automatically map facial landmarks to dental proportions.
+  - Link: https://cinikdental.com/blog/what-is-smile-design-and-how-does-it-transform-modern-dentistry/ (Recent 2026 clinical overview on integrating AI-powered 3D imaging and CAD/CAM into Smile Design workflows).
+
+Integrating these capabilities transforms a static submission form into an active, intelligent partner for the clinician. If you want to explore the technical architecture for any of these—such as how to route a patient selfie through a GAN for the smile simulation—we can dive into the specific API requirements next.
+================================================================================
