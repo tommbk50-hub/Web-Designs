@@ -143,6 +143,24 @@
     .service-image-unavailable { aspect-ratio: 4 / 3; display: grid; place-items: center; padding: 1rem; text-align: center; }
     .example-button:focus-visible { outline: 3px solid #98722B; outline-offset: 3px; }
 
+    /* Service Discovery Hovercard: Glassmorphic Preview on Hover/Focus */
+    #service-hovercard {
+      position: fixed;
+      z-index: 60;
+      width: min(320px, calc(100vw - 24px));
+      padding: 1.1rem 1.25rem;
+      border-radius: 20px;
+      background: rgba(244, 241, 234, .6);
+      border: 1px solid rgba(255, 255, 255, .65);
+      box-shadow: 0 20px 60px rgba(28, 25, 23, .28), inset 0 1px rgba(255, 255, 255, .5);
+      backdrop-filter: blur(22px) saturate(160%);
+      -webkit-backdrop-filter: blur(22px) saturate(160%);
+      pointer-events: auto;
+      transition: opacity .15s ease;
+    }
+    .hovercard-photo { aspect-ratio: 4 / 3; object-fit: cover; width: 100%; border-radius: .75rem; }
+    .hovercard-photo-unavailable { aspect-ratio: 4 / 3; display: grid; place-items: center; padding: .5rem; text-align: center; }
+
     @keyframes spinSlow {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
@@ -561,8 +579,8 @@
           </p>
         </div>
         <div class="pt-6 border-t border-borderWarm/80 flex flex-wrap gap-1.5">
-          <button type="button" onclick="selectHeroService('veneers')" aria-haspopup="dialog" class="example-button text-sm rounded-full bg-canvas px-3 py-2 text-ink/80 hover:bg-borderWarm">View veneers</button>
-          <button type="button" onclick="selectHeroService('crowns')" aria-haspopup="dialog" class="example-button text-sm rounded-full bg-canvas px-3 py-2 text-ink/80 hover:bg-borderWarm">View crowns</button>
+          <button type="button" data-service="veneers" aria-haspopup="true" aria-expanded="false" aria-controls="service-hovercard" class="example-button service-hover-trigger text-sm rounded-full bg-canvas px-3 py-2 text-ink/80 hover:bg-borderWarm">View veneers</button>
+          <button type="button" data-service="crowns" aria-haspopup="true" aria-expanded="false" aria-controls="service-hovercard" class="example-button service-hover-trigger text-sm rounded-full bg-canvas px-3 py-2 text-ink/80 hover:bg-borderWarm">View crowns</button>
           <span class="text-[11px] rounded-full bg-canvas px-3 py-1 text-ink/80">IPS e.max</span>
           <span class="text-[11px] rounded-full bg-canvas px-3 py-1 text-ink/80">Trial Smiles</span>
         </div>
@@ -580,7 +598,7 @@
           </p>
         </div>
         <div class="pt-6 border-t border-borderWarm/80 flex flex-wrap gap-1.5">
-          <button type="button" onclick="selectHeroService('implants')" aria-haspopup="dialog" class="example-button text-sm rounded-full bg-canvas px-3 py-2 text-ink/80 hover:bg-borderWarm">View implants</button>
+          <button type="button" data-service="implants" aria-haspopup="true" aria-expanded="false" aria-controls="service-hovercard" class="example-button service-hover-trigger text-sm rounded-full bg-canvas px-3 py-2 text-ink/80 hover:bg-borderWarm">View implants</button>
           <span class="text-[11px] rounded-full bg-canvas px-3 py-1 text-ink/80">9 Implant Systems</span>
           <span class="text-[11px] rounded-full bg-canvas px-3 py-1 text-ink/80">Custom Abutments</span>
         </div>
@@ -598,7 +616,7 @@
           </p>
         </div>
         <div class="pt-6 border-t border-borderWarm/80 flex flex-wrap gap-1.5">
-          <button type="button" onclick="selectHeroService('bridges')" aria-haspopup="dialog" class="example-button text-sm rounded-full bg-canvas px-3 py-2 text-ink/80 hover:bg-borderWarm">View bridges</button>
+          <button type="button" data-service="bridges" aria-haspopup="true" aria-expanded="false" aria-controls="service-hovercard" class="example-button service-hover-trigger text-sm rounded-full bg-canvas px-3 py-2 text-ink/80 hover:bg-borderWarm">View bridges</button>
           <span class="text-[11px] rounded-full bg-canvas px-3 py-1 text-ink/80">Occlusal Rehab</span>
           <span class="text-[11px] rounded-full bg-canvas px-3 py-1 text-ink/80">Wear Cases</span>
         </div>
@@ -616,7 +634,7 @@
           </p>
         </div>
         <div class="pt-6 border-t border-white/15 flex flex-wrap gap-1.5">
-          <button type="button" onclick="selectHeroService('digital')" aria-haspopup="dialog" class="example-button text-sm rounded-full bg-white/10 px-3 py-2 text-white hover:bg-white/25">View digital dentistry</button>
+          <button type="button" data-service="digital" aria-haspopup="true" aria-expanded="false" aria-controls="service-hovercard" class="example-button service-hover-trigger text-sm rounded-full bg-white/10 px-3 py-2 text-white hover:bg-white/25">View digital dentistry</button>
           <span class="text-[11px] rounded-full bg-white/10 px-3 py-1 text-white/90">3Shape</span>
           <span class="text-[11px] rounded-full bg-white/10 px-3 py-1 text-white/90">Sirona</span>
           <span class="text-[11px] rounded-full bg-white/10 px-3 py-1 text-white/90">iTero</span>
@@ -2237,6 +2255,13 @@
   </div>
 
   <!-- ===================================================================== -->
+  <!-- SERVICE DISCOVERY HOVERCARD (GLASSMORPHIC PREVIEW ON HOVER/FOCUS)     -->
+  <!-- ===================================================================== -->
+  <div id="service-hovercard" class="hidden" role="group" aria-label="Example imagery preview" aria-hidden="true">
+    <div id="service-hovercard-body"></div>
+  </div>
+
+  <!-- ===================================================================== -->
   <!-- SCRIPTS: 3D MOUTH MODEL (THREE.JS), PALMER LABELS & VALIDATION        -->
   <!-- ===================================================================== -->
   <script>
@@ -3228,6 +3253,149 @@
       showModal();
     }
 
+    // -----------------------------------------------------------------------
+    // SERVICE DISCOVERY HOVERCARD: glassmorphic preview shown on hover/focus
+    // of the "What We Do" example buttons, reusing HERO_SERVICES/SERVICE_PHOTOS.
+    // -----------------------------------------------------------------------
+    function buildHovercardContent(key) {
+      const service = HERO_SERVICES[key];
+      const photos = SERVICE_PHOTOS[key];
+      if (!service || !photos) return null;
+      const label = document.createElement('span');
+      label.className = 'text-[10px] font-mono uppercase tracking-wide text-amber-900 block';
+      label.textContent = service.tag;
+      const title = document.createElement('h4');
+      title.className = 'text-sm font-medium text-ink mt-1 mb-2.5 pr-2';
+      title.textContent = `${key === 'digital' ? 'Digital Dentistry' : key[0].toUpperCase() + key.slice(1)} · Example imagery`;
+      const grid = document.createElement('div');
+      grid.className = 'grid grid-cols-2 gap-2';
+      photos.forEach(({ src, caption }) => {
+        const figure = document.createElement('figure');
+        figure.className = 'overflow-hidden rounded-xl border border-white/70 bg-white/40';
+        const image = document.createElement('img');
+        image.className = 'hovercard-photo';
+        image.loading = 'lazy';
+        image.decoding = 'async';
+        image.width = 160;
+        image.height = 120;
+        image.src = src;
+        image.alt = `${caption}, illustrative stock photography`;
+        image.addEventListener('error', () => {
+          const fallback = document.createElement('div');
+          fallback.className = 'hovercard-photo-unavailable text-[10px] text-muted';
+          fallback.textContent = 'Photo unavailable';
+          image.replaceWith(fallback);
+        });
+        figure.appendChild(image);
+        grid.appendChild(figure);
+      });
+      const description = document.createElement('p');
+      description.className = 'text-xs text-ink/90 leading-relaxed mt-2.5';
+      description.textContent = service.text;
+      const notice = document.createElement('p');
+      notice.className = 'text-[10px] text-muted mt-2';
+      notice.textContent = 'Illustrative stock photos only — not Knight Dental Design patient cases.';
+      const frag = document.createDocumentFragment();
+      frag.append(label, title, grid, description, notice);
+      return frag;
+    }
+
+    const serviceHovercard = document.getElementById('service-hovercard');
+    const serviceHovercardBody = document.getElementById('service-hovercard-body');
+    let hovercardHideTimer = null;
+    let hovercardPinned = false;
+    let hovercardTrigger = null;
+
+    function positionServiceHovercard(trigger) {
+      const rect = trigger.getBoundingClientRect();
+      const cardRect = serviceHovercard.getBoundingClientRect();
+      const margin = 12;
+      let top = rect.bottom + margin;
+      if (top + cardRect.height > window.innerHeight - margin && rect.top - cardRect.height - margin > 0) {
+        top = rect.top - cardRect.height - margin;
+      }
+      const maxLeft = Math.max(window.innerWidth - cardRect.width - margin, margin);
+      const left = Math.min(Math.max(rect.left, margin), maxLeft);
+      serviceHovercard.style.top = `${top}px`;
+      serviceHovercard.style.left = `${left}px`;
+    }
+
+    function openServiceHovercard(key, trigger) {
+      const content = buildHovercardContent(key);
+      if (!content) return;
+      clearTimeout(hovercardHideTimer);
+      serviceHovercardBody.replaceChildren(content);
+      hovercardTrigger = trigger;
+      serviceHovercard.classList.remove('hidden');
+      serviceHovercard.setAttribute('aria-hidden', 'false');
+      trigger.setAttribute('aria-expanded', 'true');
+      requestAnimationFrame(() => positionServiceHovercard(trigger));
+    }
+
+    function scheduleHideServiceHovercard(delay = 150) {
+      clearTimeout(hovercardHideTimer);
+      hovercardHideTimer = setTimeout(closeServiceHovercard, delay);
+    }
+
+    function closeServiceHovercard() {
+      if (hovercardPinned) return;
+      serviceHovercard.classList.add('hidden');
+      serviceHovercard.setAttribute('aria-hidden', 'true');
+      if (hovercardTrigger) hovercardTrigger.setAttribute('aria-expanded', 'false');
+      hovercardTrigger = null;
+    }
+
+    function forceCloseServiceHovercard() {
+      hovercardPinned = false;
+      clearTimeout(hovercardHideTimer);
+      serviceHovercard.classList.add('hidden');
+      serviceHovercard.setAttribute('aria-hidden', 'true');
+      if (hovercardTrigger) hovercardTrigger.setAttribute('aria-expanded', 'false');
+      hovercardTrigger = null;
+    }
+
+    document.querySelectorAll('.service-hover-trigger').forEach((trigger) => {
+      const key = trigger.dataset.service;
+      trigger.addEventListener('mouseenter', () => openServiceHovercard(key, trigger));
+      trigger.addEventListener('mouseleave', () => { if (!hovercardPinned) scheduleHideServiceHovercard(); });
+      trigger.addEventListener('focus', () => openServiceHovercard(key, trigger));
+      trigger.addEventListener('blur', (event) => {
+        if (serviceHovercard.contains(event.relatedTarget)) return;
+        if (!hovercardPinned) scheduleHideServiceHovercard(0);
+      });
+      trigger.addEventListener('click', () => {
+        if (hovercardTrigger === trigger && hovercardPinned) {
+          forceCloseServiceHovercard();
+        } else {
+          hovercardPinned = true;
+          openServiceHovercard(key, trigger);
+        }
+      });
+      trigger.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') { forceCloseServiceHovercard(); trigger.blur(); }
+      });
+    });
+
+    serviceHovercard.addEventListener('mouseenter', () => clearTimeout(hovercardHideTimer));
+    serviceHovercard.addEventListener('mouseleave', () => { if (!hovercardPinned) scheduleHideServiceHovercard(); });
+
+    document.addEventListener('click', (event) => {
+      if (hovercardPinned && !serviceHovercard.contains(event.target) && !event.target.closest('.service-hover-trigger')) {
+        forceCloseServiceHovercard();
+      }
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !serviceHovercard.classList.contains('hidden')) {
+        forceCloseServiceHovercard();
+      }
+    });
+    window.addEventListener('scroll', () => {
+      if (!serviceHovercard.classList.contains('hidden') && hovercardTrigger) positionServiceHovercard(hovercardTrigger);
+    }, { passive: true });
+    window.addEventListener('resize', () => {
+      if (!serviceHovercard.classList.contains('hidden') && hovercardTrigger) positionServiceHovercard(hovercardTrigger);
+    });
+
     function selectHeroService(key) {
       const data = HERO_SERVICES[key];
       if (!data) return;
@@ -3380,6 +3548,7 @@
 
     let modalReturnFocus = null;
     function showModal() {
+      forceCloseServiceHovercard();
       const modal = document.getElementById('kdd-modal');
       modalReturnFocus = document.activeElement;
       modal.setAttribute('aria-label', document.querySelector('#modal-body h3')?.textContent || 'Prescription review');
