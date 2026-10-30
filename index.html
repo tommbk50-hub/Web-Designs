@@ -1406,7 +1406,6 @@
     .vp-btn:hover { background: #EAE5DD; border-color: #C59B47; }
     .plan-remove-btn { color: #8A392F; font-size: 1rem; }
     .plan-remove-btn:hover { color: #B22319; }
-    #crown-viewer.is-exploded { transform: translateY(-80px); }
   </style>
 
   <div class="dental-planner-container">
@@ -1418,42 +1417,41 @@
     <div class="dental-planner-grid">
       <!-- Left: 3D Upper Arch -->
       <div class="dental-viewport-card">
-        <div id="dual-viewer-container" style="position: relative; width: 100%; height: 500px; border-radius: 8px; overflow: hidden; background-color: #f5f5f5;">
-          <model-viewer
-            id="stump-viewer"
-            src="https://tommbk50-hub.github.io/Web-Designs/Models/Upper+Stümpfe.glb"
-            style="position: absolute; inset: 0; width: 100%; height: 100%;"
-          ></model-viewer>
-          <model-viewer
-            id="crown-viewer"
-            src="https://tommbk50-hub.github.io/Web-Designs/Models/upper_mouth_model.glb"
-            camera-controls
-            shadow-intensity="1"
-            style="position: absolute; inset: 0; width: 100%; height: 100%; background: transparent; transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);"
-          ></model-viewer>
-          <button type="button" id="toggle-exploded-view" title="Toggle Exploded View" aria-pressed="false" class="absolute bottom-5 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-full border border-white/60 bg-white/70 px-5 py-2.5 text-sm font-semibold text-ink shadow-lg backdrop-blur-md transition-colors hover:bg-white/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold">Toggle Exploded View</button>
-        </div>
+        <model-viewer
+          id="mouth-glb-viewer"
+          src="Models/upper_mouth_model.glb"
+          camera-controls
+          auto-rotate
+          shadow-intensity="1"
+          style="width: 100%; height: 100%; background-color: #EAE5DD;"
+        ></model-viewer>
         <script>
-          const crownViewer = document.getElementById('crown-viewer');
-          const stumpViewer = document.getElementById('stump-viewer');
-          const explodedButton = document.getElementById('toggle-exploded-view');
-          const syncCameras = () => {
-            stumpViewer.cameraOrbit = crownViewer.getCameraOrbit().toString();
-            stumpViewer.cameraTarget = crownViewer.getCameraTarget().toString();
-            stumpViewer.fieldOfView = crownViewer.getFieldOfView().toString();
-          };
-          crownViewer.addEventListener('camera-change', syncCameras);
-          crownViewer.addEventListener('load', syncCameras);
-          stumpViewer.addEventListener('load', syncCameras);
-          explodedButton.addEventListener('click', () => {
-            const exploded = crownViewer.classList.toggle('is-exploded');
-            explodedButton.setAttribute('aria-pressed', String(exploded));
-          });
+          // Diagnostic logging for the GLB model load. Open DevTools > Console
+          // to see the exact failure reason reported by <model-viewer>.
+          (function () {
+            var viewer = document.getElementById('mouth-glb-viewer');
+            if (!viewer) return;
+
+            viewer.addEventListener('error', function (event) {
+              console.error('[model-viewer] Failed to load 3D model:', {
+                type: event.type,
+                sourceEvent: event.detail && event.detail.type,
+                reason: event.detail && event.detail.message,
+                detail: event.detail
+              });
+            });
+
+            viewer.addEventListener('load', function () {
+              const center = viewer.getBoundingBoxCenter();
+              viewer.setAttribute('camera-target', `${center.x}m ${center.y}m ${center.z}m`);
+              console.log('[model-viewer] Model loaded successfully:', viewer.src);
+            });
+          })();
         </script>
 
         <script>
           document.addEventListener('DOMContentLoaded', () => {
-            const viewer = document.getElementById('crown-viewer');
+            const viewer = document.getElementById('mouth-glb-viewer');
             const menu = document.getElementById('tooth-context-menu');
             const notes = document.getElementById('ui-clinical-notes');
             const planList = document.getElementById('plan-items-list');
