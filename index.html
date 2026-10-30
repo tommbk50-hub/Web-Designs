@@ -36,13 +36,6 @@
     }
   </script>
 
-  <!-- Lenis Smooth Scroll, GSAP + ScrollTrigger -->
-  <link rel="stylesheet" href="https://unpkg.com/lenis@1.1.20/dist/lenis.css">
-  <script src="https://unpkg.com/lenis@1.1.20/dist/lenis.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-  <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@3.4.0/dist/model-viewer.min.js"></script>
-
   <style>
     :root {
       --bg-canvas: #EAE5DD;
@@ -114,7 +107,7 @@
       background-image:
         radial-gradient(circle at 48% 42%, rgba(28, 20, 14, 0.08) 0%, rgba(22, 16, 12, 0.58) 78%),
         linear-gradient(180deg, rgba(20, 15, 11, 0.42) 0%, rgba(20, 15, 11, 0.12) 45%, rgba(18, 13, 9, 0.72) 100%),
-        url('https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=2000&q=85');
+        url('https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=900&q=70');
       background-size: cover;
       background-position: center 28%;
     }
@@ -126,6 +119,26 @@
     .asterisk-spin {
       animation: spinSlow 18s linear infinite;
     }
+    @media (min-width: 900px) {
+      .hero-portrait-bg {
+        background-image: radial-gradient(circle at 48% 42%, rgba(28, 20, 14, 0.08) 0%, rgba(22, 16, 12, 0.58) 78%),
+          linear-gradient(180deg, rgba(20, 15, 11, 0.42) 0%, rgba(20, 15, 11, 0.12) 45%, rgba(18, 13, 9, 0.72) 100%),
+          url('https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=1600&q=75');
+      }
+    }
+    #mobile-links[hidden], #chart-2d[hidden], #mouth-glb-viewer[hidden] { display: none !important; }
+    .chart-arch { position: relative; height: 190px; max-width: 440px; margin: auto; }
+    .chart-tooth {
+      position: absolute; width: 38px; min-height: 48px; transform: translate(-50%, -50%);
+      border: 2px solid #6E675F; border-radius: 35% 35% 45% 45%;
+      background: #fffaf0; color: #1C1917; font-size: 0.8rem; font-weight: 700;
+    }
+    .chart-tooth[data-type="incisor"] { border-radius: 22% 22% 45% 45%; width: 32px; }
+    .chart-tooth[data-type="canine"] { border-radius: 50% 50% 30% 30%; width: 34px; }
+    .chart-tooth[data-type="premolar"] { width: 36px; border-radius: 45% 45% 38% 38%; }
+    .chart-tooth[data-type="molar"] { width: 42px; min-height: 52px; border-radius: 30%; }
+    .chart-tooth[aria-pressed="true"] { background: #1C1917; border-color: #1C1917; color: white; }
+    .chart-tooth:focus-visible { outline: 3px solid #98722B; outline-offset: 3px; z-index: 1; }
 
     .rx-step[hidden], #rx-completion-bar[hidden], #tooth-stump-row[hidden],
     #rx-back-btn[hidden], #rx-next-btn[hidden], #rx-submit-btn[hidden] {
@@ -204,6 +217,8 @@
     @media (prefers-reduced-motion: reduce) {
       .rx-step:not([hidden]) { animation: none; }
       #rx-progress-bar { transition: none; }
+      html { scroll-behavior: auto !important; }
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
     }
     @keyframes marqueeScroll {
       0% { transform: translateX(0%); }
@@ -308,21 +323,26 @@
           <li><a href="#for-patients" class="hover:text-white transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-white hover:after:w-full after:transition-all">For Patients</a></li>
           <li><a href="#lifetime-lingual" class="hover:text-white transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-white hover:after:w-full after:transition-all">LifeTime Lingual™</a></li>
           <li><a href="#for-dentists" class="hover:text-white transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-white hover:after:w-full after:transition-all">For Dentists</a></li>
-          <li><a href="#digital-prescription" class="text-amber-200 hover:text-white font-medium transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-amber-200 hover:after:w-full after:transition-all">3D Online Prescription</a></li>
+          <li><a href="#digital-prescription" class="text-amber-200 hover:text-white font-medium transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-amber-200 hover:after:w-full after:transition-all">Send a case</a></li>
+          <li><a href="#case-progress" class="hover:text-white">Case progress</a></li>
           <li><a href="#find-dentist" class="hover:text-white transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-white hover:after:w-full after:transition-all">Contact</a></li>
         </ul>
 
         <div class="flex items-center gap-3">
-          <a
-            href="#digital-prescription"
-            data-magnetic
-            class="group inline-flex items-center gap-3 rounded-full border border-white/65 bg-white/10 px-5 sm:px-6 py-2.5 text-xs sm:text-sm font-medium text-white backdrop-blur-md transition-all hover:bg-white hover:text-ink"
-          >
-            <span>3D Prescription</span>
-            <span class="transition-transform duration-300 group-hover:translate-x-1">→</span>
-          </a>
+          <a href="#find-dentist" class="hidden sm:inline-flex rounded-full border border-white/65 px-5 py-2.5 text-sm font-medium hover:bg-white hover:text-ink">Find a dentist</a>
+          <button type="button" id="mobile-menu-toggle" class="lg:hidden rounded-full border border-white/65 px-4 py-2.5 text-sm" aria-controls="mobile-links" aria-expanded="false">Menu</button>
         </div>
       </nav>
+      <div id="mobile-links" hidden class="relative z-30 lg:hidden mx-6 sm:mx-10 mt-3 rounded-2xl bg-ink p-5 text-sm">
+        <nav aria-label="Mobile navigation" class="flex flex-col gap-4">
+          <a href="#find-dentist">Find a dentist · Patients</a>
+          <a href="#digital-prescription">Send a case · Dentists</a>
+          <a href="#case-progress">Case progress</a>
+          <a href="#what-we-do">What We Do</a>
+          <a href="#lifetime-lingual">LifeTime Lingual™</a>
+          <a href="#case-studies">Case Studies</a>
+        </nav>
+      </div>
 
       <!-- Center Headline Block -->
       <div class="relative z-20 px-6 sm:px-10 lg:px-14 my-auto pt-12 pb-6">
@@ -356,6 +376,10 @@
           </span>
           <span class="block mt-1">the UK’s leading dentists!</span>
         </h1>
+        <div class="hero-reveal flex flex-wrap gap-3 mt-8">
+          <a href="#find-dentist" class="rounded-full bg-white text-ink px-6 py-3 text-sm font-semibold">Find a dentist · Patients →</a>
+          <a href="#digital-prescription" class="rounded-full border border-white bg-ink/60 text-white px-6 py-3 text-sm font-semibold">Send a case · Dentists →</a>
+        </div>
       </div>
 
       <!-- Bottom Grid: Left Service Pills + Mission Text | Right Overlapping Frosted Glass Cards -->
@@ -403,7 +427,7 @@
           <div id="hero-right-glass" class="glass-card-right spotlight-card w-full sm:w-[265px] rounded-[26px] p-6 flex flex-col items-center text-center justify-between min-h-[330px] transition-transform duration-300 hover:-translate-y-1">
             <div class="relative mt-1">
               <div class="w-20 h-20 rounded-full bg-ochre overflow-hidden border-2 border-white/40 shadow-lg mx-auto">
-                <img
+                <img loading="lazy" decoding="async" width="80" height="80"
                   id="spotlight-avatar"
                   src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80"
                   alt="Knight Dental Case Spotlight"
