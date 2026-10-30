@@ -1404,19 +1404,26 @@
     .plan-items { max-height: 320px; }
     .vp-btn { background: #F4F1EA; border-color: #D8D2C7; color: var(--ink); }
     .vp-btn:hover { background: #EAE5DD; border-color: #C59B47; }
+    .jaw-toggle .vp-btn[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
     .plan-remove-btn { color: #8A392F; font-size: 1rem; }
     .plan-remove-btn:hover { color: #B22319; }
   </style>
 
   <div class="dental-planner-container">
     <div class="dental-planner-header">
-      <h2>Interactive 3D Upper Arch &amp; Treatment Planner</h2>
-      <p>Click a tooth to prescribe a single unit, or enable multi-tooth selection to prescribe several units together.</p>
+      <h2>Interactive 3D Upper &amp; Lower Arch Treatment Planner</h2>
+      <p>Choose a jaw and click a tooth to prescribe a single unit, or enable multi-tooth selection to prescribe several units together.</p>
     </div>
 
     <div class="dental-planner-grid">
-      <!-- Left: 3D Upper Arch -->
+      <!-- Left: 3D Arch -->
       <div class="dental-viewport-card">
+        <div class="viewport-toolbar">
+          <div class="viewport-controls jaw-toggle" role="group" aria-label="Select jaw">
+            <button type="button" class="vp-btn" data-jaw="upper" aria-pressed="true">Upper jaw</button>
+            <button type="button" class="vp-btn" data-jaw="lower" aria-pressed="false">Lower jaw</button>
+          </div>
+        </div>
         <model-viewer
           id="mouth-glb-viewer"
           src="Models/upper_mouth_model.glb"
@@ -1467,6 +1474,10 @@
             const dateInput = document.getElementById('tooth-return-date');
             const originals = new WeakMap();
             const activeCodes = new Set();
+            const jawModels = { upper: 'Models/upper_mouth_model.glb', lower: 'Models/Lower+Teeth.glb' };
+            const jawButtons = document.querySelectorAll('.jaw-toggle [data-jaw]');
+            let currentJaw = 'upper';
+            let modelReady = false;
             let multiTooth = false;
             let hoveredMaterial = null;
 
@@ -1517,7 +1528,10 @@
               if (index < 0 || index > 13) return null;
               const right = index < 7;
               const num = right ? 7 - index : index - 6;
-              return { code: `U${right ? 'R' : 'L'}${num}`, label: `Upper ${num} · ${right ? 'Right' : 'Left'}` };
+              return {
+                code: `${currentJaw === 'upper' ? 'U' : 'L'}${right ? 'R' : 'L'}${num}`,
+                label: `${currentJaw === 'upper' ? 'Upper' : 'Lower'} ${num} · ${right ? 'Right' : 'Left'}`
+              };
             }
 
             function setHighlight(material) {
@@ -1560,6 +1574,23 @@
                 pbr.setRoughnessFactor(plan.material === 'emax' ? 0.1 : 0.25);
               }
             }
+
+            function syncModel() {
+              if (!viewer.model?.materials) return;
+              viewer.model.materials.forEach((material) => {
+                const tooth = toothFromMaterial(material);
+                if (!tooth) return;
+                const plan = toothPlans.get(tooth.code);
+                if (plan) {
+                  plan.modelMaterial = material;
+                  updateMaterial(plan);
+                }
+                setHighlight(material);
+              });
+              modelReady = true;
+            }
+            viewer.addEventListener('load', syncModel);
+            if (viewer.loaded) syncModel();
 
             function renderPlan() {
               updatePrescriptionDispatch();
@@ -1642,8 +1673,20 @@
               renderPlan();
             }
 
+            jawButtons.forEach((button) => button.addEventListener('click', () => {
+              const jaw = button.dataset.jaw;
+              if (jaw === currentJaw) return;
+              if (!multiTooth) clearSelection();
+              modelReady = false;
+              hoveredMaterial = null;
+              toothPlans.forEach((plan) => { plan.modelMaterial = null; });
+              currentJaw = jaw;
+              jawButtons.forEach((option) => option.setAttribute('aria-pressed', String(option === button)));
+              viewer.setAttribute('src', jawModels[jaw]);
+            }));
+
             viewer.addEventListener('click', (event) => {
-              if (typeof viewer.materialFromPoint !== 'function') return;
+              if (!modelReady || typeof viewer.materialFromPoint !== 'function') return;
               const material = viewer.materialFromPoint(event.clientX, event.clientY);
               const tooth = toothFromMaterial(material);
               if (!tooth) return;
@@ -1709,7 +1752,7 @@
               menu.style.display = 'none';
             });
             viewer.addEventListener('mousemove', (event) => {
-              if (typeof viewer.materialFromPoint !== 'function') return;
+              if (!modelReady || typeof viewer.materialFromPoint !== 'function') return;
               const material = viewer.materialFromPoint(event.clientX, event.clientY);
               if (material === hoveredMaterial) return;
               const previous = hoveredMaterial;
@@ -1729,7 +1772,7 @@
       <!-- Right: Interactive Treatment Plan Interface -->
       <div class="treatment-sidebar">
         <button type="button" class="vp-btn" id="btn-multi-tooth" aria-pressed="false">Select multiple teeth: Off</button>
-        <p class="text-xs text-muted">In multi-tooth mode, click teeth to add or deselect them, then set shared treatment details below. Deselecting does not remove a prescribed treatment.</p>
+        <p class="text-xs text-muted">In multi-tooth mode, click teeth on either jaw to add or deselect them, then set shared treatment details below. Deselecting or switching jaws does not remove a prescribed treatment.</p>
         <div class="selected-tooth-banner">
           <div class="tooth-num" id="ui-tooth-code">NO TOOTH SELECTED</div>
           <h3 id="ui-tooth-name">Click a tooth on the 3D model</h3>
@@ -2765,7 +2808,7 @@
           <div><span class="text-muted block font-mono uppercase text-[10px]">3. Patient</span><strong class="text-ink">${patient} (${gender})</strong></div>
           <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">Expected dispatch date (${dispatch.days} working days after today)</span><strong class="text-ink">${escapeHtml(dispatch.date)}</strong><span class="text-muted block">Working days exclude weekends; bank holidays are not accounted for. Requested delivery assumes next-working-day shipping and is not guaranteed.</span></div>
           <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">Enclosures</span><strong class="text-ink">${enclosures.map(escapeHtml).join(', ') || 'None specified'}</strong></div>
-          <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">Upper Arch Treatment Plan (${plans.length} Units)</span></div>
+          <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">Upper &amp; Lower Arch Treatment Plan (${plans.length} Units)</span></div>
           ${planRows}
         </div>
 
