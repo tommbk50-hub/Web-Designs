@@ -36,13 +36,6 @@
     }
   </script>
 
-  <!-- Lenis Smooth Scroll, GSAP + ScrollTrigger -->
-  <link rel="stylesheet" href="https://unpkg.com/lenis@1.1.20/dist/lenis.css">
-  <script src="https://unpkg.com/lenis@1.1.20/dist/lenis.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-  <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@3.4.0/dist/model-viewer.min.js"></script>
-
   <style>
     :root {
       --bg-canvas: #EAE5DD;
@@ -55,6 +48,7 @@
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
     }
+    [hidden] { display: none !important; }
 
     /* Sculpted Frosted Glass Cards matching the reference UI */
     .glass-card-left {
@@ -110,14 +104,44 @@
       opacity: 1;
     }
 
-    .hero-portrait-bg {
-      background-image:
-        radial-gradient(circle at 48% 42%, rgba(28, 20, 14, 0.08) 0%, rgba(22, 16, 12, 0.58) 78%),
-        linear-gradient(180deg, rgba(20, 15, 11, 0.42) 0%, rgba(20, 15, 11, 0.12) 45%, rgba(18, 13, 9, 0.72) 100%),
-        url('https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=2000&q=85');
-      background-size: cover;
-      background-position: center 28%;
+    .hero-gallery { background: #261f1b; }
+    .hero-gallery img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      opacity: 0;
+      animation: hero-crossfade 24s linear infinite;
     }
+    .hero-gallery img:nth-child(1) { animation-delay: 0s; }
+    .hero-gallery img:nth-child(2) { animation-delay: -18s; }
+    .hero-gallery img:nth-child(3) { animation-delay: -12s; }
+    .hero-gallery img:nth-child(4) { animation-delay: -6s; }
+    .hero-gallery::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(22,16,12,.78), rgba(22,16,12,.28)),
+        linear-gradient(0deg, rgba(22,16,12,.72), transparent 68%);
+    }
+    @keyframes hero-crossfade {
+      0%, 19% { opacity: 1; }
+      25%, 94% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    .modal-panel.service-gallery {
+      max-width: 880px;
+      background: rgba(244, 241, 234, .91);
+      border: 1px solid rgba(255,255,255,.82);
+      box-shadow: 0 25px 85px rgba(0,0,0,.4), inset 0 1px rgba(255,255,255,.9);
+      backdrop-filter: blur(28px) saturate(145%);
+      -webkit-backdrop-filter: blur(28px) saturate(145%);
+    }
+    .service-photo { aspect-ratio: 4 / 3; object-fit: cover; width: 100%; }
+    .service-image-unavailable { aspect-ratio: 4 / 3; display: grid; place-items: center; padding: 1rem; text-align: center; }
+    .example-button:focus-visible { outline: 3px solid #98722B; outline-offset: 3px; }
 
     @keyframes spinSlow {
       from { transform: rotate(0deg); }
@@ -126,6 +150,19 @@
     .asterisk-spin {
       animation: spinSlow 18s linear infinite;
     }
+    #mobile-links[hidden], #chart-2d[hidden], #mouth-glb-viewer[hidden] { display: none !important; }
+    .chart-arch { position: relative; height: 190px; max-width: 440px; margin: auto; }
+    .chart-tooth {
+      position: absolute; width: 38px; min-height: 48px; transform: translate(-50%, -50%);
+      border: 2px solid #6E675F; border-radius: 35% 35% 45% 45%;
+      background: #fffaf0; color: #1C1917; font-size: 0.8rem; font-weight: 700;
+    }
+    .chart-tooth[data-type="incisor"] { border-radius: 22% 22% 45% 45%; width: 32px; }
+    .chart-tooth[data-type="canine"] { border-radius: 50% 50% 30% 30%; width: 34px; }
+    .chart-tooth[data-type="premolar"] { width: 36px; border-radius: 45% 45% 38% 38%; }
+    .chart-tooth[data-type="molar"] { width: 42px; min-height: 52px; border-radius: 30%; }
+    .chart-tooth[aria-pressed="true"] { background: #1C1917; border-color: #1C1917; color: white; }
+    .chart-tooth:focus-visible { outline: 3px solid #98722B; outline-offset: 3px; z-index: 1; }
 
     .rx-step[hidden], #rx-completion-bar[hidden], #tooth-stump-row[hidden],
     #rx-back-btn[hidden], #rx-next-btn[hidden], #rx-submit-btn[hidden] {
@@ -204,6 +241,10 @@
     @media (prefers-reduced-motion: reduce) {
       .rx-step:not([hidden]) { animation: none; }
       #rx-progress-bar { transition: none; }
+      .hero-gallery img { animation: none; opacity: 0; }
+      .hero-gallery img:first-child { opacity: 1; }
+      html { scroll-behavior: auto !important; }
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
     }
     @keyframes marqueeScroll {
       0% { transform: translateX(0%); }
@@ -283,8 +324,13 @@
   <div class="p-3 sm:p-5 lg:p-7">
     <header class="relative min-h-[92vh] w-full rounded-[28px] sm:rounded-[36px] overflow-hidden shadow-2xl flex flex-col justify-between text-white">
 
-      <!-- Parallax Background Layer -->
-      <div id="hero-bg" class="hero-portrait-bg absolute inset-0 scale-105 transition-transform duration-700 ease-out pointer-events-none"></div>
+      <!-- Illustrative stock photography, not Knight Dental Design patient cases -->
+      <div id="hero-bg" class="hero-gallery absolute inset-0 pointer-events-none" aria-hidden="true">
+        <img src="https://images.pexels.com/photos/5622014/pexels-photo-5622014.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1100" alt="" fetchpriority="high" />
+        <img src="https://images.pexels.com/photos/33748047/pexels-photo-33748047.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1100" alt="" loading="lazy" decoding="async" />
+        <img src="https://images.unsplash.com/photo-1771442873035-474765b40ac6?auto=format&amp;fit=crop&amp;w=1100&amp;q=75" alt="" loading="lazy" decoding="async" />
+        <img src="https://images.pexels.com/photos/9951392/pexels-photo-9951392.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1100" alt="" loading="lazy" decoding="async" />
+      </div>
 
       <!-- Top Navigation Bar inside Hero -->
       <nav class="relative z-30 flex items-center justify-between px-6 sm:px-10 lg:px-14 pt-6 sm:pt-9">
@@ -308,21 +354,26 @@
           <li><a href="#for-patients" class="hover:text-white transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-white hover:after:w-full after:transition-all">For Patients</a></li>
           <li><a href="#lifetime-lingual" class="hover:text-white transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-white hover:after:w-full after:transition-all">LifeTime Lingual™</a></li>
           <li><a href="#for-dentists" class="hover:text-white transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-white hover:after:w-full after:transition-all">For Dentists</a></li>
-          <li><a href="#digital-prescription" class="text-amber-200 hover:text-white font-medium transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-amber-200 hover:after:w-full after:transition-all">3D Online Prescription</a></li>
+          <li><a href="#digital-prescription" class="text-amber-200 hover:text-white font-medium transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-amber-200 hover:after:w-full after:transition-all">Send a case</a></li>
+          <li><a href="#case-progress" class="hover:text-white">Case progress</a></li>
           <li><a href="#find-dentist" class="hover:text-white transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-white hover:after:w-full after:transition-all">Contact</a></li>
         </ul>
 
         <div class="flex items-center gap-3">
-          <a
-            href="#digital-prescription"
-            data-magnetic
-            class="group inline-flex items-center gap-3 rounded-full border border-white/65 bg-white/10 px-5 sm:px-6 py-2.5 text-xs sm:text-sm font-medium text-white backdrop-blur-md transition-all hover:bg-white hover:text-ink"
-          >
-            <span>3D Prescription</span>
-            <span class="transition-transform duration-300 group-hover:translate-x-1">→</span>
-          </a>
+          <a href="#find-dentist" class="hidden sm:inline-flex rounded-full border border-white/65 px-5 py-2.5 text-sm font-medium hover:bg-white hover:text-ink">Find a dentist</a>
+          <button type="button" id="mobile-menu-toggle" class="lg:hidden rounded-full border border-white/65 px-4 py-2.5 text-sm" aria-controls="mobile-links" aria-expanded="false">Menu</button>
         </div>
       </nav>
+      <div id="mobile-links" hidden class="relative z-30 lg:hidden mx-6 sm:mx-10 mt-3 rounded-2xl bg-ink p-5 text-sm">
+        <nav aria-label="Mobile navigation" class="flex flex-col gap-4">
+          <a href="#find-dentist">Find a dentist · Patients</a>
+          <a href="#digital-prescription">Send a case · Dentists</a>
+          <a href="#case-progress">Case progress</a>
+          <a href="#what-we-do">What We Do</a>
+          <a href="#lifetime-lingual">LifeTime Lingual™</a>
+          <a href="#case-studies">Case Studies</a>
+        </nav>
+      </div>
 
       <!-- Center Headline Block -->
       <div class="relative z-20 px-6 sm:px-10 lg:px-14 my-auto pt-12 pb-6">
@@ -343,7 +394,7 @@
           <span class="inline-flex flex-wrap items-center gap-x-4 gap-y-2">
             <span>Providing stunning</span>
             <button
-              onclick="document.getElementById('case-studies').scrollIntoView({behavior: 'smooth'})"
+              onclick="scrollToSection('case-studies')"
               title="Explore Smile Makeovers"
               class="hidden md:inline-flex items-center justify-center w-28 lg:w-40 h-12 lg:h-16 rounded-full border border-white/45 bg-white/10 backdrop-blur-[2px] shadow-inner group hover:border-white transition-all cursor-pointer mx-1"
             >
@@ -356,6 +407,10 @@
           </span>
           <span class="block mt-1">the UK’s leading dentists!</span>
         </h1>
+        <div class="hero-reveal flex flex-wrap gap-3 mt-8">
+          <a href="#find-dentist" class="rounded-full bg-white text-ink px-6 py-3 text-sm font-semibold">Find a dentist · Patients →</a>
+          <a href="#digital-prescription" class="rounded-full border border-white bg-ink/60 text-white px-6 py-3 text-sm font-semibold">Send a case · Dentists →</a>
+        </div>
       </div>
 
       <!-- Bottom Grid: Left Service Pills + Mission Text | Right Overlapping Frosted Glass Cards -->
@@ -363,17 +418,18 @@
 
         <!-- Bottom-Left Column -->
         <div class="lg:col-span-6 space-y-6 hero-reveal">
-          <div class="flex flex-wrap items-center gap-2.5" id="hero-service-pills" role="tablist" aria-label="Laboratory Services">
-            <button onclick="selectHeroService('veneers')" data-pill="veneers" class="hero-pill active-pill rounded-full border border-white bg-white text-ink px-5 py-2 text-xs sm:text-sm font-medium transition-all">Veneers</button>
-            <button onclick="selectHeroService('implants')" data-pill="implants" class="hero-pill rounded-full border border-white/50 bg-black/15 text-white/90 hover:border-white hover:bg-white/15 px-5 py-2 text-xs sm:text-sm font-normal backdrop-blur-sm transition-all">Implants</button>
-            <button onclick="selectHeroService('crowns')" data-pill="crowns" class="hero-pill rounded-full border border-white/50 bg-black/15 text-white/90 hover:border-white hover:bg-white/15 px-5 py-2 text-xs sm:text-sm font-normal backdrop-blur-sm transition-all">Crowns</button>
-            <button onclick="selectHeroService('bridges')" data-pill="bridges" class="hero-pill rounded-full border border-white/50 bg-black/15 text-white/90 hover:border-white hover:bg-white/15 px-5 py-2 text-xs sm:text-sm font-normal backdrop-blur-sm transition-all">Bridges</button>
-            <button onclick="selectHeroService('digital')" data-pill="digital" class="hero-pill rounded-full border border-white/50 bg-black/15 text-white/90 hover:border-white hover:bg-white/15 px-5 py-2 text-xs sm:text-sm font-normal backdrop-blur-sm transition-all">Digital Dentistry</button>
+          <div class="flex flex-wrap items-center gap-2.5" id="hero-service-pills" role="group" aria-label="Explore laboratory services and example photos">
+            <button type="button" aria-haspopup="dialog" aria-pressed="true" onclick="selectHeroService('veneers')" data-pill="veneers" class="hero-pill active-pill rounded-full border border-white bg-white text-ink px-5 py-2 text-xs sm:text-sm font-medium transition-all">Veneers</button>
+            <button type="button" aria-haspopup="dialog" aria-pressed="false" onclick="selectHeroService('implants')" data-pill="implants" class="hero-pill rounded-full border border-white/50 bg-black/15 text-white/90 hover:border-white hover:bg-white/15 px-5 py-2 text-xs sm:text-sm font-normal backdrop-blur-sm transition-all">Implants</button>
+            <button type="button" aria-haspopup="dialog" aria-pressed="false" onclick="selectHeroService('crowns')" data-pill="crowns" class="hero-pill rounded-full border border-white/50 bg-black/15 text-white/90 hover:border-white hover:bg-white/15 px-5 py-2 text-xs sm:text-sm font-normal backdrop-blur-sm transition-all">Crowns</button>
+            <button type="button" aria-haspopup="dialog" aria-pressed="false" onclick="selectHeroService('bridges')" data-pill="bridges" class="hero-pill rounded-full border border-white/50 bg-black/15 text-white/90 hover:border-white hover:bg-white/15 px-5 py-2 text-xs sm:text-sm font-normal backdrop-blur-sm transition-all">Bridges</button>
+            <button type="button" aria-haspopup="dialog" aria-pressed="false" onclick="selectHeroService('digital')" data-pill="digital" class="hero-pill rounded-full border border-white/50 bg-black/15 text-white/90 hover:border-white hover:bg-white/15 px-5 py-2 text-xs sm:text-sm font-normal backdrop-blur-sm transition-all">Digital Dentistry</button>
           </div>
 
           <p class="text-xs sm:text-sm leading-relaxed text-white/85 max-w-lg font-normal">
             London’s Leading Cosmetic Dental Laboratory. Based in Plumstead Common, London, our specialist team of registered dental technicians combines traditional ceramic artistry with Sirona, 3Shape, iTero, and Carestream digital workflows to deliver life-changing aesthetic and implant restorations across the UK.
           </p>
+          <p class="text-sm text-white/85">Photography shown here is illustrative stock imagery, not patient cases from our laboratory.</p>
         </div>
 
         <!-- Bottom-Right Column: Two Asymmetrical Frosted Glass Cards -->
@@ -403,7 +459,7 @@
           <div id="hero-right-glass" class="glass-card-right spotlight-card w-full sm:w-[265px] rounded-[26px] p-6 flex flex-col items-center text-center justify-between min-h-[330px] transition-transform duration-300 hover:-translate-y-1">
             <div class="relative mt-1">
               <div class="w-20 h-20 rounded-full bg-ochre overflow-hidden border-2 border-white/40 shadow-lg mx-auto">
-                <img
+                <img loading="lazy" decoding="async" width="80" height="80"
                   id="spotlight-avatar"
                   src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80"
                   alt="Knight Dental Case Spotlight"
@@ -487,7 +543,8 @@
         </h2>
       </div>
       <div class="lg:col-span-5 text-sm text-muted leading-relaxed">
-        Founded by Tony Knight in 1981, Knight Dental Design is a family-run boutique laboratory in South London. Every restoration is custom-engineered for discerning private practices and patients across the UK.
+        <p>Founded by Tony Knight in 1981, Knight Dental Design is a family-run boutique laboratory in South London. Every restoration is custom-engineered for discerning private practices and patients across the UK.</p>
+        <a href="https://www.instagram.com/knightdentaldesign/" target="_blank" rel="noopener noreferrer" class="inline-flex mt-4 underline underline-offset-4 font-semibold text-ink hover:text-gold">Follow @knightdentaldesign on Instagram ↗</a>
       </div>
     </div>
 
@@ -504,7 +561,8 @@
           </p>
         </div>
         <div class="pt-6 border-t border-borderWarm/80 flex flex-wrap gap-1.5">
-          <span class="text-[11px] rounded-full bg-canvas px-3 py-1 text-ink/80">Veneers</span>
+          <button type="button" onclick="selectHeroService('veneers')" aria-haspopup="dialog" class="example-button text-sm rounded-full bg-canvas px-3 py-2 text-ink/80 hover:bg-borderWarm">View veneers</button>
+          <button type="button" onclick="selectHeroService('crowns')" aria-haspopup="dialog" class="example-button text-sm rounded-full bg-canvas px-3 py-2 text-ink/80 hover:bg-borderWarm">View crowns</button>
           <span class="text-[11px] rounded-full bg-canvas px-3 py-1 text-ink/80">IPS e.max</span>
           <span class="text-[11px] rounded-full bg-canvas px-3 py-1 text-ink/80">Trial Smiles</span>
         </div>
@@ -522,6 +580,7 @@
           </p>
         </div>
         <div class="pt-6 border-t border-borderWarm/80 flex flex-wrap gap-1.5">
+          <button type="button" onclick="selectHeroService('implants')" aria-haspopup="dialog" class="example-button text-sm rounded-full bg-canvas px-3 py-2 text-ink/80 hover:bg-borderWarm">View implants</button>
           <span class="text-[11px] rounded-full bg-canvas px-3 py-1 text-ink/80">9 Implant Systems</span>
           <span class="text-[11px] rounded-full bg-canvas px-3 py-1 text-ink/80">Custom Abutments</span>
         </div>
@@ -539,6 +598,7 @@
           </p>
         </div>
         <div class="pt-6 border-t border-borderWarm/80 flex flex-wrap gap-1.5">
+          <button type="button" onclick="selectHeroService('bridges')" aria-haspopup="dialog" class="example-button text-sm rounded-full bg-canvas px-3 py-2 text-ink/80 hover:bg-borderWarm">View bridges</button>
           <span class="text-[11px] rounded-full bg-canvas px-3 py-1 text-ink/80">Occlusal Rehab</span>
           <span class="text-[11px] rounded-full bg-canvas px-3 py-1 text-ink/80">Wear Cases</span>
         </div>
@@ -556,6 +616,7 @@
           </p>
         </div>
         <div class="pt-6 border-t border-white/15 flex flex-wrap gap-1.5">
+          <button type="button" onclick="selectHeroService('digital')" aria-haspopup="dialog" class="example-button text-sm rounded-full bg-white/10 px-3 py-2 text-white hover:bg-white/25">View digital dentistry</button>
           <span class="text-[11px] rounded-full bg-white/10 px-3 py-1 text-white/90">3Shape</span>
           <span class="text-[11px] rounded-full bg-white/10 px-3 py-1 text-white/90">Sirona</span>
           <span class="text-[11px] rounded-full bg-white/10 px-3 py-1 text-white/90">iTero</span>
@@ -717,7 +778,7 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <article class="group rounded-[28px] overflow-hidden border border-borderWarm bg-surface flex flex-col justify-between reveal-up">
         <div class="relative h-72 overflow-hidden">
-          <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=900&q=80" alt="Paula Hamilton Case Study" class="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105" />
+          <img loading="lazy" decoding="async" width="600" height="600" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=600&q=75" alt="Paula Hamilton Case Study" class="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105" />
           <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent"></div>
           <span class="absolute top-4 left-4 rounded-full bg-white/20 backdrop-blur-md border border-white/30 px-3.5 py-1 text-[11px] font-mono uppercase text-white">Smile Makeover &amp; Implants</span>
           <div class="absolute bottom-4 left-5 right-5 text-white">
@@ -735,7 +796,7 @@
 
       <article class="group rounded-[28px] overflow-hidden border border-borderWarm bg-surface flex flex-col justify-between reveal-up">
         <div class="relative h-72 overflow-hidden">
-          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=900&q=80" alt="Jade Case Study" class="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105" />
+          <img loading="lazy" decoding="async" width="600" height="600" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=75" alt="Jade Case Study" class="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105" />
           <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent"></div>
           <span class="absolute top-4 left-4 rounded-full bg-white/20 backdrop-blur-md border border-white/30 px-3.5 py-1 text-[11px] font-mono uppercase text-white">Porcelain Veneers</span>
           <div class="absolute bottom-4 left-5 right-5 text-white">
@@ -753,7 +814,7 @@
 
       <article class="group rounded-[28px] overflow-hidden border border-borderWarm bg-surface flex flex-col justify-between reveal-up">
         <div class="relative h-72 overflow-hidden">
-          <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=900&q=80" alt="Elliot Case Study" class="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105" />
+          <img loading="lazy" decoding="async" width="600" height="600" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=75" alt="Elliot Case Study" class="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105" />
           <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent"></div>
           <span class="absolute top-4 left-4 rounded-full bg-white/20 backdrop-blur-md border border-white/30 px-3.5 py-1 text-[11px] font-mono uppercase text-white">Reconstructive &amp; Crowns</span>
           <div class="absolute bottom-4 left-5 right-5 text-white">
@@ -814,16 +875,24 @@
           <div>
             <label for="calc-units" class="text-xs text-muted">Number of units</label>
             <input id="calc-units" type="number" min="1" step="1" value="1" oninput="recalculateTurnaround()" onchange="this.value = Math.max(1, Math.floor(Number(this.value) || 1)); recalculateTurnaround()" class="block w-24 mt-1 rounded-xl border border-borderWarm bg-canvas px-3 py-2 text-sm" />
-            <p class="text-xs text-muted mt-2">Standard dispatch: crowns/bridges/veneers — up to 6 units: 9 working days; 7+: 11. Implants, attachments, combination and occlusal rehabilitation — up to 3: 13; 4+: 16. Diagnostic wax-ups — up to 6: 6; 7+: 9. Weekends excluded; bank holidays and shipping not included.</p>
+            <label for="calc-start-date" class="block text-sm mt-4">Planned scan / collection date</label>
+            <input id="calc-start-date" type="date" onchange="recalculateTurnaround()" class="block mt-1 rounded-xl border border-borderWarm bg-canvas px-3 py-2 text-sm" />
+            <p class="text-sm text-muted mt-2">Standard dispatch: crowns/bridges/veneers — up to 6 units: 9 working days; 7+: 11. Implants, attachments, combination and occlusal rehabilitation — up to 3: 13; 4+: 16. Diagnostic wax-ups — up to 6: 6; 7+: 9.</p>
           </div>
 
           <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
-            <span class="text-xs text-muted">Pre-booked express for crowns/bridges/veneers (≤6 units, by arrangement; 5/3 days in lab plus dispatch day; calculator only):</span>
+            <span class="text-sm text-muted">Pre-booked express for crowns/bridges/veneers (≤6 units; 5/3 days in lab plus dispatch day; calculator only):</span>
             <div class="inline-flex rounded-full border border-borderWarm bg-canvas p-1 text-xs">
               <button onclick="setExpressTier('standard')" id="exp-standard" class="exp-btn rounded-full bg-ink text-white px-3.5 py-1 font-medium transition-all">Standard</button>
               <button onclick="setExpressTier('5day')" id="exp-5day" class="exp-btn rounded-full text-muted px-3.5 py-1 font-medium transition-all disabled:opacity-40">5-Day (+25%)</button>
               <button onclick="setExpressTier('3day')" id="exp-3day" class="exp-btn rounded-full text-muted px-3.5 py-1 font-medium transition-all disabled:opacity-40">3-Day (+50%)</button>
             </div>
+            <label class="flex items-center gap-2 text-sm"><input id="calc-express-approved" type="checkbox" onchange="recalculateTurnaround()" /> Express slot confirmed by the lab</label>
+            <label for="calc-transit" class="block text-sm">Estimated transit after dispatch</label>
+            <select id="calc-transit" onchange="recalculateTurnaround()" class="rounded-xl border border-borderWarm bg-canvas px-3 py-2 text-sm">
+              <option value="1">1 working day (next-day service)</option>
+              <option value="2">2 working days</option>
+            </select>
           </div>
 
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 rounded-2xl bg-canvas border border-borderWarm p-5">
@@ -839,7 +908,9 @@
               <span class="text-[11px] font-mono uppercase text-muted block">Est. Dispatch Date</span>
               <span id="calc-date" class="text-lg font-mono font-semibold text-ink mt-1.5 block">—</span>
             </div>
+            <div class="col-span-2 sm:col-span-3"><span class="text-sm text-muted block">Estimated delivery</span><strong id="calc-delivery" class="text-lg">—</strong></div>
           </div>
+          <p id="calc-note" class="text-sm text-muted">Estimates assume usable scans/impressions received on the selected working day. England &amp; Wales recurring bank holidays included; exceptional closures, courier delays and design approval time require lab confirmation. Do not book a patient appointment from this estimate alone.</p>
         </div>
       </div>
 
@@ -906,7 +977,7 @@
             Online Laboratory <span class="font-serif italic font-normal text-gold">Prescription Form</span>
           </h2>
           <p class="text-xs sm:text-sm text-muted mt-2 max-w-2xl">
-            Complete your digital prescription below. Select one or multiple teeth on the 3D upper arch to assign treatments and shades. Dispatch dates are calculated automatically.
+            Complete your digital prescription below. Select one or multiple teeth on the 2D chart or optional 3D model to assign treatments and shades. Dates are estimates, not booking guarantees.
           </p>
         </div>
 
@@ -993,7 +1064,7 @@
 
         <!-- INTERACTIVE 3D MOUTH & TREATMENT PLANNER -->
         <div id="rx-step-2" class="rx-step" role="group" aria-labelledby="rx-step-2-title" hidden>
-          <h3 id="rx-step-2-title" tabindex="-1" class="text-xl font-medium mb-6">3D Odontogram &amp; Material Selection</h3>
+          <h3 id="rx-step-2-title" tabindex="-1" class="text-xl font-medium mb-6">Tooth Chart &amp; Material Selection</h3>
 <section id="section-9" class="dental-planner-section">
   <style>
     .dental-planner-section {
@@ -1411,26 +1482,37 @@
 
   <div class="dental-planner-container">
     <div class="dental-planner-header">
-      <h2>Interactive 3D Upper &amp; Lower Arch Treatment Planner</h2>
-      <p>Choose a jaw and click a tooth to prescribe a single unit, or enable multi-tooth selection to prescribe several units together.</p>
+      <h2>Upper &amp; Lower Arch Treatment Planner</h2>
+      <p>Select a tooth on the keyboard-accessible 2D chart, or optionally use the 3D viewer. Patient right appears on the left of the chart.</p>
     </div>
 
     <div class="dental-planner-grid">
-      <!-- Left: 3D Arch -->
+      <!-- Left: 2D chart and optional 3D arch -->
       <div class="dental-viewport-card">
-        <div class="viewport-toolbar">
+        <div class="viewport-toolbar" id="viewer-toolbar" hidden>
           <div class="viewport-controls jaw-toggle" role="group" aria-label="Select jaw">
             <button type="button" class="vp-btn" data-jaw="upper" aria-pressed="true">Upper jaw</button>
             <button type="button" class="vp-btn" data-jaw="lower" aria-pressed="false">Lower jaw</button>
           </div>
         </div>
+        <div class="p-3 text-center bg-surface">
+          <button type="button" id="show-3d" class="vp-btn">Load optional 3D viewer</button>
+          <button type="button" id="show-2d" class="vp-btn" hidden>Use 2D tooth chart</button>
+          <p id="viewer-status" role="status" aria-live="polite" class="text-sm mt-2 text-ink">2D chart ready. No 3D download required.</p>
+          <button type="button" id="retry-3d" class="vp-btn" hidden>Retry 3D viewer</button>
+        </div>
+        <div id="chart-2d" role="group" aria-label="Permanent adult teeth, viewed facing the patient" class="overflow-y-auto max-h-[470px] px-2">
+          <p class="text-center text-sm font-semibold">Upper arch · Patient right ← → Patient left</p>
+          <div id="upper-chart" class="chart-arch" role="group" aria-label="Upper permanent teeth"></div>
+          <p class="text-center text-sm font-semibold">Lower arch · Patient right ← → Patient left</p>
+          <div id="lower-chart" class="chart-arch" role="group" aria-label="Lower permanent teeth"></div>
+        </div>
         <model-viewer
           id="mouth-glb-viewer"
-          src="Models/upper_mouth_model.glb"
+          hidden
           camera-controls
-          auto-rotate
           shadow-intensity="1"
-          style="width: 100%; height: 100%; background-color: #EAE5DD;"
+          style="width: 100%; height: 440px; background-color: #EAE5DD;"
         ></model-viewer>
         <script>
           // Diagnostic logging for the GLB model load. Open DevTools > Console
@@ -1446,12 +1528,20 @@
                 reason: event.detail && event.detail.message,
                 detail: event.detail
               });
+              document.getElementById('viewer-status').textContent = '3D model unavailable. Continue with the 2D chart or retry.';
+              document.getElementById('retry-3d').hidden = false;
+              document.getElementById('chart-2d').hidden = false;
+              viewer.hidden = true;
+              document.getElementById('show-2d').hidden = true;
+              document.getElementById('show-3d').hidden = false;
             });
 
             viewer.addEventListener('load', function () {
               const center = viewer.getBoundingBoxCenter();
               viewer.setAttribute('camera-target', `${center.x}m ${center.y}m ${center.z}m`);
               console.log('[model-viewer] Model loaded successfully:', viewer.src);
+              document.getElementById('viewer-status').textContent = '3D model ready. The 2D chart remains available.';
+              document.getElementById('retry-3d').hidden = true;
             });
           })();
         </script>
@@ -1480,6 +1570,79 @@
             let modelReady = false;
             let multiTooth = false;
             let hoveredMaterial = null;
+            const chart = document.getElementById('chart-2d');
+            const status = document.getElementById('viewer-status');
+            let viewerRequested = false;
+            let loadingTimer;
+            function showChart() {
+              viewer.hidden = true;
+              chart.hidden = false;
+              document.getElementById('viewer-toolbar').hidden = true;
+              document.getElementById('show-2d').hidden = true;
+              document.getElementById('show-3d').hidden = false;
+              status.textContent = '2D chart ready. Existing treatments are preserved.';
+            }
+            function loadViewer() {
+              viewerRequested = true;
+              chart.hidden = true;
+              viewer.hidden = false;
+              document.getElementById('viewer-toolbar').hidden = false;
+              document.getElementById('show-3d').hidden = true;
+              document.getElementById('show-2d').hidden = false;
+              document.getElementById('retry-3d').hidden = true;
+              status.textContent = 'Loading 3D viewer… The 2D chart is available if loading fails.';
+              clearTimeout(loadingTimer);
+              loadingTimer = setTimeout(() => {
+                if (!modelReady) {
+                  showChart();
+                  status.textContent = '3D viewer timed out. Continue with the 2D chart or retry.';
+                  document.getElementById('retry-3d').hidden = false;
+                }
+              }, 15000);
+              if (!customElements.get('model-viewer')) {
+                import('https://cdn.jsdelivr.net/npm/@google/model-viewer@3.4.0/dist/model-viewer.min.js')
+                  .then(() => { viewer.src = jawModels[currentJaw]; })
+                  .catch(() => {
+                    clearTimeout(loadingTimer);
+                    showChart();
+                    status.textContent = '3D viewer unavailable. Continue with the 2D chart or retry.';
+                    document.getElementById('retry-3d').hidden = false;
+                  });
+              } else {
+                viewer.src = '';
+                viewer.src = jawModels[currentJaw];
+              }
+            }
+            document.getElementById('show-3d').addEventListener('click', loadViewer);
+            document.getElementById('retry-3d').addEventListener('click', loadViewer);
+            document.getElementById('show-2d').addEventListener('click', showChart);
+            for (const jaw of ['upper', 'lower']) {
+              const container = document.getElementById(`${jaw}-chart`);
+              for (const side of ['R', 'L']) {
+                for (let num = 1; num <= 7; num++) {
+                  const code = `${jaw === 'upper' ? 'U' : 'L'}${side}${num}`;
+                  const fdi = `${jaw === 'upper' ? (side === 'R' ? 1 : 2) : (side === 'R' ? 4 : 3)}${num}`;
+                  const button = document.createElement('button');
+                  button.type = 'button';
+                  button.className = 'chart-tooth';
+                  button.dataset.code = code;
+                  button.dataset.type = num <= 2 ? 'incisor' : num === 3 ? 'canine' : num <= 5 ? 'premolar' : 'molar';
+                  button.style.left = `${50 + (side === 'R' ? -1 : 1) * (5 + (num - 1) * 6.3)}%`;
+                  button.style.top = `${jaw === 'upper' ? 140 - (num - 1) * 15 : 40 + (num - 1) * 15}px`;
+                  button.textContent = fdi;
+                  button.setAttribute('aria-label', `${jaw} ${side === 'R' ? 'right' : 'left'} ${TOOTH_NAMES[num]}, FDI ${fdi}`);
+                  button.setAttribute('aria-pressed', 'false');
+                  button.addEventListener('click', () => selectTooth({
+                    code, label: `${jaw === 'upper' ? 'Upper' : 'Lower'} ${num} · ${side === 'R' ? 'Right' : 'Left'}`
+                  }));
+                  container.appendChild(button);
+                }
+              }
+            }
+            function syncChart() {
+              chart.querySelectorAll('.chart-tooth').forEach((button) =>
+                button.setAttribute('aria-pressed', String(activeCodes.has(button.dataset.code))));
+            }
 
             function updateShadeControls() {
               const ceramicSelected = Array.from(activeCodes).some((code) =>
@@ -1588,6 +1751,7 @@
                 setHighlight(material);
               });
               modelReady = true;
+              clearTimeout(loadingTimer);
             }
             viewer.addEventListener('load', syncModel);
             if (viewer.loaded) syncModel();
@@ -1636,11 +1800,12 @@
             }
 
             function updateSelectionUI() {
+              syncChart();
               const plans = Array.from(activeCodes, (code) => toothPlans.get(code));
               document.getElementById('ui-tooth-code').textContent = plans.length
                 ? plans.map((plan) => plan.code).join(', ') : 'NO TOOTH SELECTED';
               document.getElementById('ui-tooth-name').textContent = plans.length === 1
-                ? plans[0].label : plans.length ? `${plans.length} teeth selected` : 'Click a tooth on the 3D model';
+                ? plans[0].label : plans.length ? `${plans.length} teeth selected` : 'Select a tooth on the 2D chart';
               document.getElementById('tooth-menu-title').textContent = plans.length === 1
                 ? `${plans[0].label} · Treatment details` : `${plans.length} teeth · Shared treatment details`;
               Object.entries(fields).forEach(([key, field]) => {
@@ -1682,14 +1847,14 @@
               toothPlans.forEach((plan) => { plan.modelMaterial = null; });
               currentJaw = jaw;
               jawButtons.forEach((option) => option.setAttribute('aria-pressed', String(option === button)));
-              viewer.setAttribute('src', jawModels[jaw]);
+              if (viewerRequested && !viewer.hidden) {
+                status.textContent = 'Loading selected jaw…';
+                viewer.setAttribute('src', jawModels[jaw]);
+              }
             }));
+            viewer.addEventListener('error', () => { modelReady = false; clearTimeout(loadingTimer); });
 
-            viewer.addEventListener('click', (event) => {
-              if (!modelReady || typeof viewer.materialFromPoint !== 'function') return;
-              const material = viewer.materialFromPoint(event.clientX, event.clientY);
-              const tooth = toothFromMaterial(material);
-              if (!tooth) return;
+            function selectTooth(tooth, material = null) {
               if (multiTooth && activeCodes.has(tooth.code)) {
                 activeCodes.delete(tooth.code);
               } else {
@@ -1705,6 +1870,12 @@
               setHighlight(material);
               updateSelectionUI();
               renderPlan();
+            }
+            viewer.addEventListener('click', (event) => {
+              if (!modelReady || typeof viewer.materialFromPoint !== 'function') return;
+              const material = viewer.materialFromPoint(event.clientX, event.clientY);
+              const tooth = toothFromMaterial(material);
+              if (tooth) selectTooth(tooth, material);
             });
 
             Object.entries(fields).forEach(([key, field]) => {
@@ -1896,16 +2067,26 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="rounded-[24px] border border-borderWarm bg-canvas p-6 space-y-4">
               <h4 class="text-xs font-mono uppercase tracking-widest text-gold font-semibold">Estimated Schedule</h4>
+              <div>
+                <label for="rx-start-date" class="block text-sm font-medium mb-2">Planned scan / collection date *</label>
+                <input id="rx-start-date" type="date" required class="rx-input w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm" />
+              </div>
+              <label for="rx-transit" class="block text-sm">Estimated transit</label>
+              <select id="rx-transit" class="rx-input rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm">
+                <option value="1">1 working day</option><option value="2">2 working days</option>
+              </select>
               <div aria-live="polite">
                 <p class="text-xs text-muted">Expected dispatch date</p>
                 <strong id="rx-expected-dispatch" class="block text-lg">Select a treatment</strong>
+                <p class="text-xs text-muted mt-2">Estimated delivery</p>
+                <strong id="rx-expected-delivery" class="block text-lg">Select a treatment</strong>
                 <p id="rx-dispatch-days" class="text-xs text-muted mt-2"></p>
               </div>
               <div>
                 <label for="tooth-return-date" class="block text-xs font-mono uppercase mb-2">Requested delivery date *</label>
                 <input id="tooth-return-date" type="date" required aria-describedby="rx-dispatch-note" class="w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
               </div>
-              <p id="rx-dispatch-note" class="text-xs text-muted">The earliest selectable date is one working day after dispatch, using the Section 10 standard working times. Weekends are not delivery dates. Bank holidays and transit delays are not accounted for; do not use this as an appointment date. Express requires prior arrangement and is not applied here.</p>
+              <p id="rx-dispatch-note" class="text-sm text-muted">Calculated from the planned working-day scan/collection date, assuming usable materials arrive that day. Recurring England &amp; Wales bank holidays and chosen transit are included. Exceptional closures, courier delays and design approval are not predictable; confirm with the lab before booking. Express is only available by prior agreement and is not applied to prescriptions.</p>
             </div>
             <fieldset class="rounded-[24px] border border-borderWarm bg-canvas p-6">
               <legend class="sr-only">Enclosures</legend>
@@ -1955,6 +2136,18 @@
     </div>
   </section>
 
+  <section id="case-progress" class="max-w-7xl mx-auto px-6 sm:px-10 py-12 sm:py-20" aria-labelledby="case-progress-title">
+    <h2 id="case-progress-title" class="text-3xl sm:text-4xl font-medium">After you send a case</h2>
+    <p class="text-sm text-muted mt-3 max-w-3xl">Case status is not connected to the lab on this website. The steps below are a handoff guide, not live tracking. Call <a href="tel:02083166248" class="underline">020 8316 6248</a> or <a href="mailto:info@kdduk.net" class="underline">email the lab</a> to confirm your case reference and current stage. Do not include patient identifiers in an unsecure status request.</p>
+    <ol class="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mt-8 text-sm">
+      <li class="rounded-xl border border-borderWarm bg-surface p-5"><strong>1 · Scans received</strong><p class="mt-2 text-muted">Awaiting lab confirmation. If scans or impressions are missing, send via your scanner portal or arrange collection.</p><a class="underline mt-3 inline-block" href="#for-dentists">Sending options</a></li>
+      <li class="rounded-xl border border-borderWarm bg-surface p-5"><strong>2 · Design approval</strong><p class="mt-2 text-muted">Awaiting lab confirmation. Review any design shared by the lab and reply with approval or amendments.</p><a class="underline mt-3 inline-block" href="mailto:info@kdduk.net?subject=Design%20approval%20enquiry">Ask about approval</a></li>
+      <li class="rounded-xl border border-borderWarm bg-surface p-5"><strong>3 · Fabrication</strong><p class="mt-2 text-muted">Awaiting lab confirmation. Work begins when required scans and approvals are complete.</p></li>
+      <li class="rounded-xl border border-borderWarm bg-surface p-5"><strong>4 · Dispatch</strong><p class="mt-2 text-muted">Awaiting lab confirmation. Ask the lab for the courier and tracking details.</p><a class="underline mt-3 inline-block" href="mailto:info@kdduk.net?subject=Dispatch%20enquiry">Request dispatch details</a></li>
+      <li class="rounded-xl border border-borderWarm bg-surface p-5"><strong>5 · Delivery</strong><p class="mt-2 text-muted">Awaiting lab confirmation. Check delivery before confirming the fitting appointment.</p></li>
+    </ol>
+  </section>
+
   <!-- ===================================================================== -->
   <!-- 8. FIND A DENTIST (PATIENT POSTCODE MATCHER) & FOOTER                 -->
   <!-- ===================================================================== -->
@@ -1979,29 +2172,30 @@
 
         <div class="lg:col-span-6">
           <form onsubmit="handleDentistFinder(event)" class="rounded-[26px] border border-borderWarm bg-canvas p-6 sm:p-8 space-y-4">
+            <p class="text-sm text-muted">Submitting opens your email app with this enquiry. Please review and send it there; no details are sent by this website.</p>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-xs font-mono uppercase text-muted mb-1.5">Name*</label>
-                <input type="text" required placeholder="Your full name" class="w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
+                <label for="finder-name" class="block text-sm font-mono uppercase text-muted mb-1.5">Name*</label>
+                <input id="finder-name" type="text" required autocomplete="name" placeholder="Your full name" class="w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
               </div>
               <div>
-                <label class="block text-xs font-mono uppercase text-muted mb-1.5">Email*</label>
-                <input type="email" required placeholder="you@example.co.uk" class="w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
+                <label for="finder-email" class="block text-sm font-mono uppercase text-muted mb-1.5">Email*</label>
+                <input id="finder-email" type="email" required autocomplete="email" placeholder="you@example.co.uk" class="w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
               </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-xs font-mono uppercase text-muted mb-1.5">UK Postcode*</label>
-                <input id="finder-postcode" type="text" required placeholder="e.g. SE18 2HL" class="w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm uppercase focus:outline-none focus:border-ink" />
+                <label for="finder-postcode" class="block text-sm font-mono uppercase text-muted mb-1.5">UK Postcode*</label>
+                <input id="finder-postcode" type="text" required autocomplete="postal-code" placeholder="e.g. SE18 2HL" class="w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm uppercase focus:outline-none focus:border-ink" />
               </div>
               <div>
-                <label class="block text-xs font-mono uppercase text-muted mb-1.5">Phone</label>
-                <input type="tel" placeholder="07700 900000" class="w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
+                <label for="finder-phone" class="block text-sm font-mono uppercase text-muted mb-1.5">Phone</label>
+                <input id="finder-phone" type="tel" autocomplete="tel" placeholder="07700 900000" class="w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
               </div>
             </div>
             <div>
-              <label class="block text-xs font-mono uppercase text-muted mb-1.5">Area of Interest*</label>
-              <select class="w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink">
+              <label for="finder-interest" class="block text-sm font-mono uppercase text-muted mb-1.5">Area of Interest*</label>
+              <select id="finder-interest" required class="w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink">
                 <option>Smile Makeover / Porcelain Veneers</option>
                 <option>Dental Implants &amp; Bridges</option>
                 <option>LifeTime Lingual™ Ceramic Retainer</option>
@@ -2013,9 +2207,9 @@
               type="submit"
               class="w-full rounded-full bg-ink text-white py-3.5 text-xs sm:text-sm font-semibold hover:bg-ink/90 transition-colors"
             >
-              Match Me With a Nearest Client Practice →
+              Open email to request a dentist match →
             </button>
-            <p id="finder-feedback" class="hidden text-xs font-mono text-emerald-700 text-center pt-2"></p>
+            <p id="finder-feedback" role="status" class="hidden text-sm font-mono text-emerald-700 text-center pt-2"></p>
           </form>
         </div>
 
@@ -2035,9 +2229,9 @@
   <!-- ===================================================================== -->
   <!-- INTERACTIVE MODAL (DIGITAL DOCKET RECEIPT, LOGISTICS & CASE STUDIES)  -->
   <!-- ===================================================================== -->
-  <div id="kdd-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
-    <div class="relative w-full max-w-2xl rounded-[28px] bg-surface border border-borderWarm p-7 sm:p-9 shadow-2xl my-8">
-      <button onclick="closeModal()" class="no-print absolute top-5 right-5 w-9 h-9 rounded-full border border-borderWarm flex items-center justify-center text-muted hover:text-ink">✕</button>
+  <div id="kdd-modal" role="dialog" aria-modal="true" aria-label="Information" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+    <div class="modal-panel relative w-full max-w-2xl rounded-[28px] bg-surface border border-borderWarm p-7 sm:p-9 shadow-2xl my-8">
+      <button id="modal-close" type="button" aria-label="Close dialog" onclick="closeModal()" class="no-print absolute top-5 right-5 w-11 h-11 rounded-full border border-borderWarm flex items-center justify-center text-muted hover:text-ink">✕</button>
       <div id="modal-body"></div>
     </div>
   </div>
@@ -2121,13 +2315,54 @@
       if (category === 'complex') return units >= 4 ? 16 : 13;
       return units >= 7 ? 11 : 9;
     }
-    function dateAfterWorkingDays(days) {
-      const today = new Date();
-      const date = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const bankHolidayCache = new Map();
+    function bankHolidays(year) {
+      if (bankHolidayCache.has(year)) return bankHolidayCache.get(year);
+      const holidays = new Set();
+      const add = (date) => holidays.add(dateInputValue(date));
+      const monday = (month, last = false) => {
+        const day = new Date(year, month + (last ? 1 : 0), last ? 0 : 1);
+        day.setDate(day.getDate() + (last ? -(day.getDay() + 6) % 7 : (8 - day.getDay()) % 7));
+        return day;
+      };
+      const observed = (month, day) => {
+        const date = new Date(year, month, day);
+        while (date.getDay() === 0 || date.getDay() === 6 || holidays.has(dateInputValue(date))) date.setDate(date.getDate() + 1);
+        add(date);
+      };
+      observed(0, 1);
+      const a = year % 19, b = Math.floor(year / 100), c = year % 100;
+      const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+      const g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+      const i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k + 70) % 7;
+      const m = Math.floor((a + 11 * h + 22 * l) / 451);
+      const easter = new Date(year, Math.floor((h + l - 7 * m + 114) / 31) - 1, (h + l - 7 * m + 114) % 31 + 1);
+      const goodFriday = new Date(easter);
+      goodFriday.setDate(easter.getDate() - 2);
+      const easterMonday = new Date(easter);
+      easterMonday.setDate(easter.getDate() + 1);
+      add(goodFriday); add(easterMonday);
+      add(monday(4)); add(monday(4, true)); add(monday(7, true));
+      observed(11, 25); observed(11, 26);
+      bankHolidayCache.set(year, holidays);
+      return holidays;
+    }
+    function isWorkingDay(date) {
+      return date.getDay() !== 0 && date.getDay() !== 6 &&
+        !bankHolidays(date.getFullYear()).has(dateInputValue(date));
+    }
+    function dateFromInput(value) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+      const [year, month, day] = value.split('-').map(Number);
+      const date = new Date(year, month - 1, day);
+      return dateInputValue(date) === value ? date : null;
+    }
+    function dateAfterWorkingDays(days, start = new Date()) {
+      const date = new Date(start.getFullYear(), start.getMonth(), start.getDate());
       let added = 0;
       while (added < days) {
         date.setDate(date.getDate() + 1);
-        if (date.getDay() !== 0 && date.getDay() !== 6) added++;
+        if (isWorkingDay(date)) added++;
       }
       return date;
     }
@@ -2141,16 +2376,17 @@
       });
       const days = Math.max(...Object.entries(counts).map(([category, units]) =>
         units ? workingDaysFor(category, units) : 0));
-      const dispatchDate = days ? dateAfterWorkingDays(days) : null;
-      const deliveryDate = dispatchDate ? dateInputValue(dateAfterWorkingDays(days + 1)) : '';
+      const start = dateFromInput(document.getElementById('rx-start-date').value);
+      const dispatchDate = days && start ? dateAfterWorkingDays(days, start) : null;
+      const transit = Number(document.getElementById('rx-transit').value);
+      const deliveryDate = dispatchDate ? dateInputValue(dateAfterWorkingDays(transit, dispatchDate)) : '';
       const dateInput = document.getElementById('tooth-return-date');
       dateInput.min = deliveryDate;
       let requestedDate = deliveryDate && dateInput.value >= deliveryDate ? dateInput.value : deliveryDate;
       if (requestedDate) {
         const [year, month, day] = requestedDate.split('-').map(Number);
         const requestedDay = new Date(year, month - 1, day);
-        if (requestedDay.getDay() === 6) requestedDay.setDate(requestedDay.getDate() + 2);
-        if (requestedDay.getDay() === 0) requestedDay.setDate(requestedDay.getDate() + 1);
+        while (!isWorkingDay(requestedDay)) requestedDay.setDate(requestedDay.getDate() + 1);
         requestedDate = dateInputValue(requestedDay);
       }
       dateInput.value = requestedDate;
@@ -2158,12 +2394,15 @@
       document.getElementById('rx-expected-dispatch').textContent = dispatchDate
         ? dispatchDate.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
         : 'Select a treatment';
+      document.getElementById('rx-expected-delivery').textContent = deliveryDate
+        ? dateFromInput(deliveryDate).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+        : 'Choose a scan date and treatment';
       const labels = { crown: 'crown/bridge/veneer', complex: 'implant/rehab', waxup: 'diagnostic wax-up' };
       document.getElementById('rx-dispatch-days').textContent = dispatchDate
-        ? `${days} working days after today · ${Object.entries(counts).filter(([, units]) => units)
+        ? `${days} working days after planned scan/collection · ${Object.entries(counts).filter(([, units]) => units)
           .map(([category, units]) => `${units} ${labels[category]} unit${units === 1 ? '' : 's'}`).join(', ')}`
         : '';
-      return dispatchDate ? { date: dateInputValue(dispatchDate), days } : null;
+      return dispatchDate ? { date: dateInputValue(dispatchDate), delivery: deliveryDate, days } : null;
     }
     let activeProductTool = 'Crown';
     let currentFinalShade = 'A1';
@@ -2368,12 +2607,7 @@
           tObj.marginRing.visible = true;
           tObj.marginRing.material = toolToApply === 'Crown' ? crownRingMat : bridgeRingMat;
 
-          // Animate prosthetic crown/bridge unit seating onto the prepared tooth stump
-          gsap.fromTo(
-            tObj.crownMesh.position,
-            { y: dir * 0.52 },
-            { y: targetOffset, duration: 0.55, ease: 'back.out(1.4)' }
-          );
+          tObj.crownMesh.position.y = targetOffset;
         } else if (toolToApply === 'Veneer') {
           tObj.naturalMesh.visible = true;
           tObj.stumpMesh.visible = false;
@@ -2382,11 +2616,8 @@
           tObj.marginRing.visible = true;
           tObj.marginRing.material = veneerRingMat;
 
-          gsap.fromTo(
-            tObj.veneerMesh.position,
-            { z: 0.42, y: 0 },
-            { z: isExplodedSeating ? 0.32 : 0, y: 0, duration: 0.5, ease: 'power3.out' }
-          );
+          tObj.veneerMesh.position.z = isExplodedSeating ? 0.32 : 0;
+          tObj.veneerMesh.position.y = 0;
         }
       }
 
@@ -2541,8 +2772,9 @@
         buccal:   { pos: [9.8, 0.6, 4.2], target: [0, 0, 0.4] }
       };
       const p = presets[view] || presets.anterior;
-      gsap.to(camera.position, { x: p.pos[0], y: p.pos[1], z: p.pos[2], duration: 0.75, ease: 'power2.out' });
-      gsap.to(controls.target, { x: p.target[0], y: p.target[1], z: p.target[2], duration: 0.75, ease: 'power2.out' });
+      camera.position.set(...p.pos);
+      controls.target.set(...p.target);
+      controls.update();
     }
 
     function toggleProsthesisSeating() {
@@ -2555,18 +2787,10 @@
         if (!tObj) return;
         const dir = tObj.isUpper ? -1 : 1;
         if (info.product === 'Crown' || info.product === 'Bridge') {
-          gsap.to(tObj.crownMesh.position, {
-            y: isExplodedSeating ? dir * 0.45 : 0,
-            duration: 0.5,
-            ease: 'power2.inOut',
-            onUpdate: rebuildBridgeConnectors
-          });
+          tObj.crownMesh.position.y = isExplodedSeating ? dir * 0.45 : 0;
+          rebuildBridgeConnectors();
         } else if (info.product === 'Veneer') {
-          gsap.to(tObj.veneerMesh.position, {
-            z: isExplodedSeating ? 0.34 : 0,
-            duration: 0.5,
-            ease: 'power2.inOut'
-          });
+          tObj.veneerMesh.position.z = isExplodedSeating ? 0.34 : 0;
         }
       });
     }
@@ -2682,7 +2906,10 @@
         { ok: forename.length > 0, label: 'Patient Forename', step: 1, selector: '#rx-patient-forename' },
         { ok: Boolean(gender), label: 'Patient Gender', step: 1, selector: 'input[name="rx_gender"]' },
         { ok: plans.length > 0, label: 'Tooth Treatment', step: 2, selector: '#rx-step-2-title' },
-        { ok: plans.length > 0 && plans.every(isToothPlanComplete), label: 'Treatment, Requested Delivery Date & Required Shades for Each Tooth', step: 2, selector: '#rx-step-2-title' }
+        { ok: plans.length > 0 && plans.every(isToothPlanComplete), label: 'Treatment, Requested Delivery Date & Required Shades for Each Tooth', step: 2, selector: '#rx-step-2-title' },
+        { ok: Boolean(dateFromInput(document.getElementById('rx-start-date').value)) &&
+          dateFromInput(document.getElementById('rx-start-date').value) >= dateFromInput(dateInputValue(new Date())),
+          label: 'Future scan / collection date', step: 3, selector: '#rx-start-date' }
       ];
     }
 
@@ -2712,7 +2939,10 @@
         document.querySelector(blocked.selector)?.focus();
       } else {
         document.getElementById(`rx-step-${currentRxStep}-title`).focus({ preventScroll: true });
-        document.querySelector('#kdd-rx-form nav').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        document.querySelector('#kdd-rx-form nav').scrollIntoView({
+          behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+          block: 'start'
+        });
       }
     }
 
@@ -2806,7 +3036,7 @@
         <div class="my-5 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-canvas rounded-2xl p-5 border border-borderWarm">
           <div><span class="text-muted block font-mono uppercase text-[10px]">1. Dentist &amp; 2. Practice</span><strong class="text-ink">${dentist} — ${practice}</strong><br/><span class="text-muted">${email} · ${phone}</span></div>
           <div><span class="text-muted block font-mono uppercase text-[10px]">3. Patient</span><strong class="text-ink">${patient} (${gender})</strong></div>
-          <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">Expected dispatch date (${dispatch.days} working days after today)</span><strong class="text-ink">${escapeHtml(dispatch.date)}</strong><span class="text-muted block">Working days exclude weekends; bank holidays are not accounted for. Requested delivery assumes next-working-day shipping and is not guaranteed.</span></div>
+          <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-xs">Planned scan/collection: ${value('rx-start-date')} · Expected dispatch (${dispatch.days} working days): ${escapeHtml(dispatch.date)}</span><strong class="text-ink">Estimated delivery: ${escapeHtml(dispatch.delivery)}</strong><span class="text-muted block">Includes recurring England &amp; Wales bank holidays and selected transit. Confirm exceptional closures, courier times and design approval with the lab; not an appointment guarantee.</span></div>
           <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">Enclosures</span><strong class="text-ink">${enclosures.map(escapeHtml).join(', ') || 'None specified'}</strong></div>
           <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">Upper &amp; Lower Arch Treatment Plan (${plans.length} Units)</span></div>
           ${planRows}
@@ -2826,14 +3056,19 @@
         </div>
       `;
 
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
+      showModal();
     }
 
     // ---------------------------------------------------------------------
     // 5. PAGE ANIMATIONS, HERO PILLS & WORKING TIMES CALCULATOR
     // ---------------------------------------------------------------------
     window.addEventListener('DOMContentLoaded', () => {
+      const today = dateInputValue(new Date());
+      for (const id of ['calc-start-date', 'rx-start-date']) {
+        const input = document.getElementById(id);
+        input.min = today;
+        input.value = today;
+      }
       document.querySelectorAll('#kdd-rx-form .rx-input').forEach((input) => {
         input.addEventListener('input', validatePrescriptionForm);
         input.addEventListener('change', validatePrescriptionForm);
@@ -2855,58 +3090,23 @@
       validatePrescriptionForm();
     });
 
-    if (typeof Lenis !== 'undefined' && typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
-      const lenis = new Lenis({
-        duration: 1.15,
-        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-        smoothWheel: true,
-      });
-
-      gsap.registerPlugin(ScrollTrigger);
-      lenis.on('scroll', ScrollTrigger.update);
-      gsap.ticker.add((time) => lenis.raf(time * 1000));
-      gsap.ticker.lagSmoothing(0);
-    }
-
     window.addEventListener('DOMContentLoaded', () => {
-      if (typeof gsap === 'undefined') {
-        recalculateTurnaround();
-        return;
-      }
-      gsap.from('.hero-reveal', {
-        y: 32,
-        opacity: 0,
-        duration: 1,
-        stagger: 0.14,
-        ease: 'power3.out',
-      });
-
-      gsap.to('#hero-bg', {
-        scale: 1.14,
-        yPercent: 6,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: 'header',
-          start: 'top top',
-          end: 'bottom top',
-          scrub: true,
-        }
-      });
-
-      gsap.utils.toArray('.reveal-up').forEach((el) => {
-        gsap.from(el, {
-          y: 36,
-          opacity: 0,
-          duration: 0.85,
-          ease: 'power2.out',
-          scrollTrigger: {
-            trigger: el,
-            start: 'top 86%',
-          }
-        });
-      });
-
       recalculateTurnaround();
+      const toggle = document.getElementById('mobile-menu-toggle');
+      const menu = document.getElementById('mobile-links');
+      const closeMenu = () => {
+        menu.hidden = true;
+        toggle.setAttribute('aria-expanded', 'false');
+      };
+      toggle.addEventListener('click', () => {
+        menu.hidden = !menu.hidden;
+        toggle.setAttribute('aria-expanded', String(!menu.hidden));
+      });
+      menu.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeMenu));
+      window.addEventListener('resize', () => { if (window.innerWidth >= 1024) closeMenu(); });
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !menu.hidden) { closeMenu(); toggle.focus(); }
+      });
     });
 
     document.querySelectorAll('.spotlight-card').forEach((card) => {
@@ -2952,21 +3152,97 @@
       }
     };
 
+    // Replace these illustrative stock URLs with Images/<service>-<number>.jpg when approved case photos are available.
+    const SERVICE_PHOTOS = {
+      veneers: [
+        { src: 'https://images.pexels.com/photos/33748047/pexels-photo-33748047.jpeg?auto=compress&cs=tinysrgb&w=800', caption: 'Individual dental veneers on a reflective surface' },
+        { src: 'https://images.unsplash.com/photo-1776406987595-ba14f3510c07?auto=format&fit=crop&w=800&q=75', caption: 'Technician working with ceramic and a shade guide' }
+      ],
+      implants: [
+        { src: 'https://images.pexels.com/photos/6812500/pexels-photo-6812500.jpeg?auto=compress&cs=tinysrgb&w=800', caption: 'Transparent dental implant model' },
+        { src: 'https://images.pexels.com/photos/6502305/pexels-photo-6502305.jpeg?auto=compress&cs=tinysrgb&w=800', caption: 'Close-up of a dental implant model' }
+      ],
+      crowns: [
+        { src: 'https://images.unsplash.com/photo-1771442873035-474765b40ac6?auto=format&fit=crop&w=800&q=75', caption: 'Ceramic crown and implant restoration in a gloved hand' },
+        { src: 'https://images.unsplash.com/photo-1593022356769-11f762e25ed9?auto=format&fit=crop&w=800&q=75', caption: 'Implant and crown model' }
+      ],
+      bridges: [
+        { src: 'https://images.pexels.com/photos/9951392/pexels-photo-9951392.jpeg?auto=compress&cs=tinysrgb&w=800', caption: 'Dentists viewing a teeth model on a computer (illustrative of bridge planning)' },
+        { src: 'https://images.unsplash.com/photo-1771442873035-474765b40ac6?auto=format&fit=crop&w=800&q=75', caption: 'Ceramic restoration craft (not a bridge case)' }
+      ],
+      digital: [
+        { src: 'https://images.pexels.com/photos/9951392/pexels-photo-9951392.jpeg?auto=compress&cs=tinysrgb&w=800', caption: 'Dentists viewing a teeth model on a computer' },
+        { src: 'https://images.unsplash.com/photo-1600170311833-c2cf5280ce49?auto=format&fit=crop&w=800&q=75', caption: '3D scan of teeth on a tablet' }
+      ]
+    };
+
+    function openServiceGallery(key) {
+      const service = HERO_SERVICES[key];
+      if (!service || !SERVICE_PHOTOS[key]) return;
+      const body = document.getElementById('modal-body');
+      const label = document.createElement('span');
+      label.className = 'text-sm font-mono uppercase tracking-wide text-amber-900';
+      label.textContent = service.tag;
+      const title = document.createElement('h3');
+      title.className = 'text-2xl sm:text-3xl font-medium mt-2 pr-12';
+      title.textContent = `${key === 'digital' ? 'Digital Dentistry' : key[0].toUpperCase() + key.slice(1)} · Example imagery`;
+      const description = document.createElement('p');
+      description.className = 'text-sm text-ink mt-3';
+      description.textContent = service.text;
+      const notice = document.createElement('p');
+      notice.className = 'text-sm text-muted mt-2';
+      notice.textContent = 'Illustrative stock photos only. These are not Knight Dental Design patient cases or before-and-after results.';
+      const grid = document.createElement('div');
+      grid.className = 'grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5';
+      SERVICE_PHOTOS[key].forEach(({ src, caption }) => {
+        const figure = document.createElement('figure');
+        figure.className = 'overflow-hidden rounded-2xl border border-white/80 bg-white/50';
+        const image = document.createElement('img');
+        image.className = 'service-photo';
+        image.loading = 'lazy';
+        image.decoding = 'async';
+        image.width = 400;
+        image.height = 300;
+        image.src = src;
+        image.alt = `${caption}, illustrative stock photography`;
+        image.addEventListener('error', () => {
+          const fallback = document.createElement('div');
+          fallback.className = 'service-image-unavailable text-sm text-muted';
+          fallback.textContent = 'Photo unavailable. See our Instagram for more inspiration.';
+          image.replaceWith(fallback);
+        });
+        const captionElement = document.createElement('figcaption');
+        captionElement.className = 'text-sm text-ink p-3';
+        captionElement.textContent = caption;
+        figure.append(image, captionElement);
+        grid.appendChild(figure);
+      });
+      const instagram = document.createElement('a');
+      instagram.href = 'https://www.instagram.com/knightdentaldesign/';
+      instagram.target = '_blank';
+      instagram.rel = 'noopener noreferrer';
+      instagram.className = 'inline-block mt-5 text-sm font-semibold underline underline-offset-4 text-ink';
+      instagram.textContent = 'See @knightdentaldesign on Instagram ↗';
+      body.replaceChildren(label, title, description, notice, grid, instagram);
+      document.querySelector('#kdd-modal .modal-panel').classList.add('service-gallery');
+      showModal();
+    }
+
     function selectHeroService(key) {
       const data = HERO_SERVICES[key];
       if (!data) return;
 
       document.querySelectorAll('.hero-pill').forEach((btn) => {
         const isMatch = btn.getAttribute('data-pill') === key;
+        btn.setAttribute('aria-pressed', String(isMatch));
         btn.className = isMatch
           ? 'hero-pill rounded-full border border-white bg-white text-ink px-5 py-2 text-xs sm:text-sm font-medium transition-all'
           : 'hero-pill rounded-full border border-white/50 bg-black/15 text-white/90 hover:border-white hover:bg-white/15 px-5 py-2 text-xs sm:text-sm font-normal backdrop-blur-sm transition-all';
       });
 
-      const leftGlass = document.getElementById('hero-left-glass');
-      gsap.fromTo(leftGlass, { opacity: 0.6, y: 4 }, { opacity: 1, y: 0, duration: 0.3 });
       document.getElementById('glass-service-tag').textContent = data.tag;
       document.getElementById('glass-service-text').textContent = data.text;
+      openServiceGallery(key);
     }
 
     const HERO_SPOTLIGHTS = [
@@ -2997,9 +3273,6 @@
     function cycleHeroSpotlight() {
       spotlightIdx = (spotlightIdx + 1) % HERO_SPOTLIGHTS.length;
       const item = HERO_SPOTLIGHTS[spotlightIdx];
-      const rightGlass = document.getElementById('hero-right-glass');
-      gsap.fromTo(rightGlass, { opacity: 0.65, scale: 0.98 }, { opacity: 1, scale: 1, duration: 0.3 });
-
       document.getElementById('spotlight-pill-label').textContent = item.label;
       document.getElementById('spotlight-overline').textContent = item.overline;
       document.getElementById('spotlight-metric').textContent = item.metric;
@@ -3036,7 +3309,9 @@
     }
 
     function setExpressTier(tier) {
-      if (tier !== 'standard' && (currentCaseCategory !== 'crown' || Number(document.getElementById('calc-units').value) > 6)) return;
+      if (tier !== 'standard' && (currentCaseCategory !== 'crown' ||
+        Number(document.getElementById('calc-units').value) > 6 ||
+        !document.getElementById('calc-express-approved').checked)) return;
       currentExpress = tier;
       ['standard', '5day', '3day'].forEach((k) => {
         const btn = document.getElementById(`exp-${k}`);
@@ -3049,7 +3324,8 @@
 
     function recalculateTurnaround() {
       const units = Math.max(1, Math.floor(Number(document.getElementById('calc-units').value) || 1));
-      const expressAvailable = currentCaseCategory === 'crown' && units <= 6;
+      const expressAvailable = currentCaseCategory === 'crown' && units <= 6 &&
+        document.getElementById('calc-express-approved').checked;
       ['5day', '3day'].forEach((tier) => {
         document.getElementById(`exp-${tier}`).disabled = !expressAvailable;
       });
@@ -3067,17 +3343,62 @@
     }
 
     function updateDispatchDate(workingDaysToAdd) {
-      const formatted = dateAfterWorkingDays(workingDaysToAdd).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
-      document.getElementById('calc-date').textContent = formatted;
+      const input = document.getElementById('calc-start-date');
+      const start = dateFromInput(input.value);
+      if (!start || input.value < input.min) {
+        document.getElementById('calc-date').textContent = 'Choose a future date';
+        document.getElementById('calc-delivery').textContent = '—';
+        return;
+      }
+      const dispatch = dateAfterWorkingDays(workingDaysToAdd, start);
+      const delivery = dateAfterWorkingDays(Number(document.getElementById('calc-transit').value), dispatch);
+      const format = (date) => date.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+      document.getElementById('calc-date').textContent = format(dispatch);
+      document.getElementById('calc-delivery').textContent = format(delivery);
     }
 
     function handleDentistFinder(e) {
       e.preventDefault();
-      const pc = document.getElementById('finder-postcode').value.trim().toUpperCase();
+      const read = (id) => document.getElementById(id).value.trim();
+      const details = [
+        `Name: ${read('finder-name')}`, `Email: ${read('finder-email')}`,
+        `Postcode: ${read('finder-postcode').toUpperCase()}`,
+        `Phone: ${read('finder-phone') || 'Not provided'}`,
+        `Interest: ${read('finder-interest')}`
+      ];
       const msg = document.getElementById('finder-feedback');
-      msg.textContent = `✓ Thank you. Our team at 92 Swingate Lane (SE18) will match your postcode (${pc}) with our nearest client dental practice.`;
+      msg.textContent = 'Review the message in your email app and press Send. If it did not open, email info@kdduk.net directly; this website has not submitted your request.';
       msg.classList.remove('hidden');
+      window.location.href = `mailto:info@kdduk.net?subject=${encodeURIComponent('Find a client dentist')}&body=${encodeURIComponent(details.join('\n'))}`;
     }
+
+    function scrollToSection(id) {
+      document.getElementById(id).scrollIntoView({
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth'
+      });
+    }
+
+    let modalReturnFocus = null;
+    function showModal() {
+      const modal = document.getElementById('kdd-modal');
+      modalReturnFocus = document.activeElement;
+      modal.setAttribute('aria-label', document.querySelector('#modal-body h3')?.textContent || 'Prescription review');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      document.getElementById('modal-close').focus();
+    }
+    document.getElementById('kdd-modal').addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') { closeModal(); return; }
+      if (event.key !== 'Tab') return;
+      const focusable = Array.from(document.querySelectorAll('#kdd-modal a[href], #kdd-modal button:not([disabled])'))
+        .filter((element) => element.offsetParent !== null);
+      const first = focusable[0], last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    });
+    document.getElementById('kdd-modal').addEventListener('click', (event) => {
+      if (event.target === event.currentTarget) closeModal();
+    });
 
     function openModal(type) {
       const modal = document.getElementById('kdd-modal');
@@ -3103,8 +3424,7 @@
           </div>
         `;
       }
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
+      showModal();
     }
 
     function openCaseModal(person) {
@@ -3130,19 +3450,21 @@
         <h3 class="text-2xl font-medium mt-1">${item.name}</h3>
         <p class="text-sm text-muted mt-3 leading-relaxed">${item.detail}</p>
         <div class="mt-6 flex justify-end">
-          <button onclick="closeModal(); document.getElementById('find-dentist').scrollIntoView({behavior:'smooth'});" class="rounded-full bg-ink text-white px-6 py-2.5 text-xs font-semibold">
+          <button onclick="closeModal(); scrollToSection('find-dentist');" class="rounded-full bg-ink text-white px-6 py-2.5 text-xs font-semibold">
             Enquire About a Similar Smile →
           </button>
         </div>
       `;
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
+      showModal();
     }
 
     function closeModal() {
       const modal = document.getElementById('kdd-modal');
       modal.classList.add('hidden');
       modal.classList.remove('flex');
+      modal.querySelector('.modal-panel').classList.remove('service-gallery');
+      modalReturnFocus?.focus();
+      modalReturnFocus = null;
     }
   </script>
 </body>
