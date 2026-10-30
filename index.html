@@ -1618,7 +1618,10 @@
                 }
               }, 15000);
               if (!customElements.get('model-viewer')) {
-                import('https://cdn.jsdelivr.net/npm/@google/model-viewer@3.4.0/dist/model-viewer.min.js')
+                // Load the self-hosted copy first so the viewer keeps working on networks that
+                // block third-party CDNs; fall back to jsDelivr only if that file is missing.
+                import('./vendor/model-viewer.min.js')
+                  .catch(() => import('https://cdn.jsdelivr.net/npm/@google/model-viewer@3.4.0/dist/model-viewer.min.js'))
                   .then(() => { viewer.src = jawModels[currentJaw]; })
                   .catch(() => {
                     clearTimeout(loadingTimer);
