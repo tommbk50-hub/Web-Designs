@@ -419,11 +419,11 @@
         <!-- Bottom-Left Column -->
         <div class="lg:col-span-6 space-y-6 hero-reveal">
           <div class="flex flex-wrap items-center gap-2.5" id="hero-service-pills" role="group" aria-label="Explore laboratory services and example photos">
-            <button onclick="selectHeroService('veneers')" data-pill="veneers" class="hero-pill active-pill rounded-full border border-white bg-white text-ink px-5 py-2 text-xs sm:text-sm font-medium transition-all">Veneers</button>
-            <button onclick="selectHeroService('implants')" data-pill="implants" class="hero-pill rounded-full border border-white/50 bg-black/15 text-white/90 hover:border-white hover:bg-white/15 px-5 py-2 text-xs sm:text-sm font-normal backdrop-blur-sm transition-all">Implants</button>
-            <button onclick="selectHeroService('crowns')" data-pill="crowns" class="hero-pill rounded-full border border-white/50 bg-black/15 text-white/90 hover:border-white hover:bg-white/15 px-5 py-2 text-xs sm:text-sm font-normal backdrop-blur-sm transition-all">Crowns</button>
-            <button onclick="selectHeroService('bridges')" data-pill="bridges" class="hero-pill rounded-full border border-white/50 bg-black/15 text-white/90 hover:border-white hover:bg-white/15 px-5 py-2 text-xs sm:text-sm font-normal backdrop-blur-sm transition-all">Bridges</button>
-            <button onclick="selectHeroService('digital')" data-pill="digital" class="hero-pill rounded-full border border-white/50 bg-black/15 text-white/90 hover:border-white hover:bg-white/15 px-5 py-2 text-xs sm:text-sm font-normal backdrop-blur-sm transition-all">Digital Dentistry</button>
+            <button type="button" aria-haspopup="dialog" aria-pressed="true" onclick="selectHeroService('veneers')" data-pill="veneers" class="hero-pill active-pill rounded-full border border-white bg-white text-ink px-5 py-2 text-xs sm:text-sm font-medium transition-all">Veneers</button>
+            <button type="button" aria-haspopup="dialog" aria-pressed="false" onclick="selectHeroService('implants')" data-pill="implants" class="hero-pill rounded-full border border-white/50 bg-black/15 text-white/90 hover:border-white hover:bg-white/15 px-5 py-2 text-xs sm:text-sm font-normal backdrop-blur-sm transition-all">Implants</button>
+            <button type="button" aria-haspopup="dialog" aria-pressed="false" onclick="selectHeroService('crowns')" data-pill="crowns" class="hero-pill rounded-full border border-white/50 bg-black/15 text-white/90 hover:border-white hover:bg-white/15 px-5 py-2 text-xs sm:text-sm font-normal backdrop-blur-sm transition-all">Crowns</button>
+            <button type="button" aria-haspopup="dialog" aria-pressed="false" onclick="selectHeroService('bridges')" data-pill="bridges" class="hero-pill rounded-full border border-white/50 bg-black/15 text-white/90 hover:border-white hover:bg-white/15 px-5 py-2 text-xs sm:text-sm font-normal backdrop-blur-sm transition-all">Bridges</button>
+            <button type="button" aria-haspopup="dialog" aria-pressed="false" onclick="selectHeroService('digital')" data-pill="digital" class="hero-pill rounded-full border border-white/50 bg-black/15 text-white/90 hover:border-white hover:bg-white/15 px-5 py-2 text-xs sm:text-sm font-normal backdrop-blur-sm transition-all">Digital Dentistry</button>
           </div>
 
           <p class="text-xs sm:text-sm leading-relaxed text-white/85 max-w-lg font-normal">
@@ -3152,12 +3152,89 @@
       }
     };
 
+    // Replace these illustrative stock URLs with Images/<service>-<number>.jpg when approved case photos are available.
+    const SERVICE_PHOTOS = {
+      veneers: [
+        { src: 'https://images.unsplash.com/photo-1598256989800-fe5f95da9787?auto=format&fit=crop&w=800&q=75', caption: 'Smile inspiration' },
+        { src: 'https://images.unsplash.com/photo-1606811971618-4486d14f3f99?auto=format&fit=crop&w=800&q=75', caption: 'Restoration planning' }
+      ],
+      implants: [
+        { src: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&w=800&q=75', caption: 'Dental treatment setting' },
+        { src: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=75', caption: 'Dental clinic setting' }
+      ],
+      crowns: [
+        { src: 'https://images.unsplash.com/photo-1606811971618-4486d14f3f99?auto=format&fit=crop&w=800&q=75', caption: 'Restoration planning' },
+        { src: 'https://images.unsplash.com/photo-1598256989800-fe5f95da9787?auto=format&fit=crop&w=800&q=75', caption: 'Smile inspiration' }
+      ],
+      bridges: [
+        { src: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&w=800&q=75', caption: 'Restorative dentistry setting' },
+        { src: 'https://images.unsplash.com/photo-1606811971618-4486d14f3f99?auto=format&fit=crop&w=800&q=75', caption: 'Restoration planning' }
+      ],
+      digital: [
+        { src: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=75', caption: 'Modern dental clinic' },
+        { src: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&w=800&q=75', caption: 'Digital dentistry setting' }
+      ]
+    };
+
+    function openServiceGallery(key) {
+      const service = HERO_SERVICES[key];
+      if (!service || !SERVICE_PHOTOS[key]) return;
+      const body = document.getElementById('modal-body');
+      const label = document.createElement('span');
+      label.className = 'text-sm font-mono uppercase tracking-wide text-amber-900';
+      label.textContent = service.tag;
+      const title = document.createElement('h3');
+      title.className = 'text-2xl sm:text-3xl font-medium mt-2 pr-12';
+      title.textContent = `${key === 'digital' ? 'Digital Dentistry' : key[0].toUpperCase() + key.slice(1)} · Example imagery`;
+      const description = document.createElement('p');
+      description.className = 'text-sm text-ink mt-3';
+      description.textContent = service.text;
+      const notice = document.createElement('p');
+      notice.className = 'text-sm text-muted mt-2';
+      notice.textContent = 'Illustrative stock photos only. These are not Knight Dental Design patient cases or before-and-after results.';
+      const grid = document.createElement('div');
+      grid.className = 'grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5';
+      SERVICE_PHOTOS[key].forEach(({ src, caption }) => {
+        const figure = document.createElement('figure');
+        figure.className = 'overflow-hidden rounded-2xl border border-white/80 bg-white/50';
+        const image = document.createElement('img');
+        image.className = 'service-photo';
+        image.loading = 'lazy';
+        image.decoding = 'async';
+        image.width = 400;
+        image.height = 300;
+        image.src = src;
+        image.alt = `${caption}, illustrative stock photography`;
+        image.addEventListener('error', () => {
+          const fallback = document.createElement('div');
+          fallback.className = 'service-image-unavailable text-sm text-muted';
+          fallback.textContent = 'Photo unavailable. See our Instagram for more inspiration.';
+          image.replaceWith(fallback);
+        });
+        const captionElement = document.createElement('figcaption');
+        captionElement.className = 'text-sm text-ink p-3';
+        captionElement.textContent = caption;
+        figure.append(image, captionElement);
+        grid.appendChild(figure);
+      });
+      const instagram = document.createElement('a');
+      instagram.href = 'https://www.instagram.com/knightdentaldesign/';
+      instagram.target = '_blank';
+      instagram.rel = 'noopener noreferrer';
+      instagram.className = 'inline-block mt-5 text-sm font-semibold underline underline-offset-4 text-ink';
+      instagram.textContent = 'See @knightdentaldesign on Instagram ↗';
+      body.replaceChildren(label, title, description, notice, grid, instagram);
+      document.querySelector('#kdd-modal .modal-panel').classList.add('service-gallery');
+      showModal();
+    }
+
     function selectHeroService(key) {
       const data = HERO_SERVICES[key];
       if (!data) return;
 
       document.querySelectorAll('.hero-pill').forEach((btn) => {
         const isMatch = btn.getAttribute('data-pill') === key;
+        btn.setAttribute('aria-pressed', String(isMatch));
         btn.className = isMatch
           ? 'hero-pill rounded-full border border-white bg-white text-ink px-5 py-2 text-xs sm:text-sm font-medium transition-all'
           : 'hero-pill rounded-full border border-white/50 bg-black/15 text-white/90 hover:border-white hover:bg-white/15 px-5 py-2 text-xs sm:text-sm font-normal backdrop-blur-sm transition-all';
@@ -3165,6 +3242,7 @@
 
       document.getElementById('glass-service-tag').textContent = data.tag;
       document.getElementById('glass-service-text').textContent = data.text;
+      openServiceGallery(key);
     }
 
     const HERO_SPOTLIGHTS = [
@@ -3384,6 +3462,7 @@
       const modal = document.getElementById('kdd-modal');
       modal.classList.add('hidden');
       modal.classList.remove('flex');
+      modal.querySelector('.modal-panel').classList.remove('service-gallery');
       modalReturnFocus?.focus();
       modalReturnFocus = null;
     }
