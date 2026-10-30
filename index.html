@@ -1017,7 +1017,7 @@
 
         <!-- INTERACTIVE 3D MOUTH & TREATMENT PLANNER -->
         <div id="rx-step-2" class="rx-step" role="group" aria-labelledby="rx-step-2-title" hidden>
-          <h3 id="rx-step-2-title" tabindex="-1" class="text-xl font-medium mb-6">3D Odontogram &amp; Material Selection</h3>
+          <h3 id="rx-step-2-title" tabindex="-1" class="text-xl font-medium mb-6">Tooth Chart &amp; Material Selection</h3>
 <section id="section-9" class="dental-planner-section">
   <style>
     .dental-planner-section {
@@ -1435,26 +1435,37 @@
 
   <div class="dental-planner-container">
     <div class="dental-planner-header">
-      <h2>Interactive 3D Upper &amp; Lower Arch Treatment Planner</h2>
-      <p>Choose a jaw and click a tooth to prescribe a single unit, or enable multi-tooth selection to prescribe several units together.</p>
+      <h2>Upper &amp; Lower Arch Treatment Planner</h2>
+      <p>Select a tooth on the keyboard-accessible 2D chart, or optionally use the 3D viewer. Patient right appears on the left of the chart.</p>
     </div>
 
     <div class="dental-planner-grid">
-      <!-- Left: 3D Arch -->
+      <!-- Left: 2D chart and optional 3D arch -->
       <div class="dental-viewport-card">
-        <div class="viewport-toolbar">
+        <div class="viewport-toolbar" id="viewer-toolbar" hidden>
           <div class="viewport-controls jaw-toggle" role="group" aria-label="Select jaw">
             <button type="button" class="vp-btn" data-jaw="upper" aria-pressed="true">Upper jaw</button>
             <button type="button" class="vp-btn" data-jaw="lower" aria-pressed="false">Lower jaw</button>
           </div>
         </div>
+        <div class="p-3 text-center bg-surface">
+          <button type="button" id="show-3d" class="vp-btn">Load optional 3D viewer</button>
+          <button type="button" id="show-2d" class="vp-btn" hidden>Use 2D tooth chart</button>
+          <p id="viewer-status" role="status" aria-live="polite" class="text-sm mt-2 text-ink">2D chart ready. No 3D download required.</p>
+          <button type="button" id="retry-3d" class="vp-btn" hidden>Retry 3D viewer</button>
+        </div>
+        <div id="chart-2d" role="group" aria-label="Permanent adult teeth, viewed facing the patient" class="overflow-y-auto max-h-[470px] px-2">
+          <p class="text-center text-sm font-semibold">Upper arch · Patient right ← → Patient left</p>
+          <div id="upper-chart" class="chart-arch" role="group" aria-label="Upper permanent teeth"></div>
+          <p class="text-center text-sm font-semibold">Lower arch · Patient right ← → Patient left</p>
+          <div id="lower-chart" class="chart-arch" role="group" aria-label="Lower permanent teeth"></div>
+        </div>
         <model-viewer
           id="mouth-glb-viewer"
-          src="Models/upper_mouth_model.glb"
+          hidden
           camera-controls
-          auto-rotate
           shadow-intensity="1"
-          style="width: 100%; height: 100%; background-color: #EAE5DD;"
+          style="width: 100%; height: 440px; background-color: #EAE5DD;"
         ></model-viewer>
         <script>
           // Diagnostic logging for the GLB model load. Open DevTools > Console
@@ -1470,12 +1481,20 @@
                 reason: event.detail && event.detail.message,
                 detail: event.detail
               });
+              document.getElementById('viewer-status').textContent = '3D model unavailable. Continue with the 2D chart or retry.';
+              document.getElementById('retry-3d').hidden = false;
+              document.getElementById('chart-2d').hidden = false;
+              viewer.hidden = true;
+              document.getElementById('show-2d').hidden = true;
+              document.getElementById('show-3d').hidden = false;
             });
 
             viewer.addEventListener('load', function () {
               const center = viewer.getBoundingBoxCenter();
               viewer.setAttribute('camera-target', `${center.x}m ${center.y}m ${center.z}m`);
               console.log('[model-viewer] Model loaded successfully:', viewer.src);
+              document.getElementById('viewer-status').textContent = '3D model ready. The 2D chart remains available.';
+              document.getElementById('retry-3d').hidden = true;
             });
           })();
         </script>
@@ -1504,6 +1523,79 @@
             let modelReady = false;
             let multiTooth = false;
             let hoveredMaterial = null;
+            const chart = document.getElementById('chart-2d');
+            const status = document.getElementById('viewer-status');
+            let viewerRequested = false;
+            let loadingTimer;
+            function showChart() {
+              viewer.hidden = true;
+              chart.hidden = false;
+              document.getElementById('viewer-toolbar').hidden = true;
+              document.getElementById('show-2d').hidden = true;
+              document.getElementById('show-3d').hidden = false;
+              status.textContent = '2D chart ready. Existing treatments are preserved.';
+            }
+            function loadViewer() {
+              viewerRequested = true;
+              chart.hidden = true;
+              viewer.hidden = false;
+              document.getElementById('viewer-toolbar').hidden = false;
+              document.getElementById('show-3d').hidden = true;
+              document.getElementById('show-2d').hidden = false;
+              document.getElementById('retry-3d').hidden = true;
+              status.textContent = 'Loading 3D viewer… The 2D chart is available if loading fails.';
+              clearTimeout(loadingTimer);
+              loadingTimer = setTimeout(() => {
+                if (!modelReady) {
+                  showChart();
+                  status.textContent = '3D viewer timed out. Continue with the 2D chart or retry.';
+                  document.getElementById('retry-3d').hidden = false;
+                }
+              }, 15000);
+              if (!customElements.get('model-viewer')) {
+                import('https://cdn.jsdelivr.net/npm/@google/model-viewer@3.4.0/dist/model-viewer.min.js')
+                  .then(() => { viewer.src = jawModels[currentJaw]; })
+                  .catch(() => {
+                    clearTimeout(loadingTimer);
+                    showChart();
+                    status.textContent = '3D viewer unavailable. Continue with the 2D chart or retry.';
+                    document.getElementById('retry-3d').hidden = false;
+                  });
+              } else {
+                viewer.src = '';
+                viewer.src = jawModels[currentJaw];
+              }
+            }
+            document.getElementById('show-3d').addEventListener('click', loadViewer);
+            document.getElementById('retry-3d').addEventListener('click', loadViewer);
+            document.getElementById('show-2d').addEventListener('click', showChart);
+            for (const jaw of ['upper', 'lower']) {
+              const container = document.getElementById(`${jaw}-chart`);
+              for (const side of ['R', 'L']) {
+                for (let num = 1; num <= 7; num++) {
+                  const code = `${jaw === 'upper' ? 'U' : 'L'}${side}${num}`;
+                  const fdi = `${jaw === 'upper' ? (side === 'R' ? 1 : 2) : (side === 'R' ? 4 : 3)}${num}`;
+                  const button = document.createElement('button');
+                  button.type = 'button';
+                  button.className = 'chart-tooth';
+                  button.dataset.code = code;
+                  button.dataset.type = num <= 2 ? 'incisor' : num === 3 ? 'canine' : num <= 5 ? 'premolar' : 'molar';
+                  button.style.left = `${50 + (side === 'R' ? -1 : 1) * (num * 6.4 - 3)}%`;
+                  button.style.top = `${jaw === 'upper' ? 140 - (num - 1) * 15 : 40 + (num - 1) * 15}px`;
+                  button.textContent = fdi;
+                  button.setAttribute('aria-label', `${jaw} ${side === 'R' ? 'right' : 'left'} ${TOOTH_NAMES[num]}, FDI ${fdi}`);
+                  button.setAttribute('aria-pressed', 'false');
+                  button.addEventListener('click', () => selectTooth({
+                    code, label: `${jaw === 'upper' ? 'Upper' : 'Lower'} ${num} · ${side === 'R' ? 'Right' : 'Left'}`
+                  }));
+                  container.appendChild(button);
+                }
+              }
+            }
+            function syncChart() {
+              chart.querySelectorAll('.chart-tooth').forEach((button) =>
+                button.setAttribute('aria-pressed', String(activeCodes.has(button.dataset.code))));
+            }
 
             function updateShadeControls() {
               const ceramicSelected = Array.from(activeCodes).some((code) =>
@@ -1612,6 +1704,7 @@
                 setHighlight(material);
               });
               modelReady = true;
+              clearTimeout(loadingTimer);
             }
             viewer.addEventListener('load', syncModel);
             if (viewer.loaded) syncModel();
@@ -1660,11 +1753,12 @@
             }
 
             function updateSelectionUI() {
+              syncChart();
               const plans = Array.from(activeCodes, (code) => toothPlans.get(code));
               document.getElementById('ui-tooth-code').textContent = plans.length
                 ? plans.map((plan) => plan.code).join(', ') : 'NO TOOTH SELECTED';
               document.getElementById('ui-tooth-name').textContent = plans.length === 1
-                ? plans[0].label : plans.length ? `${plans.length} teeth selected` : 'Click a tooth on the 3D model';
+                ? plans[0].label : plans.length ? `${plans.length} teeth selected` : 'Select a tooth on the 2D chart';
               document.getElementById('tooth-menu-title').textContent = plans.length === 1
                 ? `${plans[0].label} · Treatment details` : `${plans.length} teeth · Shared treatment details`;
               Object.entries(fields).forEach(([key, field]) => {
@@ -1706,14 +1800,13 @@
               toothPlans.forEach((plan) => { plan.modelMaterial = null; });
               currentJaw = jaw;
               jawButtons.forEach((option) => option.setAttribute('aria-pressed', String(option === button)));
-              viewer.setAttribute('src', jawModels[jaw]);
+              if (viewerRequested) {
+                status.textContent = 'Loading selected jaw…';
+                viewer.setAttribute('src', jawModels[jaw]);
+              }
             }));
 
-            viewer.addEventListener('click', (event) => {
-              if (!modelReady || typeof viewer.materialFromPoint !== 'function') return;
-              const material = viewer.materialFromPoint(event.clientX, event.clientY);
-              const tooth = toothFromMaterial(material);
-              if (!tooth) return;
+            function selectTooth(tooth, material = null) {
               if (multiTooth && activeCodes.has(tooth.code)) {
                 activeCodes.delete(tooth.code);
               } else {
@@ -1729,6 +1822,12 @@
               setHighlight(material);
               updateSelectionUI();
               renderPlan();
+            }
+            viewer.addEventListener('click', (event) => {
+              if (!modelReady || typeof viewer.materialFromPoint !== 'function') return;
+              const material = viewer.materialFromPoint(event.clientX, event.clientY);
+              const tooth = toothFromMaterial(material);
+              if (tooth) selectTooth(tooth, material);
             });
 
             Object.entries(fields).forEach(([key, field]) => {
