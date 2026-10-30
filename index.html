@@ -48,6 +48,7 @@
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
     }
+    [hidden] { display: none !important; }
 
     /* Sculpted Frosted Glass Cards matching the reference UI */
     .glass-card-left {
@@ -1590,7 +1591,7 @@
                   button.className = 'chart-tooth';
                   button.dataset.code = code;
                   button.dataset.type = num <= 2 ? 'incisor' : num === 3 ? 'canine' : num <= 5 ? 'premolar' : 'molar';
-                  button.style.left = `${50 + (side === 'R' ? -1 : 1) * (num * 6.4 - 3)}%`;
+                  button.style.left = `${50 + (side === 'R' ? -1 : 1) * (5 + (num - 1) * 6.3)}%`;
                   button.style.top = `${jaw === 'upper' ? 140 - (num - 1) * 15 : 40 + (num - 1) * 15}px`;
                   button.textContent = fdi;
                   button.setAttribute('aria-label', `${jaw} ${side === 'R' ? 'right' : 'left'} ${TOOTH_NAMES[num]}, FDI ${fdi}`);
@@ -1810,11 +1811,12 @@
               toothPlans.forEach((plan) => { plan.modelMaterial = null; });
               currentJaw = jaw;
               jawButtons.forEach((option) => option.setAttribute('aria-pressed', String(option === button)));
-              if (viewerRequested) {
+              if (viewerRequested && !viewer.hidden) {
                 status.textContent = 'Loading selected jaw…';
                 viewer.setAttribute('src', jawModels[jaw]);
               }
             }));
+            viewer.addEventListener('error', () => { modelReady = false; clearTimeout(loadingTimer); });
 
             function selectTooth(tooth, material = null) {
               if (multiTooth && activeCodes.has(tooth.code)) {
@@ -2569,12 +2571,7 @@
           tObj.marginRing.visible = true;
           tObj.marginRing.material = toolToApply === 'Crown' ? crownRingMat : bridgeRingMat;
 
-          // Animate prosthetic crown/bridge unit seating onto the prepared tooth stump
-          gsap.fromTo(
-            tObj.crownMesh.position,
-            { y: dir * 0.52 },
-            { y: targetOffset, duration: 0.55, ease: 'back.out(1.4)' }
-          );
+          tObj.crownMesh.position.y = targetOffset;
         } else if (toolToApply === 'Veneer') {
           tObj.naturalMesh.visible = true;
           tObj.stumpMesh.visible = false;
@@ -2583,11 +2580,8 @@
           tObj.marginRing.visible = true;
           tObj.marginRing.material = veneerRingMat;
 
-          gsap.fromTo(
-            tObj.veneerMesh.position,
-            { z: 0.42, y: 0 },
-            { z: isExplodedSeating ? 0.32 : 0, y: 0, duration: 0.5, ease: 'power3.out' }
-          );
+          tObj.veneerMesh.position.z = isExplodedSeating ? 0.32 : 0;
+          tObj.veneerMesh.position.y = 0;
         }
       }
 
@@ -2742,8 +2736,9 @@
         buccal:   { pos: [9.8, 0.6, 4.2], target: [0, 0, 0.4] }
       };
       const p = presets[view] || presets.anterior;
-      gsap.to(camera.position, { x: p.pos[0], y: p.pos[1], z: p.pos[2], duration: 0.75, ease: 'power2.out' });
-      gsap.to(controls.target, { x: p.target[0], y: p.target[1], z: p.target[2], duration: 0.75, ease: 'power2.out' });
+      camera.position.set(...p.pos);
+      controls.target.set(...p.target);
+      controls.update();
     }
 
     function toggleProsthesisSeating() {
@@ -2756,18 +2751,10 @@
         if (!tObj) return;
         const dir = tObj.isUpper ? -1 : 1;
         if (info.product === 'Crown' || info.product === 'Bridge') {
-          gsap.to(tObj.crownMesh.position, {
-            y: isExplodedSeating ? dir * 0.45 : 0,
-            duration: 0.5,
-            ease: 'power2.inOut',
-            onUpdate: rebuildBridgeConnectors
-          });
+          tObj.crownMesh.position.y = isExplodedSeating ? dir * 0.45 : 0;
+          rebuildBridgeConnectors();
         } else if (info.product === 'Veneer') {
-          gsap.to(tObj.veneerMesh.position, {
-            z: isExplodedSeating ? 0.34 : 0,
-            duration: 0.5,
-            ease: 'power2.inOut'
-          });
+          tObj.veneerMesh.position.z = isExplodedSeating ? 0.34 : 0;
         }
       });
     }
@@ -2916,7 +2903,10 @@
         document.querySelector(blocked.selector)?.focus();
       } else {
         document.getElementById(`rx-step-${currentRxStep}-title`).focus({ preventScroll: true });
-        document.querySelector('#kdd-rx-form nav').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        document.querySelector('#kdd-rx-form nav').scrollIntoView({
+          behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+          block: 'start'
+        });
       }
     }
 
@@ -3030,8 +3020,7 @@
         </div>
       `;
 
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
+      showModal();
     }
 
     // ---------------------------------------------------------------------
@@ -3065,58 +3054,23 @@
       validatePrescriptionForm();
     });
 
-    if (typeof Lenis !== 'undefined' && typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
-      const lenis = new Lenis({
-        duration: 1.15,
-        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-        smoothWheel: true,
-      });
-
-      gsap.registerPlugin(ScrollTrigger);
-      lenis.on('scroll', ScrollTrigger.update);
-      gsap.ticker.add((time) => lenis.raf(time * 1000));
-      gsap.ticker.lagSmoothing(0);
-    }
-
     window.addEventListener('DOMContentLoaded', () => {
-      if (typeof gsap === 'undefined') {
-        recalculateTurnaround();
-        return;
-      }
-      gsap.from('.hero-reveal', {
-        y: 32,
-        opacity: 0,
-        duration: 1,
-        stagger: 0.14,
-        ease: 'power3.out',
-      });
-
-      gsap.to('#hero-bg', {
-        scale: 1.14,
-        yPercent: 6,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: 'header',
-          start: 'top top',
-          end: 'bottom top',
-          scrub: true,
-        }
-      });
-
-      gsap.utils.toArray('.reveal-up').forEach((el) => {
-        gsap.from(el, {
-          y: 36,
-          opacity: 0,
-          duration: 0.85,
-          ease: 'power2.out',
-          scrollTrigger: {
-            trigger: el,
-            start: 'top 86%',
-          }
-        });
-      });
-
       recalculateTurnaround();
+      const toggle = document.getElementById('mobile-menu-toggle');
+      const menu = document.getElementById('mobile-links');
+      const closeMenu = () => {
+        menu.hidden = true;
+        toggle.setAttribute('aria-expanded', 'false');
+      };
+      toggle.addEventListener('click', () => {
+        menu.hidden = !menu.hidden;
+        toggle.setAttribute('aria-expanded', String(!menu.hidden));
+      });
+      menu.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeMenu));
+      window.addEventListener('resize', () => { if (window.innerWidth >= 1024) closeMenu(); });
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !menu.hidden) { closeMenu(); toggle.focus(); }
+      });
     });
 
     document.querySelectorAll('.spotlight-card').forEach((card) => {
@@ -3173,8 +3127,6 @@
           : 'hero-pill rounded-full border border-white/50 bg-black/15 text-white/90 hover:border-white hover:bg-white/15 px-5 py-2 text-xs sm:text-sm font-normal backdrop-blur-sm transition-all';
       });
 
-      const leftGlass = document.getElementById('hero-left-glass');
-      gsap.fromTo(leftGlass, { opacity: 0.6, y: 4 }, { opacity: 1, y: 0, duration: 0.3 });
       document.getElementById('glass-service-tag').textContent = data.tag;
       document.getElementById('glass-service-text').textContent = data.text;
     }
@@ -3207,9 +3159,6 @@
     function cycleHeroSpotlight() {
       spotlightIdx = (spotlightIdx + 1) % HERO_SPOTLIGHTS.length;
       const item = HERO_SPOTLIGHTS[spotlightIdx];
-      const rightGlass = document.getElementById('hero-right-glass');
-      gsap.fromTo(rightGlass, { opacity: 0.65, scale: 0.98 }, { opacity: 1, scale: 1, duration: 0.3 });
-
       document.getElementById('spotlight-pill-label').textContent = item.label;
       document.getElementById('spotlight-overline').textContent = item.overline;
       document.getElementById('spotlight-metric').textContent = item.metric;
@@ -3296,11 +3245,46 @@
 
     function handleDentistFinder(e) {
       e.preventDefault();
-      const pc = document.getElementById('finder-postcode').value.trim().toUpperCase();
+      const read = (id) => document.getElementById(id).value.trim();
+      const details = [
+        `Name: ${read('finder-name')}`, `Email: ${read('finder-email')}`,
+        `Postcode: ${read('finder-postcode').toUpperCase()}`,
+        `Phone: ${read('finder-phone') || 'Not provided'}`,
+        `Interest: ${read('finder-interest')}`
+      ];
       const msg = document.getElementById('finder-feedback');
-      msg.textContent = `✓ Thank you. Our team at 92 Swingate Lane (SE18) will match your postcode (${pc}) with our nearest client dental practice.`;
+      msg.textContent = 'Review the message in your email app and press Send. If it did not open, email info@kdduk.net directly; this website has not submitted your request.';
       msg.classList.remove('hidden');
+      window.location.href = `mailto:info@kdduk.net?subject=${encodeURIComponent('Find a client dentist')}&body=${encodeURIComponent(details.join('\n'))}`;
     }
+
+    function scrollToSection(id) {
+      document.getElementById(id).scrollIntoView({
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth'
+      });
+    }
+
+    let modalReturnFocus = null;
+    function showModal() {
+      const modal = document.getElementById('kdd-modal');
+      modalReturnFocus = document.activeElement;
+      modal.setAttribute('aria-label', document.querySelector('#modal-body h3')?.textContent || 'Prescription review');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      document.getElementById('modal-close').focus();
+    }
+    document.getElementById('kdd-modal').addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') { closeModal(); return; }
+      if (event.key !== 'Tab') return;
+      const focusable = Array.from(document.querySelectorAll('#kdd-modal a[href], #kdd-modal button:not([disabled])'))
+        .filter((element) => element.offsetParent !== null);
+      const first = focusable[0], last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    });
+    document.getElementById('kdd-modal').addEventListener('click', (event) => {
+      if (event.target === event.currentTarget) closeModal();
+    });
 
     function openModal(type) {
       const modal = document.getElementById('kdd-modal');
@@ -3326,8 +3310,7 @@
           </div>
         `;
       }
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
+      showModal();
     }
 
     function openCaseModal(person) {
@@ -3353,19 +3336,20 @@
         <h3 class="text-2xl font-medium mt-1">${item.name}</h3>
         <p class="text-sm text-muted mt-3 leading-relaxed">${item.detail}</p>
         <div class="mt-6 flex justify-end">
-          <button onclick="closeModal(); document.getElementById('find-dentist').scrollIntoView({behavior:'smooth'});" class="rounded-full bg-ink text-white px-6 py-2.5 text-xs font-semibold">
+          <button onclick="closeModal(); scrollToSection('find-dentist');" class="rounded-full bg-ink text-white px-6 py-2.5 text-xs font-semibold">
             Enquire About a Similar Smile →
           </button>
         </div>
       `;
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
+      showModal();
     }
 
     function closeModal() {
       const modal = document.getElementById('kdd-modal');
       modal.classList.add('hidden');
       modal.classList.remove('flex');
+      modalReturnFocus?.focus();
+      modalReturnFocus = null;
     }
   </script>
 </body>
