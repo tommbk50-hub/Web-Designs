@@ -1474,6 +1474,10 @@
             const dateInput = document.getElementById('tooth-return-date');
             const originals = new WeakMap();
             const activeCodes = new Set();
+            const jawModels = { upper: 'Models/upper_mouth_model.glb', lower: 'Models/Lower+Teeth.glb' };
+            const jawButtons = document.querySelectorAll('.jaw-toggle [data-jaw]');
+            let currentJaw = 'upper';
+            let modelReady = false;
             let multiTooth = false;
             let hoveredMaterial = null;
 
@@ -1524,7 +1528,10 @@
               if (index < 0 || index > 13) return null;
               const right = index < 7;
               const num = right ? 7 - index : index - 6;
-              return { code: `U${right ? 'R' : 'L'}${num}`, label: `Upper ${num} · ${right ? 'Right' : 'Left'}` };
+              return {
+                code: `${currentJaw === 'upper' ? 'U' : 'L'}${right ? 'R' : 'L'}${num}`,
+                label: `${currentJaw === 'upper' ? 'Upper' : 'Lower'} ${num} · ${right ? 'Right' : 'Left'}`
+              };
             }
 
             function setHighlight(material) {
@@ -1567,6 +1574,23 @@
                 pbr.setRoughnessFactor(plan.material === 'emax' ? 0.1 : 0.25);
               }
             }
+
+            function syncModel() {
+              if (!viewer.model?.materials) return;
+              viewer.model.materials.forEach((material) => {
+                const tooth = toothFromMaterial(material);
+                if (!tooth) return;
+                const plan = toothPlans.get(tooth.code);
+                if (plan) {
+                  plan.modelMaterial = material;
+                  updateMaterial(plan);
+                }
+                setHighlight(material);
+              });
+              modelReady = true;
+            }
+            viewer.addEventListener('load', syncModel);
+            if (viewer.loaded) syncModel();
 
             function renderPlan() {
               updatePrescriptionDispatch();
@@ -1649,8 +1673,20 @@
               renderPlan();
             }
 
+            jawButtons.forEach((button) => button.addEventListener('click', () => {
+              const jaw = button.dataset.jaw;
+              if (jaw === currentJaw) return;
+              if (!multiTooth) clearSelection();
+              modelReady = false;
+              hoveredMaterial = null;
+              toothPlans.forEach((plan) => { plan.modelMaterial = null; });
+              currentJaw = jaw;
+              jawButtons.forEach((option) => option.setAttribute('aria-pressed', String(option === button)));
+              viewer.setAttribute('src', jawModels[jaw]);
+            }));
+
             viewer.addEventListener('click', (event) => {
-              if (typeof viewer.materialFromPoint !== 'function') return;
+              if (!modelReady || typeof viewer.materialFromPoint !== 'function') return;
               const material = viewer.materialFromPoint(event.clientX, event.clientY);
               const tooth = toothFromMaterial(material);
               if (!tooth) return;
@@ -1716,7 +1752,7 @@
               menu.style.display = 'none';
             });
             viewer.addEventListener('mousemove', (event) => {
-              if (typeof viewer.materialFromPoint !== 'function') return;
+              if (!modelReady || typeof viewer.materialFromPoint !== 'function') return;
               const material = viewer.materialFromPoint(event.clientX, event.clientY);
               if (material === hoveredMaterial) return;
               const previous = hoveredMaterial;
@@ -1736,7 +1772,7 @@
       <!-- Right: Interactive Treatment Plan Interface -->
       <div class="treatment-sidebar">
         <button type="button" class="vp-btn" id="btn-multi-tooth" aria-pressed="false">Select multiple teeth: Off</button>
-        <p class="text-xs text-muted">In multi-tooth mode, click teeth to add or deselect them, then set shared treatment details below. Deselecting does not remove a prescribed treatment.</p>
+        <p class="text-xs text-muted">In multi-tooth mode, click teeth on either jaw to add or deselect them, then set shared treatment details below. Deselecting or switching jaws does not remove a prescribed treatment.</p>
         <div class="selected-tooth-banner">
           <div class="tooth-num" id="ui-tooth-code">NO TOOTH SELECTED</div>
           <h3 id="ui-tooth-name">Click a tooth on the 3D model</h3>
