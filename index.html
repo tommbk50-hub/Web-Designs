@@ -838,16 +838,24 @@
           <div>
             <label for="calc-units" class="text-xs text-muted">Number of units</label>
             <input id="calc-units" type="number" min="1" step="1" value="1" oninput="recalculateTurnaround()" onchange="this.value = Math.max(1, Math.floor(Number(this.value) || 1)); recalculateTurnaround()" class="block w-24 mt-1 rounded-xl border border-borderWarm bg-canvas px-3 py-2 text-sm" />
-            <p class="text-xs text-muted mt-2">Standard dispatch: crowns/bridges/veneers — up to 6 units: 9 working days; 7+: 11. Implants, attachments, combination and occlusal rehabilitation — up to 3: 13; 4+: 16. Diagnostic wax-ups — up to 6: 6; 7+: 9. Weekends excluded; bank holidays and shipping not included.</p>
+            <label for="calc-start-date" class="block text-sm mt-4">Planned scan / collection date</label>
+            <input id="calc-start-date" type="date" onchange="recalculateTurnaround()" class="block mt-1 rounded-xl border border-borderWarm bg-canvas px-3 py-2 text-sm" />
+            <p class="text-sm text-muted mt-2">Standard dispatch: crowns/bridges/veneers — up to 6 units: 9 working days; 7+: 11. Implants, attachments, combination and occlusal rehabilitation — up to 3: 13; 4+: 16. Diagnostic wax-ups — up to 6: 6; 7+: 9.</p>
           </div>
 
           <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
-            <span class="text-xs text-muted">Pre-booked express for crowns/bridges/veneers (≤6 units, by arrangement; 5/3 days in lab plus dispatch day; calculator only):</span>
+            <span class="text-sm text-muted">Pre-booked express for crowns/bridges/veneers (≤6 units; 5/3 days in lab plus dispatch day; calculator only):</span>
             <div class="inline-flex rounded-full border border-borderWarm bg-canvas p-1 text-xs">
               <button onclick="setExpressTier('standard')" id="exp-standard" class="exp-btn rounded-full bg-ink text-white px-3.5 py-1 font-medium transition-all">Standard</button>
               <button onclick="setExpressTier('5day')" id="exp-5day" class="exp-btn rounded-full text-muted px-3.5 py-1 font-medium transition-all disabled:opacity-40">5-Day (+25%)</button>
               <button onclick="setExpressTier('3day')" id="exp-3day" class="exp-btn rounded-full text-muted px-3.5 py-1 font-medium transition-all disabled:opacity-40">3-Day (+50%)</button>
             </div>
+            <label class="flex items-center gap-2 text-sm"><input id="calc-express-approved" type="checkbox" onchange="recalculateTurnaround()" /> Express slot confirmed by the lab</label>
+            <label for="calc-transit" class="block text-sm">Estimated transit after dispatch</label>
+            <select id="calc-transit" onchange="recalculateTurnaround()" class="rounded-xl border border-borderWarm bg-canvas px-3 py-2 text-sm">
+              <option value="1">1 working day (next-day service)</option>
+              <option value="2">2 working days</option>
+            </select>
           </div>
 
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 rounded-2xl bg-canvas border border-borderWarm p-5">
@@ -863,7 +871,9 @@
               <span class="text-[11px] font-mono uppercase text-muted block">Est. Dispatch Date</span>
               <span id="calc-date" class="text-lg font-mono font-semibold text-ink mt-1.5 block">—</span>
             </div>
+            <div class="col-span-2 sm:col-span-3"><span class="text-sm text-muted block">Estimated delivery</span><strong id="calc-delivery" class="text-lg">—</strong></div>
           </div>
+          <p id="calc-note" class="text-sm text-muted">Estimates assume usable scans/impressions received on the selected working day. England &amp; Wales recurring bank holidays included; exceptional closures, courier delays and design approval time require lab confirmation. Do not book a patient appointment from this estimate alone.</p>
         </div>
       </div>
 
@@ -930,7 +940,7 @@
             Online Laboratory <span class="font-serif italic font-normal text-gold">Prescription Form</span>
           </h2>
           <p class="text-xs sm:text-sm text-muted mt-2 max-w-2xl">
-            Complete your digital prescription below. Select one or multiple teeth on the 3D upper arch to assign treatments and shades. Dispatch dates are calculated automatically.
+            Complete your digital prescription below. Select one or multiple teeth on the 2D chart or optional 3D model to assign treatments and shades. Dates are estimates, not booking guarantees.
           </p>
         </div>
 
@@ -2019,16 +2029,26 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="rounded-[24px] border border-borderWarm bg-canvas p-6 space-y-4">
               <h4 class="text-xs font-mono uppercase tracking-widest text-gold font-semibold">Estimated Schedule</h4>
+              <div>
+                <label for="rx-start-date" class="block text-sm font-medium mb-2">Planned scan / collection date *</label>
+                <input id="rx-start-date" type="date" required class="rx-input w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm" />
+              </div>
+              <label for="rx-transit" class="block text-sm">Estimated transit</label>
+              <select id="rx-transit" class="rx-input rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm">
+                <option value="1">1 working day</option><option value="2">2 working days</option>
+              </select>
               <div aria-live="polite">
                 <p class="text-xs text-muted">Expected dispatch date</p>
                 <strong id="rx-expected-dispatch" class="block text-lg">Select a treatment</strong>
+                <p class="text-xs text-muted mt-2">Estimated delivery</p>
+                <strong id="rx-expected-delivery" class="block text-lg">Select a treatment</strong>
                 <p id="rx-dispatch-days" class="text-xs text-muted mt-2"></p>
               </div>
               <div>
                 <label for="tooth-return-date" class="block text-xs font-mono uppercase mb-2">Requested delivery date *</label>
                 <input id="tooth-return-date" type="date" required aria-describedby="rx-dispatch-note" class="w-full rounded-xl border border-borderWarm bg-surface px-4 py-3 text-sm focus:outline-none focus:border-ink" />
               </div>
-              <p id="rx-dispatch-note" class="text-xs text-muted">The earliest selectable date is one working day after dispatch, using the Section 10 standard working times. Weekends are not delivery dates. Bank holidays and transit delays are not accounted for; do not use this as an appointment date. Express requires prior arrangement and is not applied here.</p>
+              <p id="rx-dispatch-note" class="text-sm text-muted">Calculated from the planned working-day scan/collection date, assuming usable materials arrive that day. Recurring England &amp; Wales bank holidays and chosen transit are included. Exceptional closures, courier delays and design approval are not predictable; confirm with the lab before booking. Express is only available by prior agreement and is not applied to prescriptions.</p>
             </div>
             <fieldset class="rounded-[24px] border border-borderWarm bg-canvas p-6">
               <legend class="sr-only">Enclosures</legend>
@@ -2244,13 +2264,54 @@
       if (category === 'complex') return units >= 4 ? 16 : 13;
       return units >= 7 ? 11 : 9;
     }
-    function dateAfterWorkingDays(days) {
-      const today = new Date();
-      const date = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const bankHolidayCache = new Map();
+    function bankHolidays(year) {
+      if (bankHolidayCache.has(year)) return bankHolidayCache.get(year);
+      const holidays = new Set();
+      const add = (date) => holidays.add(dateInputValue(date));
+      const monday = (month, last = false) => {
+        const day = new Date(year, month + (last ? 1 : 0), last ? 0 : 1);
+        day.setDate(day.getDate() + (last ? -(day.getDay() + 6) % 7 : (8 - day.getDay()) % 7));
+        return day;
+      };
+      const observed = (month, day) => {
+        const date = new Date(year, month, day);
+        while (date.getDay() === 0 || date.getDay() === 6 || holidays.has(dateInputValue(date))) date.setDate(date.getDate() + 1);
+        add(date);
+      };
+      observed(0, 1);
+      const a = year % 19, b = Math.floor(year / 100), c = year % 100;
+      const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+      const g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+      const i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k + 70) % 7;
+      const m = Math.floor((a + 11 * h + 22 * l) / 451);
+      const easter = new Date(year, Math.floor((h + l - 7 * m + 114) / 31) - 1, (h + l - 7 * m + 114) % 31 + 1);
+      const goodFriday = new Date(easter);
+      goodFriday.setDate(easter.getDate() - 2);
+      const easterMonday = new Date(easter);
+      easterMonday.setDate(easter.getDate() + 1);
+      add(goodFriday); add(easterMonday);
+      add(monday(4)); add(monday(4, true)); add(monday(7, true));
+      observed(11, 25); observed(11, 26);
+      bankHolidayCache.set(year, holidays);
+      return holidays;
+    }
+    function isWorkingDay(date) {
+      return date.getDay() !== 0 && date.getDay() !== 6 &&
+        !bankHolidays(date.getFullYear()).has(dateInputValue(date));
+    }
+    function dateFromInput(value) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+      const [year, month, day] = value.split('-').map(Number);
+      const date = new Date(year, month - 1, day);
+      return dateInputValue(date) === value ? date : null;
+    }
+    function dateAfterWorkingDays(days, start = new Date()) {
+      const date = new Date(start.getFullYear(), start.getMonth(), start.getDate());
       let added = 0;
       while (added < days) {
         date.setDate(date.getDate() + 1);
-        if (date.getDay() !== 0 && date.getDay() !== 6) added++;
+        if (isWorkingDay(date)) added++;
       }
       return date;
     }
@@ -2264,16 +2325,17 @@
       });
       const days = Math.max(...Object.entries(counts).map(([category, units]) =>
         units ? workingDaysFor(category, units) : 0));
-      const dispatchDate = days ? dateAfterWorkingDays(days) : null;
-      const deliveryDate = dispatchDate ? dateInputValue(dateAfterWorkingDays(days + 1)) : '';
+      const start = dateFromInput(document.getElementById('rx-start-date').value);
+      const dispatchDate = days && start ? dateAfterWorkingDays(days, start) : null;
+      const transit = Number(document.getElementById('rx-transit').value);
+      const deliveryDate = dispatchDate ? dateInputValue(dateAfterWorkingDays(transit, dispatchDate)) : '';
       const dateInput = document.getElementById('tooth-return-date');
       dateInput.min = deliveryDate;
       let requestedDate = deliveryDate && dateInput.value >= deliveryDate ? dateInput.value : deliveryDate;
       if (requestedDate) {
         const [year, month, day] = requestedDate.split('-').map(Number);
         const requestedDay = new Date(year, month - 1, day);
-        if (requestedDay.getDay() === 6) requestedDay.setDate(requestedDay.getDate() + 2);
-        if (requestedDay.getDay() === 0) requestedDay.setDate(requestedDay.getDate() + 1);
+        while (!isWorkingDay(requestedDay)) requestedDay.setDate(requestedDay.getDate() + 1);
         requestedDate = dateInputValue(requestedDay);
       }
       dateInput.value = requestedDate;
@@ -2281,12 +2343,15 @@
       document.getElementById('rx-expected-dispatch').textContent = dispatchDate
         ? dispatchDate.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
         : 'Select a treatment';
+      document.getElementById('rx-expected-delivery').textContent = deliveryDate
+        ? dateFromInput(deliveryDate).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+        : 'Choose a scan date and treatment';
       const labels = { crown: 'crown/bridge/veneer', complex: 'implant/rehab', waxup: 'diagnostic wax-up' };
       document.getElementById('rx-dispatch-days').textContent = dispatchDate
-        ? `${days} working days after today · ${Object.entries(counts).filter(([, units]) => units)
+        ? `${days} working days after planned scan/collection · ${Object.entries(counts).filter(([, units]) => units)
           .map(([category, units]) => `${units} ${labels[category]} unit${units === 1 ? '' : 's'}`).join(', ')}`
         : '';
-      return dispatchDate ? { date: dateInputValue(dispatchDate), days } : null;
+      return dispatchDate ? { date: dateInputValue(dispatchDate), delivery: deliveryDate, days } : null;
     }
     let activeProductTool = 'Crown';
     let currentFinalShade = 'A1';
@@ -2805,7 +2870,10 @@
         { ok: forename.length > 0, label: 'Patient Forename', step: 1, selector: '#rx-patient-forename' },
         { ok: Boolean(gender), label: 'Patient Gender', step: 1, selector: 'input[name="rx_gender"]' },
         { ok: plans.length > 0, label: 'Tooth Treatment', step: 2, selector: '#rx-step-2-title' },
-        { ok: plans.length > 0 && plans.every(isToothPlanComplete), label: 'Treatment, Requested Delivery Date & Required Shades for Each Tooth', step: 2, selector: '#rx-step-2-title' }
+        { ok: plans.length > 0 && plans.every(isToothPlanComplete), label: 'Treatment, Requested Delivery Date & Required Shades for Each Tooth', step: 2, selector: '#rx-step-2-title' },
+        { ok: Boolean(dateFromInput(document.getElementById('rx-start-date').value)) &&
+          dateFromInput(document.getElementById('rx-start-date').value) >= dateFromInput(dateInputValue(new Date())),
+          label: 'Future scan / collection date', step: 3, selector: '#rx-start-date' }
       ];
     }
 
@@ -2929,7 +2997,7 @@
         <div class="my-5 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-canvas rounded-2xl p-5 border border-borderWarm">
           <div><span class="text-muted block font-mono uppercase text-[10px]">1. Dentist &amp; 2. Practice</span><strong class="text-ink">${dentist} — ${practice}</strong><br/><span class="text-muted">${email} · ${phone}</span></div>
           <div><span class="text-muted block font-mono uppercase text-[10px]">3. Patient</span><strong class="text-ink">${patient} (${gender})</strong></div>
-          <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">Expected dispatch date (${dispatch.days} working days after today)</span><strong class="text-ink">${escapeHtml(dispatch.date)}</strong><span class="text-muted block">Working days exclude weekends; bank holidays are not accounted for. Requested delivery assumes next-working-day shipping and is not guaranteed.</span></div>
+          <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-xs">Planned scan/collection: ${value('rx-start-date')} · Expected dispatch (${dispatch.days} working days): ${escapeHtml(dispatch.date)}</span><strong class="text-ink">Estimated delivery: ${escapeHtml(dispatch.delivery)}</strong><span class="text-muted block">Includes recurring England &amp; Wales bank holidays and selected transit. Confirm exceptional closures, courier times and design approval with the lab; not an appointment guarantee.</span></div>
           <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">Enclosures</span><strong class="text-ink">${enclosures.map(escapeHtml).join(', ') || 'None specified'}</strong></div>
           <div class="sm:col-span-2"><span class="text-muted block font-mono uppercase text-[10px]">Upper &amp; Lower Arch Treatment Plan (${plans.length} Units)</span></div>
           ${planRows}
@@ -2957,6 +3025,12 @@
     // 5. PAGE ANIMATIONS, HERO PILLS & WORKING TIMES CALCULATOR
     // ---------------------------------------------------------------------
     window.addEventListener('DOMContentLoaded', () => {
+      const today = dateInputValue(new Date());
+      for (const id of ['calc-start-date', 'rx-start-date']) {
+        const input = document.getElementById(id);
+        input.min = today;
+        input.value = today;
+      }
       document.querySelectorAll('#kdd-rx-form .rx-input').forEach((input) => {
         input.addEventListener('input', validatePrescriptionForm);
         input.addEventListener('change', validatePrescriptionForm);
@@ -3159,7 +3233,9 @@
     }
 
     function setExpressTier(tier) {
-      if (tier !== 'standard' && (currentCaseCategory !== 'crown' || Number(document.getElementById('calc-units').value) > 6)) return;
+      if (tier !== 'standard' && (currentCaseCategory !== 'crown' ||
+        Number(document.getElementById('calc-units').value) > 6 ||
+        !document.getElementById('calc-express-approved').checked)) return;
       currentExpress = tier;
       ['standard', '5day', '3day'].forEach((k) => {
         const btn = document.getElementById(`exp-${k}`);
@@ -3172,7 +3248,8 @@
 
     function recalculateTurnaround() {
       const units = Math.max(1, Math.floor(Number(document.getElementById('calc-units').value) || 1));
-      const expressAvailable = currentCaseCategory === 'crown' && units <= 6;
+      const expressAvailable = currentCaseCategory === 'crown' && units <= 6 &&
+        document.getElementById('calc-express-approved').checked;
       ['5day', '3day'].forEach((tier) => {
         document.getElementById(`exp-${tier}`).disabled = !expressAvailable;
       });
@@ -3190,8 +3267,18 @@
     }
 
     function updateDispatchDate(workingDaysToAdd) {
-      const formatted = dateAfterWorkingDays(workingDaysToAdd).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
-      document.getElementById('calc-date').textContent = formatted;
+      const input = document.getElementById('calc-start-date');
+      const start = dateFromInput(input.value);
+      if (!start || input.value < input.min) {
+        document.getElementById('calc-date').textContent = 'Choose a future date';
+        document.getElementById('calc-delivery').textContent = '—';
+        return;
+      }
+      const dispatch = dateAfterWorkingDays(workingDaysToAdd, start);
+      const delivery = dateAfterWorkingDays(Number(document.getElementById('calc-transit').value), dispatch);
+      const format = (date) => date.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+      document.getElementById('calc-date').textContent = format(dispatch);
+      document.getElementById('calc-delivery').textContent = format(delivery);
     }
 
     function handleDentistFinder(e) {
