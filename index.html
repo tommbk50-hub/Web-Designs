@@ -3647,5 +3647,176 @@
       modalReturnFocus = null;
     }
   </script>
+  <style>
+    #demo-chat {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      z-index: 40;
+      font-family: "Plus Jakarta Sans", sans-serif;
+    }
+    #demo-chat button:focus-visible, #demo-chat input:focus-visible {
+      outline: 3px solid #98722B;
+      outline-offset: 2px;
+    }
+    #demo-chat-toggle {
+      display: grid;
+      place-items: center;
+      width: 56px;
+      height: 56px;
+      margin-left: auto;
+      border: 0;
+      border-radius: 50%;
+      background: #1C1917;
+      color: white;
+      box-shadow: 0 8px 24px rgba(28, 25, 23, .3);
+      cursor: pointer;
+    }
+    #demo-chat-panel {
+      display: flex;
+      flex-direction: column;
+      width: min(360px, calc(100vw - 32px));
+      max-height: min(480px, calc(100dvh - 104px));
+      margin-bottom: 12px;
+      overflow: hidden;
+      border: 1px solid #D8D2C7;
+      border-radius: 20px;
+      background: #F4F1EA;
+      box-shadow: 0 20px 50px rgba(28, 25, 23, .25);
+    }
+    #demo-chat-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      background: #1C1917;
+      color: white;
+    }
+    #demo-chat-close {
+      border: 0;
+      background: transparent;
+      color: white;
+      font-size: 24px;
+      line-height: 1;
+      cursor: pointer;
+    }
+    #demo-chat-messages {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 160px;
+      padding: 16px;
+      overflow-y: auto;
+    }
+    .demo-chat-message {
+      max-width: 85%;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: white;
+      color: #1C1917;
+      font-size: 13px;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+    .demo-chat-message.user {
+      align-self: flex-end;
+      background: #1C1917;
+      color: white;
+    }
+    #demo-chat-form {
+      display: flex;
+      gap: 8px;
+      padding: 12px;
+      border-top: 1px solid #D8D2C7;
+    }
+    #demo-chat-input {
+      flex: 1;
+      min-width: 0;
+      padding: 10px;
+      border: 1px solid #D8D2C7;
+      border-radius: 10px;
+      background: white;
+      font: inherit;
+      font-size: 13px;
+    }
+    #demo-chat-form button {
+      padding: 0 14px;
+      border: 0;
+      border-radius: 10px;
+      background: #1C1917;
+      color: white;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+    }
+  </style>
+  <div id="demo-chat" class="no-print">
+    <section id="demo-chat-panel" aria-label="Demo chat" hidden>
+      <div id="demo-chat-header">
+        <div><strong>Chat with us</strong><div style="font-size: 11px; opacity: .8;">Demo only · automated replies</div></div>
+        <button id="demo-chat-close" type="button" aria-label="Close chat">&times;</button>
+      </div>
+      <div id="demo-chat-messages" role="log" aria-live="polite" aria-relevant="additions text">
+        <div class="demo-chat-message">Hello! I’m a demo assistant. Ask about services, prescriptions, or contacting the lab. Please don’t enter personal or patient information.</div>
+      </div>
+      <form id="demo-chat-form">
+        <input id="demo-chat-input" type="text" aria-label="Your message" placeholder="Type a message…" maxlength="300" autocomplete="off" required />
+        <button type="submit">Send</button>
+      </form>
+    </section>
+    <button id="demo-chat-toggle" type="button" aria-label="Open chat" aria-controls="demo-chat-panel" aria-expanded="false">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M20 11.5a8 8 0 0 1-8 8 8.5 8.5 0 0 1-4-.9L3 20l1.4-4.4A8 8 0 1 1 20 11.5Z" />
+        <path d="M8 11h8M8 14h5" />
+      </svg>
+    </button>
+  </div>
+  <script>
+    (() => {
+      const toggle = document.getElementById('demo-chat-toggle');
+      const panel = document.getElementById('demo-chat-panel');
+      const messages = document.getElementById('demo-chat-messages');
+      const input = document.getElementById('demo-chat-input');
+
+      function setOpen(open) {
+        panel.hidden = !open;
+        toggle.setAttribute('aria-expanded', String(open));
+        toggle.setAttribute('aria-label', open ? 'Close chat' : 'Open chat');
+        if (open) input.focus();
+        else toggle.focus();
+      }
+
+      function addMessage(text, fromUser = false) {
+        const message = document.createElement('div');
+        message.className = 'demo-chat-message' + (fromUser ? ' user' : '');
+        message.textContent = text;
+        messages.appendChild(message);
+        messages.scrollTop = messages.scrollHeight;
+      }
+
+      function replyTo(text) {
+        if (/\b(hello|hi|hey)\b/.test(text)) return 'Hi! What would you like to know about our services or online prescription?';
+        if (/\b(prescription|scan|impression)\b/.test(text)) return 'You can use the online digital prescription section on this page to prepare and print a review of your request.';
+        if (/\b(service|crown|veneer|denture|implant)\b/.test(text)) return 'Explore the services on this page for more about our dental laboratory work.';
+        if (/\b(contact|phone|call|email|address|location)\b/.test(text)) return 'Please use the contact details on this page to reach the lab directly.';
+        return 'Thanks for your message! This is a demo with preset replies. Try asking about services, prescriptions, or contact details.';
+      }
+
+      toggle.addEventListener('click', () => setOpen(panel.hidden));
+      document.getElementById('demo-chat-close').addEventListener('click', () => setOpen(false));
+      panel.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') setOpen(false);
+      });
+      document.getElementById('demo-chat-form').addEventListener('submit', (event) => {
+        event.preventDefault();
+        const text = input.value.trim();
+        if (!text) return;
+        addMessage(text, true);
+        addMessage(replyTo(text.toLowerCase()));
+        input.value = '';
+        input.focus();
+      });
+    })();
+  </script>
 </body>
 </html>
