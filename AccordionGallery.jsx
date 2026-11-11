@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import './AccordionGallery.css';
 
@@ -39,6 +39,7 @@ export default function AccordionGallery({
   const timelineRef = useRef(null);
   const firstRunRef = useRef(true);
   const mediaSizeRef = useRef(320);
+  const pressedInactiveRef = useRef(null);
   const count = items.length;
   const [active, setActive] = useState(() => Math.min(Math.max(defaultIndex, 0), count - 1));
   const selected = Math.min(Math.max(active, 0), count - 1);
@@ -148,11 +149,13 @@ export default function AccordionGallery({
             className={`ag-panel${isActive ? ' ag-panel--active' : ''}`}
             href={item.link || undefined}
             type={item.link ? undefined : 'button'}
+            onPointerDown={() => { pressedInactiveRef.current = isActive ? null : i; }}
             onClick={event => {
-              if (!isActive) {
+              if (!isActive || pressedInactiveRef.current === i) {
                 event.preventDefault();
                 setActive(i);
               }
+              pressedInactiveRef.current = null;
             }}
             onPointerEnter={event => {
               if (trigger === 'hover' && event.pointerType !== 'touch') setActive(i);
