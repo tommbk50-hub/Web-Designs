@@ -3819,7 +3819,7 @@
   <script>
     const buttonSound = new Audio('./sounds/buttons.mp3');
     document.addEventListener('click', (event) => {
-      if (!(event.target instanceof Element) || !event.target.closest('button')) return;
+      if (!(event.target instanceof Element) || !event.target.closest('button, a.rounded-full, a.rounded-xl')) return;
       buttonSound.currentTime = 0;
       buttonSound.play().catch((error) => console.error('Button sound could not play:', error));
     });
