@@ -43,8 +43,10 @@
       --ink: #1C1917;
     }
 
+    html {
+      background: #120b08;
+    }
     body {
-      background-color: var(--bg-canvas);
       color: var(--ink);
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
@@ -105,19 +107,34 @@
       opacity: 1;
     }
 
-    .hero-gradient {
+    #page-bg {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
       background: #120b08;
       background-image:
         radial-gradient(ellipse 75% 85% at 73% 53%, rgba(255, 170, 0, .85), rgba(255, 64, 19, .45) 35%, transparent 76%),
         radial-gradient(ellipse 55% 70% at 28% 74%, rgba(152, 38, 12, .65), transparent 80%),
         linear-gradient(115deg, #180d0b, #090807 82%);
     }
-    .hero-gradient::after {
+    .hero-shade::before {
       content: '';
       position: absolute;
       inset: 0;
       background: rgba(0, 0, 0, .55);
       pointer-events: none;
+    }
+    .page-content {
+      margin: 0 0.75rem 0.75rem;
+      border-radius: 28px;
+      background: rgba(234, 229, 221, .82);
+    }
+    @media (min-width: 640px) {
+      .page-content { margin: 0 1.25rem 1.25rem; border-radius: 36px; }
+    }
+    @media (min-width: 1024px) {
+      .page-content { margin: 0 1.75rem 1.75rem; }
     }
     .modal-panel.service-gallery {
       max-width: 880px;
@@ -321,14 +338,13 @@
   </style>
 </head>
 <body class="selection:bg-ink selection:text-canvas">
+  <div id="page-bg" aria-hidden="true"></div>
 
   <!-- ===================================================================== -->
   <!-- 1. FRAMED EDITORIAL HERO (DIRECT INSPIRATION FROM REFERENCE DESIGN)   -->
   <!-- ===================================================================== -->
   <div class="p-3 sm:p-5 lg:p-7">
-    <header class="relative min-h-[92vh] w-full rounded-[28px] sm:rounded-[36px] overflow-hidden shadow-2xl flex flex-col justify-between text-white">
-
-      <div id="hero-bg" class="hero-gradient absolute inset-0" aria-hidden="true"></div>
+    <header class="hero-shade relative min-h-[92vh] w-full rounded-[28px] sm:rounded-[36px] overflow-hidden shadow-2xl flex flex-col justify-between text-white">
 
       <!-- Top Navigation Bar inside Hero -->
       <nav class="relative z-30 flex items-center justify-between px-6 sm:px-10 lg:px-14 pt-6 sm:pt-9">
@@ -499,6 +515,7 @@
     </header>
   </div>
 
+  <main class="page-content">
   <!-- ===================================================================== -->
   <!-- 2. SEAMLESS CREDENTIALS & DIGITAL SCANNER MARQUEE                     -->
   <!-- ===================================================================== -->
@@ -2234,6 +2251,7 @@
       </footer>
     </div>
   </section>
+  </main>
 
   <!-- ===================================================================== -->
   <!-- INTERACTIVE MODAL (DIGITAL DOCKET RECEIPT, LOGISTICS & CASE STUDIES)  -->
