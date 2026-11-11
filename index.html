@@ -3828,9 +3828,13 @@
         box-shadow: 0 12px 32px rgba(0, 0, 0, .35);
         transition: background-color .25s ease, border-color .25s ease, box-shadow .25s ease;
       }
-      :is(.glass-card-left, .glass-card-right, #what-we-do article, #case-studies article,
-        #case-progress ol > li, #find-dentist form, #kdd-modal .modal-panel,
-        #service-hovercard, #demo-chat-panel, .dental-viewport-card, .treatment-sidebar):is(:hover, :focus-within) {
+      :is(.glass-card-left, .glass-card-right, #what-we-do article, #what-we-do > div:last-child,
+        #lifetime-lingual > div, #lifetime-lingual .lg\:col-span-6 > .rounded-\[28px\],
+        #case-studies article, #for-dentists .rounded-\[28px\],
+        #digital-prescription > div:first-child, #case-progress ol > li,
+        #find-dentist > div, #find-dentist form, #kdd-modal .modal-panel,
+        #service-hovercard, #demo-chat-panel, #rx-completion-bar,
+        .dental-viewport-card, .treatment-sidebar):is(:hover, :focus-within) {
         background: rgba(14, 14, 20, .58);
         border-color: rgba(255, 255, 255, .24);
       }
