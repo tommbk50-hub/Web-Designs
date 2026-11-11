@@ -1,6 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { Hazeglow, parseConfig } from "hazeglow";
+import "./service-gallery";
 
 const config = parseConfig({
   "version": 1,
