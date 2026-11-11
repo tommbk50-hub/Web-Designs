@@ -1,6 +1,6 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { Hazeglow, parseConfig, presets } from "hazeglow";
+import { Hazeglow, parseConfig } from "hazeglow";
 
 const config = parseConfig({
   "version": 1,
@@ -41,4 +41,27 @@ const config = parseConfig({
   "effectAmount": 0.5
 });
 
-createRoot(document.getElementById("hero-bg")).render(<Hazeglow config={config} />);
+const background = document.getElementById("page-bg");
+createRoot(background).render(<Hazeglow config={config} />);
+
+document.addEventListener("pointermove", (event) => {
+  const canvas = background.querySelector("canvas");
+  if (!canvas || event.target === canvas) return;
+  canvas.dispatchEvent(new PointerEvent("pointermove", {
+    bubbles: true,
+    clientX: event.clientX,
+    clientY: event.clientY,
+    pointerId: event.pointerId,
+    pointerType: event.pointerType
+  }));
+});
+
+document.addEventListener("pointerout", (event) => {
+  const canvas = background.querySelector("canvas");
+  if (event.relatedTarget || !canvas || event.target === canvas) return;
+  canvas.dispatchEvent(new PointerEvent("pointerout", {
+    bubbles: true,
+    pointerId: event.pointerId,
+    pointerType: event.pointerType
+  }));
+});
