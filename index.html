@@ -105,12 +105,18 @@
       opacity: 1;
     }
 
-    .hero-gradient { background: #000; }
+    .hero-gradient {
+      background: #120b08;
+      background-image:
+        radial-gradient(ellipse 75% 85% at 73% 53%, rgba(255, 170, 0, .85), rgba(255, 64, 19, .45) 35%, transparent 76%),
+        radial-gradient(ellipse 55% 70% at 28% 74%, rgba(152, 38, 12, .65), transparent 80%),
+        linear-gradient(115deg, #180d0b, #090807 82%);
+    }
     .hero-gradient::after {
       content: '';
       position: absolute;
       inset: 0;
-      background: rgba(0, 0, 0, .65);
+      background: rgba(0, 0, 0, .55);
       pointer-events: none;
     }
     .modal-panel.service-gallery {
