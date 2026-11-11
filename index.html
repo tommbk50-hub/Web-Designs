@@ -174,6 +174,28 @@
     .service-image-unavailable { aspect-ratio: 4 / 3; display: grid; place-items: center; padding: 1rem; text-align: center; }
     .example-button:focus-visible { outline: 3px solid #98722B; outline-offset: 3px; }
 
+    :is(main, header.hero-shade, #kdd-modal, #demo-chat) :is(button:not(.ag-panel):not(.chart-tooth):not(.absolute):not(.fixed), a.rounded-full:not(.absolute):not(.fixed), a.rounded-xl:not(.absolute):not(.fixed)) {
+      position: relative;
+    }
+    :is(main, header.hero-shade, #kdd-modal, #demo-chat) :is(button:not(.ag-panel):not(.absolute):not(.fixed), a.rounded-full:not(.absolute):not(.fixed), a.rounded-xl:not(.absolute):not(.fixed))::after {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border: 2px solid transparent;
+      border-radius: inherit;
+      background:
+        radial-gradient(110px circle at var(--glow-x, 50%) var(--glow-y, 50%), #fff2cc, transparent 90%) border-box,
+        conic-gradient(from var(--glow-angle, 45deg), #c59b47, #f6d995, #d99b26, #c59b47) border-box;
+      mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+      mask-composite: exclude;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s ease;
+    }
+    :is(main, header.hero-shade, #kdd-modal, #demo-chat) :is(button:not(.ag-panel):not(.absolute):not(.fixed):not(:disabled), a.rounded-full:not(.absolute):not(.fixed), a.rounded-xl:not(.absolute):not(.fixed)):is(:hover, :focus-visible)::after {
+      opacity: 1;
+    }
+
     /* Service Discovery Hovercard: Glassmorphic Preview on Hover/Focus */
     #service-hovercard {
       position: fixed;
@@ -488,7 +510,6 @@
             <div class="pt-6 flex items-center justify-center">
               <a
                 href="#digital-prescription"
-                data-magnetic
                 class="w-full text-center rounded-full bg-white text-ink py-2.5 px-6 text-xs font-semibold shadow-md hover:bg-canvas transition-colors"
               >
                 Prescribe in 3D →
@@ -666,6 +687,10 @@
       </article>
     </div>
 
+    <div id="service-gallery" aria-labelledby="service-gallery-title" class="mt-10 reveal-up">
+      <div id="service-gallery-root"></div>
+    </div>
+
     <div class="mt-8 rounded-[28px] border border-borderWarm bg-surface p-6 sm:p-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 reveal-up">
       <div>
         <span class="text-xs font-mono uppercase tracking-widest text-gold block mb-1">Six Reasons to Choose Knight Dental Design</span>
@@ -678,10 +703,6 @@
         <span class="rounded-full border border-borderWarm bg-canvas px-4 py-2 text-xs font-medium">🏆 Smile Design Winner 2009 · 2007 · 2005</span>
       </div>
     </div>
-  </section>
-
-  <section id="service-gallery" aria-labelledby="service-gallery-title" class="max-w-7xl mx-auto px-6 sm:px-10 py-16 sm:py-24">
-    <div id="service-gallery-root"></div>
   </section>
 
   <!-- ===================================================================== -->
@@ -3184,18 +3205,6 @@
       });
     });
 
-    document.querySelectorAll('[data-magnetic]').forEach((btn) => {
-      btn.addEventListener('mousemove', (e) => {
-        const rect = btn.getBoundingClientRect();
-        const x = (e.clientX - rect.left - rect.width / 2) * 0.22;
-        const y = (e.clientY - rect.top - rect.height / 2) * 0.22;
-        btn.style.transform = `translate(${x}px, ${y}px)`;
-      });
-      btn.addEventListener('mouseleave', () => {
-        btn.style.transform = 'translate(0px, 0px)';
-      });
-    });
-
     const HERO_SERVICES = {
       veneers: {
         tag: '01 / PORCELAIN VENEERS',
@@ -3992,6 +4001,17 @@
   </script>
   <script>
     const buttonSound = new Audio('./sounds/buttons.mp3');
+    const glowTarget = ':is(main, header.hero-shade, #kdd-modal, #demo-chat) :is(button:not(.ag-panel):not(.absolute):not(.fixed), a.rounded-full:not(.absolute):not(.fixed), a.rounded-xl:not(.absolute):not(.fixed))';
+    document.addEventListener('pointermove', (event) => {
+      const target = event.target instanceof Element && event.target.closest(glowTarget);
+      if (!target) return;
+      const rect = target.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      target.style.setProperty('--glow-x', `${x}px`);
+      target.style.setProperty('--glow-y', `${y}px`);
+      target.style.setProperty('--glow-angle', `${(Math.atan2(y - rect.height / 2, x - rect.width / 2) * 180 / Math.PI + 450) % 360}deg`);
+    }, { passive: true });
     document.addEventListener('click', (event) => {
       if (!(event.target instanceof Element) || !event.target.closest('button, a.rounded-full, a.rounded-xl')) return;
       buttonSound.currentTime = 0;
