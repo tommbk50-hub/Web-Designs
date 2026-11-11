@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "skills": {
+    "hazeglow": {
+      "source": "hazeglow/hazeglow",
+      "sourceType": "github",
+      "skillPath": "skills/hazeglow/SKILL.md",
+      "computedHash": "5953fe3be861f4135f7cd05a40e3b59178426abfabedc1fada34a3c9cf8a2ec4"
+    }
+  }
+}
