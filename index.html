@@ -117,7 +117,7 @@
     #page-bg {
       position: fixed;
       inset: 0;
-      z-index: -1;
+      z-index: 0;
       pointer-events: none;
       background: #120b08;
       background-image:
@@ -133,9 +133,11 @@
       pointer-events: none;
     }
     .page-content {
+      position: relative;
+      z-index: 1;
       margin: 0 0.75rem 0.75rem;
       border-radius: 28px;
-      background: rgba(234, 229, 221, .82);
+      background: transparent;
     }
     html.lenis, html.lenis body { height: auto; scroll-behavior: auto !important; }
     .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
@@ -145,7 +147,9 @@
       z-index: 1;
       margin-top: -28px;
       border-radius: 28px 28px 0 0;
-      background: rgba(234, 229, 221, .96);
+      background: rgba(6, 6, 10, .35);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
       box-shadow: 0 -16px 40px rgba(0, 0, 0, .08);
     }
     .scroll-effects-active main > section:not(:first-of-type) { will-change: transform, opacity; }
@@ -364,7 +368,7 @@
   <!-- ===================================================================== -->
   <!-- 1. FRAMED EDITORIAL HERO (DIRECT INSPIRATION FROM REFERENCE DESIGN)   -->
   <!-- ===================================================================== -->
-  <div class="p-3 sm:p-5 lg:p-7">
+  <div class="relative z-[1] p-3 sm:p-5 lg:p-7">
     <header class="hero-shade relative min-h-[92vh] w-full rounded-[28px] sm:rounded-[36px] overflow-hidden shadow-2xl flex flex-col justify-between text-white">
 
       <!-- Top Navigation Bar inside Hero -->
@@ -740,7 +744,7 @@
                   </text>
                 </g>
 
-                <g stroke="#292524" stroke-width="1.5" fill="#EDE9E0">
+                <g stroke="#F6D995" stroke-width="1.5" fill="#EDE9E0">
                   <rect x="72" y="96" width="50" height="58" rx="18" />
                   <rect x="130" y="76" width="46" height="56" rx="14" />
                   <rect x="184" y="66" width="44" height="54" rx="12" />
@@ -1488,7 +1492,7 @@
     }
     .tooth-context-menu-row select:focus, .tooth-context-menu-row input:focus,
     .treatment-notes:focus { outline: 2px solid #C59B47; outline-offset: 1px; }
-    .tooth-context-menu-actions button, #tooth-context-close-btn {
+    .tooth-context-menu-actions button, #tooth-context-apply-btn, #tooth-context-close-btn {
       background: var(--ink);
       color: #fff;
       border-color: var(--ink);
@@ -1551,7 +1555,7 @@
           loading="eager"
           reveal="auto"
           shadow-intensity="1"
-          style="width: 100%; height: 440px; background-color: #EAE5DD;"
+          style="width: 100%; height: 440px;"
         ></model-viewer>
         <script>
           // Diagnostic logging for the GLB model load. Open DevTools > Console
@@ -3022,12 +3026,12 @@
 
       if (missing.length === 0) {
         submitBtn.disabled = currentRxStep !== 3;
-        banner.className = 'text-xs font-mono text-emerald-800 bg-emerald-500/15 border border-emerald-600/30 rounded-xl px-4 py-3';
+        banner.className = 'text-xs font-mono text-emerald-200 bg-emerald-500/15 border border-emerald-600/30 rounded-xl px-4 py-3';
         banner.textContent = `✓ All ${checks.length} prescription requirements verified. Ready to review.`;
         hint.textContent = currentRxStep === 3 ? '100% Complete — Ready to review and print.' : 'All requirements complete — continue to review.';
       } else {
         submitBtn.disabled = true;
-        banner.className = 'text-xs font-mono text-amber-800 bg-amber-500/10 border border-amber-600/25 rounded-xl px-4 py-3';
+        banner.className = 'text-xs font-mono text-amber-200 bg-amber-500/10 border border-amber-600/25 rounded-xl px-4 py-3';
         banner.textContent = `⚠ Incomplete (${missing.length} remaining): ${missing.slice(0, 4).join(', ')}${missing.length > 4 ? '...' : ''}`;
         const stepMissing = checks.filter((check) => check.step === currentRxStep && !check.ok).map((check) => check.label);
         hint.textContent = stepMissing.length
@@ -3775,6 +3779,140 @@
       cursor: pointer;
     }
   </style>
+  <style>
+    @media screen {
+      body { color: rgba(255, 255, 255, .82); }
+      :is(h1, h2, h3, h4, strong, th) { color: #fff; }
+      :is(p, li, dd, td, label) { color: inherit; }
+      main > section:first-of-type { background: rgba(6, 6, 10, .2); }
+      main footer { background: transparent; }
+      main .text-muted, #kdd-modal .text-muted, #service-hovercard .text-muted { color: rgba(255, 255, 255, .75); }
+      main :is(.text-white\/50, .text-white\/60, .text-white\/65) { color: rgba(255, 255, 255, .75); }
+      main :is(.text-ink, .text-ink\/80), #kdd-modal :is(.text-ink, .text-ink\/90),
+      #service-hovercard :is(.text-ink, .text-ink\/90) { color: #fff; }
+      main .text-gold, #kdd-modal .text-gold, #service-hovercard .text-gold { color: #f6d995; }
+      main .hover\:text-ink:hover, #kdd-modal .hover\:text-ink:hover { color: #fff; }
+      #finder-feedback, #kdd-modal .text-emerald-700 { color: #b4f7d1; }
+      #rx-validation-banner { color: #f6d995; }
+      #rx-validation-banner.text-emerald-200 { color: #b4f7d1; }
+
+      main .bg-surface, #kdd-modal .bg-surface {
+        background: rgba(8, 8, 12, .48);
+      }
+      main .bg-canvas, #kdd-modal .bg-canvas, main .bg-white {
+        background: rgba(255, 255, 255, .05);
+      }
+      main .bg-ink, #kdd-modal .bg-ink, #mobile-links {
+        background: rgba(8, 8, 12, .48);
+      }
+      main :is(.border-borderWarm, .border-borderWarm\/80, .border-ink, .border-ink\/15, .border-ink\/20, .border-ink\/25),
+      #kdd-modal .border-borderWarm, #mobile-links {
+        border-color: rgba(255, 255, 255, .12);
+      }
+      main .hover\:bg-ink:hover, main .hover\:bg-borderWarm:hover,
+      main .group:hover :is(.group-hover\:bg-ink, .group-hover\:bg-white),
+      #kdd-modal .hover\:bg-canvas:hover { background: rgba(255, 255, 255, .12); }
+      main .group:hover .group-hover\:text-ink { color: #fff; }
+      main .hover\:border-ink:hover { border-color: rgba(255, 255, 255, .24); }
+
+      :is(.glass-card-left, .glass-card-right, #what-we-do article, #what-we-do > div:last-child,
+        #lifetime-lingual > div, #lifetime-lingual .lg\:col-span-6 > .rounded-\[28px\],
+        #case-studies article, #for-dentists .rounded-\[28px\], #digital-prescription > div:first-child,
+        #case-progress ol > li, #find-dentist > div, #find-dentist form,
+        #kdd-modal .modal-panel, #service-hovercard, #demo-chat-panel,
+        #rx-completion-bar, .dental-viewport-card, .treatment-sidebar) {
+        background: rgba(8, 8, 12, .48);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, .12);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, .35);
+        transition: background-color .25s ease, border-color .25s ease, box-shadow .25s ease;
+      }
+      :is(.glass-card-left, .glass-card-right, #what-we-do article, #case-studies article,
+        #case-progress ol > li, #find-dentist form, #kdd-modal .modal-panel,
+        #service-hovercard, #demo-chat-panel, .dental-viewport-card, .treatment-sidebar):is(:hover, :focus-within) {
+        background: rgba(14, 14, 20, .58);
+        border-color: rgba(255, 255, 255, .24);
+      }
+      #lifetime-lingual .grid.grid-cols-3 > div,
+      #for-dentists .bg-canvas, #digital-prescription .bg-canvas,
+      #case-studies article .bg-white, #what-we-do article .bg-canvas,
+      #kdd-modal .bg-canvas, #demo-chat-header, .demo-chat-message,
+      .selected-tooth-banner, .tooth-context-menu, .plan-item,
+      .viewport-badge, .arch-quick-bar, .tooth-pill, .treatment-btn,
+      .vp-btn, .rx-shade-option, .rx-step-tab, .chart-tooth {
+        background: rgba(255, 255, 255, .05);
+        border: 1px solid rgba(255, 255, 255, .1);
+        color: rgba(255, 255, 255, .88);
+      }
+      #lifetime-lingual .grid.grid-cols-3 > div { padding: .8rem; border-radius: 1rem; }
+      #for-dentists .turn-btn, #for-dentists .exp-btn,
+      #digital-prescription .rx-step-tab, #digital-prescription .chart-tooth,
+      #digital-prescription .vp-btn, #digital-prescription .tooth-pill,
+      #digital-prescription .rx-shade-option {
+        color: #fff;
+      }
+      #for-dentists .turn-btn:hover, #for-dentists .exp-btn:hover,
+      #digital-prescription :is(.rx-step-tab, .chart-tooth, .vp-btn, .tooth-pill, .rx-shade-option):hover {
+        background: rgba(14, 14, 20, .58);
+        border-color: rgba(255, 255, 255, .24);
+      }
+      #digital-prescription .chart-tooth[aria-pressed="true"],
+      #digital-prescription .rx-step-tab[aria-current="step"],
+      #digital-prescription .jaw-toggle .vp-btn[aria-pressed="true"] {
+        background: rgba(246, 217, 149, .22);
+        border-color: #f6d995;
+      }
+      #digital-prescription .rx-shade-option[aria-pressed="true"] { border-color: #f6d995; }
+      .dental-planner-section, .dental-planner-header h2,
+      .selected-tooth-banner h3, .plan-list-header h4, .plan-item-meta strong,
+      #viewer-status { color: #fff; }
+      .tooth-context-menu-actions button, #tooth-context-close-btn {
+        background: rgba(255, 255, 255, .05);
+        border-color: rgba(255, 255, 255, .18);
+        color: #fff;
+      }
+      #tooth-context-close-btn:hover, #tooth-context-apply-btn:hover {
+        background: rgba(14, 14, 20, .58);
+        border-color: rgba(255, 255, 255, .24);
+      }
+      .dental-planner-header p, .tooth-context-menu-row label,
+      .plan-item-meta span { color: rgba(255, 255, 255, .75); }
+      .selected-tooth-banner .tooth-num, .tooth-menu-title { color: #f6d995; }
+      .dental-viewport-card #mouth-glb-viewer { background: rgba(0, 0, 0, .35); }
+      .dental-viewport-card .bg-surface, .treatment-sidebar .tooth-context-menu,
+      .treatment-sidebar .selected-tooth-banner { background: rgba(0, 0, 0, .35); }
+      .treatment-sidebar :is(.treatment-notes, .plan-item, .vp-btn),
+      .dental-viewport-card .vp-btn { background: rgba(255, 255, 255, .05); color: #fff; border-color: rgba(255, 255, 255, .1); }
+      .plan-remove-btn { color: #ffaba2; }
+      .palmer-pin { background: rgba(0, 0, 0, .55); color: #fff; }
+      .palmer-pin::after { border-top-color: rgba(0, 0, 0, .55); }
+      #rx-completion-bar .bg-borderWarm { background: rgba(255, 255, 255, .18); }
+      #kdd-modal .modal-panel.service-gallery { background: rgba(8, 8, 12, .72); }
+      #demo-chat-panel { color: rgba(255, 255, 255, .82); }
+      #demo-chat-header, .demo-chat-message { color: #fff; }
+      #demo-chat-toggle, #demo-chat-form button { background: rgba(8, 8, 12, .72); border: 1px solid rgba(255, 255, 255, .18); }
+      #demo-chat-form { border-color: rgba(255, 255, 255, .12); }
+
+      :is(#for-dentists, #digital-prescription, #find-dentist, #demo-chat)
+        :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+        background: rgba(0, 0, 0, .45);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, .18);
+        color-scheme: dark;
+      }
+      :is(#for-dentists, #digital-prescription, #find-dentist, #demo-chat) :is(input, textarea)::placeholder {
+        color: rgba(255, 255, 255, .5);
+      }
+      :is(#for-dentists, #digital-prescription, #find-dentist, #demo-chat) select option {
+        background-color: #121218;
+        color: #fff;
+      }
+      :is(#for-dentists, #digital-prescription, #find-dentist) :is(input[type="checkbox"], input[type="radio"]) {
+        accent-color: #f6d995;
+      }
+    }
+  </style>
   <div id="demo-chat" class="no-print">
     <section id="demo-chat-panel" aria-label="Demo chat" data-lenis-prevent hidden>
       <div id="demo-chat-header">
@@ -3859,6 +3997,8 @@
       const initialHash = window.initialScrollHash;
       const easeOut = (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t));
       const targetForHash = (hash) => hash === '#' ? 0 : document.getElementById(hash.slice(1));
+      // Keep fixed completion controls outside blurred and animated sections.
+      document.querySelector('main').appendChild(document.getElementById('rx-completion-bar'));
 
       if (initialHash) {
         window.setTimeout(() => {
@@ -3885,9 +4025,6 @@
       gsap.ticker.add((time) => lenis.raf(time * 1000));
       gsap.ticker.lagSmoothing(0);
       document.documentElement.classList.add('scroll-effects-active');
-
-      // Keep the prescription's fixed completion controls outside animated sections.
-      document.querySelector('main').appendChild(document.getElementById('rx-completion-bar'));
 
       document.addEventListener('click', (event) => {
         const link = event.target instanceof Element ? event.target.closest('a[href^="#"]') : null;
