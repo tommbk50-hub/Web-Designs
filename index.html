@@ -3863,6 +3863,7 @@
       if (initialHash) {
         window.setTimeout(() => {
           history.replaceState(history.state, '', initialHash);
+          if (!window.lenis) history.scrollRestoration = 'auto';
           const target = targetForHash(initialHash);
           if (target != null) {
             if (window.lenis) window.lenis.scrollTo(target, { offset: -80, duration: 1.5, easing: easeOut });
