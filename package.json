@@ -1,0 +1,14 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "esbuild hero-gradient.jsx --bundle --minify --outfile=vendor/hero-gradient.js"
+  },
+  "dependencies": {
+    "hazeglow": "^0.6.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}
