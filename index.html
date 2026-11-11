@@ -3816,5 +3816,13 @@
       });
     })();
   </script>
+  <script>
+    const buttonSound = new Audio('./sounds/buttons.mp3');
+    document.addEventListener('click', (event) => {
+      if (!(event.target instanceof Element) || !event.target.closest('button')) return;
+      buttonSound.currentTime = 0;
+      buttonSound.play().catch((error) => console.error('Button sound could not play:', error));
+    });
+  </script>
 </body>
 </html>
