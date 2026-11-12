@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "build": "esbuild hero-gradient.jsx --bundle --minify --outfile=vendor/hero-gradient.js"
+    "build": "node build.mjs"
   },
   "dependencies": {
     "gsap": "^3.15.1",

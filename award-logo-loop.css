@@ -1,0 +1,15 @@
+#award-logo-loop:not(:empty) {
+  position: relative;
+  z-index: 1;
+  padding: 14px 0;
+  background: #120b08;
+  border-bottom: 1px solid rgba(197, 155, 71, 0.35);
+}
+
+#award-logo-loop .logoloop {
+  color: #f6d995;
+}
+
+#award-logo-loop .logoloop__item img {
+  max-width: 220px;
+}
