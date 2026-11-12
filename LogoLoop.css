@@ -118,6 +118,36 @@
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.logoloop__award-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 176px;
+  height: 112px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.logoloop__award-card:hover {
+  transform: scale(1.04);
+  border-color: rgba(246, 217, 149, 0.4);
+  box-shadow: 0 0 20px rgba(197, 155, 71, 0.14);
+}
+
+.logoloop__item .logoloop__award-image {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 76px;
+  object-fit: contain;
+}
+
 .logoloop--scale-hover .logoloop__item:hover img,
 .logoloop--scale-hover .logoloop__item:hover .logoloop__node {
   transform: scale(1.2);
@@ -202,7 +232,12 @@
   .logoloop__content,
   .logoloop__node,
   .logoloop__item img,
+  .logoloop__award-card,
   .logoloop__tip {
     transition: none;
+  }
+
+  .logoloop__award-card:hover {
+    transform: none;
   }
 }

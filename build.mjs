@@ -21,10 +21,14 @@ await build({
     setup(plugin) {
       plugin.onResolve({ filter: /^award-logos$/ }, () => ({ path: 'award-logos', namespace: 'award-logos' }));
       plugin.onLoad({ filter: /.*/, namespace: 'award-logos' }, () => ({
-        contents: `export default ${JSON.stringify(files.map(name => ({
-          src: `./images/logos/${encodeURIComponent(name)}`,
-          alt: name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ')
-        })))};`,
+        contents: `export default ${JSON.stringify(files.map(name => {
+          const title = name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ');
+          return {
+            src: `./images/logos/${encodeURIComponent(name)}`,
+            alt: title,
+            title
+          };
+        }))};`,
         loader: 'js'
       }));
     }

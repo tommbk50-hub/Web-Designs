@@ -2,14 +2,12 @@
   position: relative;
   z-index: 1;
   padding: 14px 0;
-  background: #120b08;
+  background: rgba(18, 11, 8, 0.78);
   border-bottom: 1px solid rgba(197, 155, 71, 0.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 #award-logo-loop .logoloop {
   color: #f6d995;
-}
-
-#award-logo-loop .logoloop__item img {
-  max-width: 220px;
 }
