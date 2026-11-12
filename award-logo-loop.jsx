@@ -1,20 +1,32 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import LogoLoop from "./LogoLoop";
-import logos from "award-logos";
+import awardLogos from "award-logos";
 import "./award-logo-loop.css";
 
-if (logos.length) {
+if (awardLogos.length) {
   createRoot(document.getElementById("award-logo-loop")).render(
     <LogoLoop
-      logos={logos}
+      logos={awardLogos}
       speed={45}
-      logoHeight={54}
-      gap={64}
+      logoHeight={76}
+      gap={24}
       hoverSpeed={0}
       draggable={false}
       intro={false}
       ariaLabel="Knight Dental Design awards"
+      renderItem={(item, key) => (
+        <div className="logoloop__award-card" key={key} title={item.title}>
+          <img
+            className="logoloop__award-image"
+            src={item.src}
+            alt={item.alt}
+            loading="lazy"
+            decoding="async"
+            draggable={false}
+          />
+        </div>
+      )}
     />
   );
 }
