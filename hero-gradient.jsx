@@ -2,6 +2,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { Hazeglow, parseConfig } from "hazeglow";
 import "./service-gallery";
+import "./award-logo-loop";
 
 const config = parseConfig({
   "version": 1,
